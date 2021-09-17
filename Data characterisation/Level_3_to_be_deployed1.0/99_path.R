@@ -1,6 +1,6 @@
 #Directory
 setwd('..') #in Data Characterisation
-setwd('..') #in ConcePTION
+setwd('..') #in LOT4
 dir_base<-getwd()
 # set the name of the study
 StudyName <- "LOT4"
