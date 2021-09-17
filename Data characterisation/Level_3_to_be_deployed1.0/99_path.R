@@ -3,7 +3,7 @@ setwd('..') #in Data Characterisation
 setwd('..') #in ConcePTION
 dir_base<-getwd()
 # set the name of the study
-StudyName <- "ConcePTION"
+StudyName <- "LOT4"
 path_dir<-paste0(dir_base,"/CDMInstances/",StudyName,"/")
 path<-path_dir
 
