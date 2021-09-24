@@ -1,13 +1,5 @@
-
-<!-- PROJECT LOGO -->
-<br />
-<p align="left">
-  <a href="https://github.com/vjolahoxhaj/Level-3-checks">
-    <img src="images/conception_logo.png" alt="Logo" width="250" height="60">
-  </a>
-  </p>
-  
- <h3 align="center">Level 3 checks</h3>
+ 
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts</h3>
  <p align="center"> R scripts to produce high-level characterization data to benchmark across DAPs and with external resources. </p>
  
 <!-- TABLE OF CONTENTS -->
