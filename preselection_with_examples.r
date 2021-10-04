@@ -53,7 +53,13 @@ plot(x=(as.factor(example_filtered_data[[2]]$filter_step)), y=example_filtered_d
 #check on sample data
 
 PERSONS<-read.csv("C:\\Users\\Acer\\OneDrive\\Documents\\GitHub\\LOT4\\CDMInstances\\LOT4\\PERSONS.csv")
-colnames(PERSONS)
+table(PERSONS$sex_at_instance_creation)
+# > table(PERSONS$sex_at_instance_creation)
+# WHAT IS GOING ON WITH THIS VARIABLE?
+#      F   M 
+# 861  61  59 
+
+
 filtered_data<-personsfilter(personstable = PERSONS, caseid = "person_id", sex = "sex_at_instance_creation", 
                            female = "F", dob = "year_of_birth", dobmin = 1954, dobmax=2008)
 summary(filtered_data)
@@ -123,7 +129,7 @@ med_ID<-ATCfilter(medtable = myMED)
 
 combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= med_ID[[3]])
 {final_med_data<- med_filter_data[(med_filter_data[["person_id"]]%in%person_filter_ID==T),]
-  final_med_ID<-final_med_data[["person_id"]]
+  final_med_ID<-unique(final_med_data[["person_id"]])
   final_flowchart<-c(nrow(med_filter_data), nrow(final_med_data))
   final_output<-list(final_med_ID, final_flowchart, final_med_data)
           return(final_output)}
@@ -132,10 +138,13 @@ combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= 
 ex_output<-combine_filter(person_filter_ID = filtered_data[[1]], med_filter_data= med_ID[[3]])
 
 
-ex_output[[1]]
+length(ex_output[[1]])
 ex_output[[2]]
 ex_output[[3]]
 
+cases<-c(981, 61, 39,19)
+steps<- c("original", "female", "DOB", "ATC")
 
+plot(x=(1:4), y=cases, type= "b", lwd=3)
 
       
