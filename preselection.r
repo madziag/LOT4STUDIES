@@ -69,32 +69,52 @@ summary(filtered_data)
 
 
 #isolate first 4 cijfers
-substr(MEDICINES$ATC1, 1, 4)
+# substr(MEDICINES$ATC1, 1, 4)
 
-#first step, establish ATC library
+#establish ATC library
 
-#mix of SAP ATCs and random ATCs
-# random
-ATC1<-sample(c("A10AE01", "P16AE01", "B20AE01", "A37GE01", "N10AE01"),100, replace = T)
-# SAP
+# SAP ATCs
 ATC_lib<-as.data.frame(read.csv("C:\\Users\\Acer\\OneDrive\\Documents\\work\\lot4\\ATC_lot4.csv"))
 colnames(ATC_lib)<-c("drug_name", "ATC")
 ATC_lib<-unique(ATC_lib)
 ATC_lib<-ATC_lib[complete.cases(ATC_lib)==T,]
 ATC_lot4<-ATC_lib$ATC
 
-#something going wrong here concatenate causing integers 
+ATCfirst4<-substr(ATC_lot4, 1,4)
 
-ATC<-(c(ATC1[1:50], ATC_lot4[1:50]))
+#here are the 4 digit codes from the SAP to filter the MEDICINES table
+ATCfirst4<-unique(ATCfirst4)
+
+#one ATC from LOT4 lib (G03AA13), and one random (A10AE01) to test selection
+ATCex<-rep(c("G03AA13", "A10AE01"),50)  
+
+#create sample dataset
 numloc<-(1:100)
-MEDICINES<-as.data.frame(cbind(numloc, ATC))
+MEDICINES<-as.data.frame(cbind(numloc, ATCex))
 
 rm(numloc)
-rm(ATC1)
-rm(ATC)
+rm(ATCex)
 #second match to data
 
-MEDICINES[MEDICINES[,"ATC"]
-          
-          %in%ATC_lib$ATC]
+
+ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_atc_code", Lot4ATC= 
+                      c( "N03A","N05B", "N05A", "C07A", "N06A", "N07C", "N02C", "C02A", "G03A",
+                          "G03D", "G02B", "B03B", "B03A", "D10A", "J01F", "S01A", "J01A",
+                            "D07A", "H02A", "D11A", "L04A", "D05A", "D05B")){
+  medATC4<-substr((medtable[,ATC]), 1,4)
+  newMED<-medtable[(medATC4%in%Lot4ATC),]
+  
+  medID<-as.vector(newMED[,ID])
+  return(medID)
+  }          
+
+#should return odd rows
+medID<-ATCfilter(medtable = MEDICINES, ID="numloc", ATC="ATCex")
+#good
+rm(medID)
+rm(MEDICINES)
+
+myMED<-as.data.frame(read.csv("C:\\Users\\Acer\\OneDrive\\Documents\\GitHub\\LOT4\\CDMInstances\\LOT4\\MEDICINES_2019_SPF.csv"))
+
+med_ID<-ATCfilter(medtable = myMED)
 
