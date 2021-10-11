@@ -3,6 +3,9 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 30/9/2021
 
+
+
+# READ.ME
 #LOT 4 preselection
 #this script contains 3 functions which filter DAP data down to elligible cases based on broad criteria: gender, age, and ATC
 #the goal of this function is to remove the first layers of uneccessary cases from datasets, reducing the size of data for DAPs

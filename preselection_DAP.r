@@ -59,7 +59,7 @@ ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_a
   medATC4<-substr((medtable[,ATC]), 1,4)
   newMED<-medtable[(medATC4%in%Lot4ATC),]
   
-  medID<-newMED[[ID]]
+  medID<-unique(newMED[[ID]])
   flowchart_ATC<-c(nrow(medtable), nrow(newMED))
   ATC_filter_output<-list(medID, flowchart_ATC, newMED)
   return(ATC_filter_output)
@@ -76,3 +76,7 @@ combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= 
   final_output<-list(final_med_ID, final_flowchart, final_med_data)
           return(final_output)}
 
+#apply to other tables
+
+for (i in 1:length(table_list)){
+  table_list[[i]]<-table_list[[i]][table_list[[i]]$PERSON_ID%in%final_output[1]]}
