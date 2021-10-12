@@ -8,10 +8,17 @@
 # READ.ME
 #LOT 4 preselection application onto multiple table subsets (especially MEDICINES)
 
+# set path
+path<-"C://Users//Acer//OneDrive//Documents//GitHub//LOT4//"
+
 #get tables 
+#VJOLA please insert the code here for loading the lists of tables
+
+
+
 
 #get functions
-load(preselection_DAP.r)
+source(paste0(path, "preselection_DAP.r"))
 
 firstfilter_ID<-vector()
 for(i in 1:length(PERSONS{
@@ -30,6 +37,7 @@ for(i in 1:length(PERSONS{
   final_ID<-(ATCfilter_ID%in%firstfilter_ID)
 
 for(i in 1:length(tables)){
-  table<-table[table$person_id%in%final_ID]
-  write.csv(paste0(path,"CDMInstances\\CDMInstances_preselect\\"))
+  #need to name each new table the same as the old table, then write in the new folder
+  tables[[i]]<-tables[[i]][tables[[i]]$person_id%in%final_ID]
+  write.csv(tables[[i]], paste0(path,"CDMInstances\\CDMInstances_preselect\\"))
 }

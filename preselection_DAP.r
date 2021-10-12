@@ -76,7 +76,3 @@ combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= 
   final_output<-list(final_med_ID, final_flowchart, final_med_data)
           return(final_output)}
 
-#apply to other tables
-
-for (i in 1:length(table_list)){
-  table_list[[i]]<-table_list[[i]][table_list[[i]]$PERSON_ID%in%final_output[1]]}
