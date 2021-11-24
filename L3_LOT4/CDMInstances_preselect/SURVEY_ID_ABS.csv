@@ -1,0 +1,8 @@
+person_id,survey_id,survey_date,survey_meaning,survey_origin
+ConCDM_SIM_200421_00069,ABS_1,20051014,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00219,ABS_2,20090302,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00449,ABS_5,20040621,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00449,ABS_6,20040801,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00705,ABS_8,20040122,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00996,ABS_9,20100402,spontaneous_abortion_registry,ABS
+ConCDM_SIM_200421_00996,ABS_10,20051213,spontaneous_abortion_registry,ABS
