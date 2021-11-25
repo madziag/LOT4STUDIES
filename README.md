@@ -31,7 +31,7 @@
 <!-- Lot 4 studies -->
 ## Lot 4 studies
 
-Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/viewResource.htm?id=31096) and [Lot 4 valproates] (https://www.encepp.eu/encepp/viewResource.htm?id=36586) can be found on the EU PAS register.
+Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/viewResource.htm?id=31096) and [Lot 4 valproates](https://www.encepp.eu/encepp/viewResource.htm?id=36586) can be found on the EU PAS register.
 
 <!-- Scripts -->
 ## Study scripts
