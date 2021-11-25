@@ -2,15 +2,17 @@
 empty_counts_df <- expand.grid(seq(2009, 2019), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
 # Load study population
+# study_population_list<-list.files(populations_dir, pattern="population")
+# study_population <-lapply(paste0(populations_dir,"/", study_population_list), readRDS)
+# study_population <- rbindlist(study_population)
+
 study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load code file
 filename <- "CodeLists/Lot4_completediagnosis_codelist_20211110.xlsx"
-# matches <- c("pregtest", "sterility", "iud", "ind", "depression", "adr")
 matches <- c()
 print("Loading Concept Sets")
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
 # Reads in study population
-study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 if(length(actual_tables$EVENTS)>0){
   # Lists for saving info
   count_list <- list() # Saves counts for all variables in a list 
@@ -56,7 +58,7 @@ if(length(actual_tables$EVENTS)>0){
     df<-df[is.na(event_vocabulary) | event_vocabulary %in% vocabularies_list] #remove records where vocabularies are not of interest
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     print(paste0("Finding matching records in ", actual_tables$EVENTS[y]))
-    # Create a new folder for each ADR type (to store records with matching ADR codes)
+    # Create a new folder for each code group type (to store records with matching codes)
     for (z in 1:length(conditions_all)){
       ifelse(!dir.exists(file.path(events_tmp_dx, names(conditions_all[z]))), dir.create(paste(events_tmp_dx, names(conditions_all[z]), sep="")), FALSE)
       events_variable[[z]] <- paste(events_tmp_dx, names(conditions_all[z]), sep="")
@@ -182,27 +184,27 @@ if(length(actual_tables$EVENTS)>0){
     } 
     w<-w+1
   } 
-  # Load files from all folders to form a df for each ADR type
+  # Load files from all folders to form a df for each code group type
   # Count the number of patients per code type per month per year, store as a list 
   print("Counting records")
   folders_list <- list.files(events_tmp_dx)
   for (i in 1:length(folders_list)){
     file_list <-list.files(paste0(events_tmp_dx, folders_list[i]), "\\.rds$")
     if (length(file_list)>0){
-      combined_ADR_events<-lapply(paste0(paste0(events_tmp_dx, folders_list[i], "/"), file_list), readRDS)
-      combined_ADR_events<-do.call(rbind,combined_ADR_events)
-      count <- combined_ADR_events[,.N, by = .(year, month(event_date))]
+      combined_events<-lapply(paste0(paste0(events_tmp_dx, folders_list[i], "/"), file_list), readRDS)
+      combined_events<-do.call(rbind,combined_events)
+      count <- combined_events[,.N, by = .(year, month(event_date))]
       count <- merge(x = empty_counts_df, y = count, by = c("year", "month"), all.x = TRUE)
       count[is.na(count$N),]$N <- 0
 
       if (subpopulations_present=="Yes"){
-        if(combined_ADR_events[,.N]>0){
-          saveRDS(combined_ADR_events, paste0(diagnoses_tmp ,subpopulations_names[s], "/", folders_list[i],".rds"))
+        if(combined_events[,.N]>0){
+          saveRDS(combined_events, paste0(diagnoses_tmp ,subpopulations_names[s], "/", folders_list[i],".rds"))
           saveRDS(count, paste0(monthly_counts_dx,"/", subpopulations_names[s], "/", folders_list[i],"_counts.rds"))
           } else {print(paste("There are no matching records for", folders_list[i]))}
         } else {
-          if(combined_ADR_events[,.N]>0){
-            saveRDS(combined_ADR_events, paste0(diagnoses_tmp ,folders_list[i],".rds"))
+          if(combined_events[,.N]>0){
+            saveRDS(combined_events, paste0(diagnoses_tmp ,folders_list[i],".rds"))
             saveRDS(count, paste0(monthly_counts_dx,"/",folders_list[i],"_counts.rds"))
             } else {print(paste("There are no matching records for", folders_list[i]))}
           }

@@ -6,7 +6,6 @@
 #projectFolder is where to_run_preselect.r is saved (LOT4 folder)
 
 if(!require(data.table)){install.packages("data.table")}
-
 library(data.table)
 
 #set up folders
@@ -14,11 +13,11 @@ getwd()
 setwd('..')
 base_folder<-getwd()
 
-
+# Deletes CDMInstances_preselect folder if it exists
+if ("CDMInstances_preselect" %in% list.files(base_folder)){unlink(paste0(base_folder,"/CDMInstances_preselect"), recursive = TRUE)}
+# Creates CDMInstances_preselect folder and sets paths
 dir.create(paste0(base_folder,"/CDMInstances_preselect"))
-
 preselect_folder<-(paste0(base_folder,"/CDMInstances_preselect/"))
-
 data_folder<-(paste0(base_folder,"/CDMInstances/LOT4"))
 
 # READ.ME
@@ -102,8 +101,10 @@ if(length(actual_tables_preselect$PERSONS)>1){
   PERSONS<-lapply(paste0(data_folder,"/",actual_tables_preselect$PERSONS), fread)
   PERSONS<-do.call(rbind,PERSONS)
   PERSONS<-as.data.table(PERSONS)
+
 }else {
   PERSONS<-fread(paste0(data_folder,"/",actual_tables_preselect$PERSONS))
+  
 }
 
 
@@ -129,7 +130,6 @@ tables_df<-as.data.frame(unlist(actual_tables_preselect))
 colnames(tables_df)<-"CDMtableName"
 tables_vec_all<-unique(as.vector(tables_df$CDMtableName))
 
-
 #subset data using presection IDs and write new files
 #need to name each new table the same as the old table, then write in the new folder
 for(i in 1:length(tables_vec_all)){
@@ -147,3 +147,4 @@ for(fil_ind in 1:length(to_be_copied)){
   mytable<-fread(paste0(data_folder,"/",tablename))
   fwrite(mytable, paste0(preselect_folder, tablename), row.names = F)
 }
+

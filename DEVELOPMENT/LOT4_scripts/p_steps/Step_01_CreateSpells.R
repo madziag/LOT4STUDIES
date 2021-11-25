@@ -32,9 +32,11 @@ if(SUBP){
   for(i in 1:nrow(subpopulation_meanings)){
           print(subpopulation_meanings[["subpopulations"]][i])
           before <- nrow(OBSERVATION_PERIODS)
-          TEMP <- OBSERVATION_PERIODS[meaning_set %in% str_split(subpopulation_meanings[subpopulations==subpopulations[i],meaning_sets], pattern = " ")]
+          TEMP <- OBSERVATION_PERIODS[meaning_set %in% unlist(str_split(subpopulation_meanings[subpopulations==subpopulations[i],meaning_sets], pattern = " "))]
           TEMP <- TEMP[,c("person_id","op_start_date","op_end_date","meaning_set")]
-        
+          #TEMP <- TEMP[0]
+          
+          if(nrow(TEMP) > 0){
           if(length(strsplit(subpopulation_meanings[["subpopulations"]][i],"-")[[1]]) > 1){
             print("Select only overlapping periods")
             
@@ -111,10 +113,12 @@ if(SUBP){
               TEMP[,op_end_date := as.IDate(op_end_date)]
               
           }
+          }else{
+            TEMP <- data.table(person_id = as.character(), op_start_date = as.IDate(x = integer(0), origin = "1970-01-01"), op_end_date = as.IDate(x = integer(0), origin = "1970-01-01"), meaning_set = as.character(), num_spell = as.numeric())
+            print(paste0(subpopulation_meanings[["subpopulations"]][i]," has no observations. Please check if metadata is filled correctly and if CDM contains observations for this subpopulation"))
+          }
           
-          
-          
-          TEMP <- TEMP[,temp := lapply(.SD, max), by = c("person_id"), .SDcols = "num_spell"][temp == num_spell,][,temp := NULL]
+          if(nrow(TEMP) > 0) TEMP <- TEMP[,temp := lapply(.SD, max), by = c("person_id"), .SDcols = "num_spell"][temp == num_spell,][,temp := NULL]
           saveRDS(TEMP, file = paste0(std_pop_tmp,subpopulation_meanings[["subpopulations"]][i],"_OBS_SPELLS.rds"))
           
           after <- nrow(TEMP)
@@ -144,10 +148,6 @@ OBSERVATION_PERIODS1 <- CreateSpells(
   only_overlaps = F
 )
 
-mostrecent<-nrow(OBSERVATION_PERIODS1[(duplicated(OBSERVATION_PERIODS1$person_id, fromLast = TRUE)==F),])
-
-OBSERVATION_PERIODS1<- OBSERVATION_PERIODS1[(duplicated(OBSERVATION_PERIODS1$person_id, fromLast = TRUE)==F),]
-
 OBSERVATION_PERIODS1 <- OBSERVATION_PERIODS1[,temp := lapply(.SD, max), by = c("person_id"), .SDcols = "num_spell"][temp == num_spell,][,temp := NULL]
 setnames(OBSERVATION_PERIODS1, "entry_spell_category", "op_start_date")
 setnames(OBSERVATION_PERIODS1, "exit_spell_category", "op_end_date")
@@ -159,7 +159,6 @@ FlowChartCreateSpells[["Spells_ALL"]]$step <- "01_CreateSpells"
 FlowChartCreateSpells[["Spells_ALL"]]$population <- "ALL"
 FlowChartCreateSpells[["Spells_ALL"]]$before <- before
 FlowChartCreateSpells[["Spells_ALL"]]$after <- after
-FlowChartCreateSpells[["Spells_ALL"]]$mostrecent <-mostrecent
 rm(OBSERVATION_PERIODS1)
 
 ###################################################################################################################### 
