@@ -1,6 +1,6 @@
  
  <h3 align="center">Lot 4 Retinoids and Valproates study scripts</h3>
- <p align="center"> R scripts to produce high-level characterization data to benchmark across DAPs and with external resources. </p>
+ <p align="center"> R scripts for the analyses of the Lot 4 retinoids and valproates studies. </p>
  
 <!-- TABLE OF CONTENTS -->
 <details open="open">
@@ -28,50 +28,39 @@
   </ol>
 </details>
 
-<!-- ABOUT THE PROJECT -->
-## About The Project
+<!-- Lot 4 studies -->
+## Lot 4 studies
 
-[ConcePTION](https://www.imi-conception.eu) aims to build an ecosystem that can use Real World Data (RWD) to generate Real World Evidence (RWE) that may be used for clinical and regulatory decision making. RWE is required to address the big information gap of medication safety in pregnancy.   
+Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/viewResource.htm?id=31096) and [Lot 4 valproates] (https://www.encepp.eu/encepp/viewResource.htm?id=36586) can be found on the EU PAS register.
 
-ConcePTION is designed to be a learning healthcare system (LHS). In the ConcePTION LHS, we have agreed upon a study-independent syntactically harmonized common data model and aim to assess the quality and fitness for purpose of data in this CDM in a study-independent way (for quality and completeness) and in study design and research question-specific ways (for fitness for purpose).
+<!-- Scripts -->
+## Study scripts
 
-ConcePTION CDM tables:
-<p align="left">
-  <a href="https://github.com/vjolahoxhaj/Level-3-checks">
-    <img src="images/conception_cdm_tables.png" alt="Logo" width="450" height="250">
-  </a>
-  </p>
+**GitHub resources**      
+The following GitHub repositories are used in the Lot 4 studies:
+**1.**	Quality checks I [Level 1 checks](https://github.com/IMI-ConcePTION/Level-1-checks)
+**2.**	Quality checks II [Level 2 checks](https://github.com/IMI-ConcePTION/Level-3-checks)   
+**3.**	Quality checks III [Level 3 checks](https://github.com/IMI-ConcePTION/Level-4-checks) 
+**4.**  Scripts for creating sets of pregnancies from study data, to be used in the analyses [ConcePTIONAlgorithmPregnancies](https://github.com/ARS-toscana/ConcePTIONAlgorithmPregnancies)  
+**5.**  The study analysis script suite    
 
-<!-- Level 3 checks -->
-## Level 3 checks
 
-**Aims of Level 3 quality checks:**      
-**1.**	To perform high-level data characterization of the [ConcePTION CDM]((https://docs.google.com/spreadsheets/d/1hc-TBOfEzRBthGP78ZWIa13C0RdhU7bK/edit#gid=413205035)) instance for each DAP and benchmark across DAPs and with external resources.     
-***a.***	Assessing medication use in females of childbearing age and in pregnancy.    
-***b.***	Assessing vaccine exposure in females of childbearing age and in pregnancy.   
-***c.*** Calculation of incidence rates of events during pregnancy and before/after.             
-***d.*** Assessing severity of specific maternal conditions.         
-***e.*** Assessing prenatal and antenatal outcomes in relation to drug exposure for signal generation and signal evaluation.     
-***f.*** Assessing medication use in the study population.     
-***g.*** Assessing vaccine exposure in the study population.
 
-***Level 3 checks will quantify population and person time in each data source for the source and study population as a whole as well as for subpopulations of interest. Examples of this type of check include: counts of codes extracted to identify each event and exposure of interest, counts of medication prescription and vaccine administrations etc.*** 
+**Study analysis script suite is divided in 7 parts:**   
 
-**The level 3 checks are divided in 8 major steps:**   
+1.	***preselect***. This script creates a subfolder where your CDM data is stored and creates a copy of the data files, excluding male subjects, subjects outside of the eligible birthdate range, and for MEDICINES, excludes irrelevant ATC classes.
+2.	***source_population_counts***. This script i) creates a study population, excluding ineligiable subjects, ii) creates counts of the occurrence of event (clinical event or prescription/dispensing) records in the data for concept sets in the study per month, iii) counts the number of persons observed in the data per month, iv) plots the counts and saves the output locally. This is a generic analysis that is run for both the retinoids and valproates studies. In the first version of this function (25 NOV 2021), this counts records from the EVENTS and MEDICINES tables. An update is scheduled (29 NOV 2021), where records will be counted from the PROCEDURES and MEDICAL_OBSERVATIONS tables, counts will be stratified by (((meaning))) and (((origin))), rates of records (number of records per person month) will be calculated and plotted, and there will be an option to specify the format of output (.csv or .xls). 
+3.	***baseline***.  This script will create a simple baseline table, where the anchor point will be the moment an individual first is eligible to be observed during the study period. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
+4.	***objective1***. This script will produce the analysis results for Objective 1. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
+5.	***objective2***. This script will produce the analysis results for Objective 2. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
+6.	***objective3***. This script will produce the analysis results for Objective 3. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
+7.	***objective4*** This script will produce the analysis results for Objective 4. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
 
-1.	Source and study population.   
-2.	Medicines.   
-3.	Vaccines.   
-4.	Diagnoses.   
-5.	Pregnancy.    
-6.	Populations of interest.   
-7.	Health-seeking behaviour and lifestyle factors.   
-8.	EUROCAT indicators.   
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Follow the steps below to run Level 3 checks in your data.   
+Follow the steps below to run the scripts
 
 ### Prerequisites
 
@@ -79,39 +68,19 @@ R version 4.1.0 (2021-05-18)
 
 ### Installation
 
-1. Download the ZIP folder and extract the contents.   
-2. Create a main folder with the name of your project(if you already have done so for Level 1/2 checks skip this step).     
-3. Inside the main folder create the folder `Data characterisation`. Put the extracted folder inside.   
-4. Inside the main folder create a folder named `CDMInstances`, which will be used to store the .csv files representing the CDM tables(if you already have done so for Level 1/2 checks skip this step).      
-5. Inside the `CDMInstances` folder create a folder with the name of your project and inside the latter put all your .csv files(if you already have done so for Level 1/2 checks skip this step).      
-6. In the folder `Level_3_checks_to_be_deployed_v1.0`, go to the script 99_path.R and change the variable Studyname(line 6) to the name of your project. Make sure that the name of the folder you have created in the folder `CDMInstances` and the name of the variable match exactly. Save it.         
-7. Open the to_run.R script.  
-
-8. If your data source contains a birth registry, in line 13 you need to specify the meaning variable which means birth in your `SURVEY_OBSERVATIONS` table. The example shows `birth_registry_mother`. This variable will be used to select women who gave birth and classify them as having an `end_of_pregnancy` code. iIf you do not have a birth registry, then replace line 13 with the following: `meanings_birth_registry<-c()`.  
-
-9. To run the Lifestyle script a few variables need to be specified. The information needed is the name of the CDM table where you have saved the information(`CDM_table`), the name of the CDM column where this information is stored(`CDM_column`), the original name of your variable(`value`), the CDM variable where the vocabulary (if there is a vocabulary) is saved(`c.voc`), the value of the vocabulary(`v.voc`) and the date variable that stores the date of recording(`v.date`). In line 30 you can find an example of how to fill out this information. The information needed refers to smoking, alcohol abuse, folic acid use, BMI and SES. Please fill out the information in line 39. If no data is available, delete all information about Lifestyle and replace that with `Lifestyle<-list()`. If there is missing information for a particular variable, delete the section regaring that variable and leave the others as they are.
-
-10. After everything is complete, select all by using ctrl+A(Windows) or cmmd+A(Mac) and run.    
-
-***Folder structure***
-
-Main folder
-
- * [CDMInstances](./CDMInstances)
-   * [Project_name](./CDMInstances/Project_name)
-     * [files.csv](./CDMInstances/Project_name/files.csv)
-     
- * [Data characterisation](./Data_characterisation)
-   * [Level_1_checks_to_be_deployed_v5.2](./Data_characterisation/Level_1_checks_to_be_deployed_v5.2)
-   * [Level_2_checks_to_be_deployed2.0](./Data_characterisation/Level_2_checks_to_be_deployed2.0)
-   * [Level_3_to_be_deployed1.0](./Data_characterisation/Level_3_to_be_deployed1.0)
+1. Download the ZIP folder and extract the contents. ONLY KEEP THE RELEASE FOLDER. Discard the DEVELOPMENT folder.  
+2. Copy the LOT4_scripts folder from the RELEASE folder into the same local folder as where you store the CDMInstances folder as well as Level 1-3 check script folders  
+3. In the folder `LOT4_scripts`, go to the script 99_path.R and change the variable Studyname(line 6) to LOT4.     
+4. Now you are ready to run the (((to_run))) files. Each of these files runs a different analysis, as listed above. If you have not run the preselect script yet, do this first by running the script "to_run_preselect". We ask that you run this and compare this against your CDM instance tables. You may run the following analysis scripts on either your original data OR the preselection data. If you don't wish to use the subsetted preselection files, you may delete them. If you choose to use the subsetted files created by the preselection script, you will need to adjust your path in the 99_path.R file to find the preselect data files (otherwise R will automatically detect the original CDM files. Contact Romin (R.Pajouheshnia@uu.nl) if you need help with this.
+You may now run the "to_run_source_population_counts" fil
+Lastly, in the "to_run" files, make sure that mask = T, so that values <5 are masked. Currently this is implemented by converting them to 5. This will be changed in an update.
 
 
-### Subpopulation analysis
+### Subpopulation analysis (THIS WILL BE UPDATED FOR 29 NOV UPDATE)
 
 A subpopulation analysis can be performed if your data has different provenance(i.e. different levels of the healthcare system such as hospital data and general practitioner data etc). This analysis helps to identify errors for each specific data sub sample. If you already know that your data quality is similar you can skip this analysis.    
 
-To run the level 3 checks with subpopulation analysis follow the next steps:      
+To run the analysis scripts with subpopulation analysis follow the next steps:      
 1. Complete the `METADATA` table accordingly. In `type_of_metadata = subpopulations` in the column `values`, add all your subpopulations of interest separated by space. Leave `tablename`, `columnname` and `other` columns empty. Example if you have hospital(HOSP) data and primary care(PC) data you will add `HOSP PC` to the `values` column.     
 2. If you want to analyse the overlap between different subpopulations, add first_subpopulation-sencond_subpopulation in `type_of_metadata = subpopulations` in the column `values` Example if you look at the overlap between hospital data and primary care data add `HOSP-PC` to the `values` column.        
 3. In `type_of_metadata = op_meaning_sets` in the column `values` specify each meaning set referring to a subpopulation. Separate meaning sets by space In the column `other` add the name of the subpopulation. Leave `tablename` and `columnname` empty. Example if for the primary care data you will add the meaning sets meaningsPC and meaningsPHARMA you will add in the `other` column, `PC` and in the `values` column, `meaningsPC meaningsPHARMA`.      
@@ -123,17 +92,7 @@ To run the level 3 checks with subpopulation analysis follow the next steps:
 
 ### Uploading results to the online research environment
 
-In development.
-
-### Data characterization study links   
-
-[Level 1 checks](https://github.com/IMI-ConcePTION/Level-1-checks): Checking the integrity of the ETL procedure.     
-[Level 2 checks](https://github.com/IMI-ConcePTION/Level-2-checks): Checking the logical relationship of the CDM tables.    
-[Level 3 checks](https://github.com/IMI-ConcePTION/Level-3-checks): Benchamrking across DAPs and external sources.     
-
-### Current version
-
-The current version of the script is 1.0.
+###The current version of the script is 1.0.
 
 <!-- LICENSE -->
 ## License
@@ -143,9 +102,7 @@ Distributed under the BSD 2-Clause License License. See `LICENSE` for more infor
 <!-- CONTACT -->
 ## Contact
 
-Vjola Hoxhaj - v.hoxhaj@umcutrecht.nl     
-Roel Elbers - R.J.H.Elbers@umcutrecht.nl       
+Romin Pajouheshnia - R.pajouheshnia@uu.nl
 Ema Alsina - palsinaaer@gmail.com  
-
-Project Link: [https://github.com/IMI-ConcePTION/Level-3-checks](https://github.com/IMI-ConcePTION/Level-3-checks)
-
+Magdalena Gamba
+Vjola Hoxhaj - v.hoxhaj@umcutrecht.nl     
