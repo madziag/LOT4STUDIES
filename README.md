@@ -7,10 +7,10 @@
   <summary>Table of Contents</summary>
   <ol>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#Lot 4 studies">Lot 4 studies</a>
     </li>
     <li>
-      <a href="#level-3-checks">Level 3 checks</a>
+      <a href="#Scripts">Scripts</a>
     </li>
     <li>
       <a href="#getting-started">Getting Started</a>
@@ -36,15 +36,13 @@ Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/vie
 <!-- Scripts -->
 ## Study scripts
 
-**GitHub resources**      
+**GitHub resources for the LOT4 studies**      
 The following GitHub repositories are used in the Lot 4 studies:
-**1.**	Quality checks I [Level 1 checks](https://github.com/IMI-ConcePTION/Level-1-checks)
-**2.**	Quality checks II [Level 2 checks](https://github.com/IMI-ConcePTION/Level-3-checks)   
-**3.**	Quality checks III [Level 3 checks](https://github.com/IMI-ConcePTION/Level-4-checks) 
-**4.**  Scripts for creating sets of pregnancies from study data, to be used in the analyses [ConcePTIONAlgorithmPregnancies](https://github.com/ARS-toscana/ConcePTIONAlgorithmPregnancies)  
-**5.**  The study analysis script suite    
-
-
+1.	Quality checks I [Level 1 checks](https://github.com/IMI-ConcePTION/Level-1-checks)
+2.	Quality checks II [Level 2 checks](https://github.com/IMI-ConcePTION/Level-3-checks)   
+3.	Quality checks III [Level 3 checks](https://github.com/IMI-ConcePTION/Level-4-checks) 
+4.  	Scripts for creating sets of pregnancies from study data, to be used in the analyses [ConcePTIONAlgorithmPregnancies](https://github.com/ARS-toscana/ConcePTIONAlgorithmPregnancies)  
+5.  	The study analysis script suite    
 
 **Study analysis script suite is divided in 7 parts:**   
 
@@ -86,13 +84,19 @@ To run the analysis scripts with subpopulation analysis follow the next steps:
 3. In `type_of_metadata = op_meaning_sets` in the column `values` specify each meaning set referring to a subpopulation. Separate meaning sets by space In the column `other` add the name of the subpopulation. Leave `tablename` and `columnname` empty. Example if for the primary care data you will add the meaning sets meaningsPC and meaningsPHARMA you will add in the `other` column, `PC` and in the `values` column, `meaningsPC meaningsPHARMA`.      
 4. In `type_of_metadata = op_meanings_list_per_set` in the `values` column add all the meanings that should be part of a meaning set and in the `other` column add the name of the meaning set. Leave the `tablename` and `columnname` empty. Example if the meaning set `meaningsPC` contains the meanings primary_care, primary_care_2, and primary_care_3 you will add to the `values` column `primary_care primary_care_2 primary_care_3` and in the `other` column `meaningsPC`. Separate values by space.      
 5. If you want to exclude a specific meaning of a CDM table from a subpopulation, add in `type_of_metadata = exclude_meaning` in the column `tablename` the name of the CDM table, in the column `other` the name of the subpopulation and in the column `values` the meanings to be excluded. Separate meanings by space. Leave the `columnname` column empty. Example of you want to exclude the meaning pc_exclude part of the `EVENTS` table from the subpopulation primary care than you will add `EVENTS` to the column `tablename`, `PC` to the `other` column and `pc_exclude` to the `values` column.    
-6. You are now ready top run a subpopulation analysis.
 
-<img src="images/metadata_example.png" alt="Logo" width="700" height="120">
 
 ### Uploading results to the online research environment
+After running to_run_source_population_counts, the following results from g_output should be uploaded to your DAP-specific folder on YODA:
+a.	monthly_counts_atc folder
+b.	monthly_counts_dxcodes folder
+c.	plots folder
 
-###The current version of the script is 1.0.
+Although the scripts should suppress any values below 5, please do double check this when inspecting the results, before uploading to YODA.
+
+NO FILES FROM g_intermediate should be uploaded to YODA or shared.
+
+###The current version of the script is 1.0 (release 25 NOV 2021).
 
 <!-- LICENSE -->
 ## License
@@ -104,5 +108,6 @@ Distributed under the BSD 2-Clause License License. See `LICENSE` for more infor
 
 Romin Pajouheshnia - R.pajouheshnia@uu.nl
 Ema Alsina - palsinaaer@gmail.com  
-Magdalena Gamba
+Magdalena Gamba - m.a.gamba@uu.nl
 Vjola Hoxhaj - v.hoxhaj@umcutrecht.nl     
+Carlos Duran Salinas - c.e.duransalinas@umcutrecht.nl
