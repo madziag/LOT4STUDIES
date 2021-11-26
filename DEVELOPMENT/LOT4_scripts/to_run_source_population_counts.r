@@ -6,6 +6,9 @@ projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 #######################################################################################################
 ######################################################################################################
+#set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA”
+clear_int_files<-T
+################################################
 
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
@@ -30,3 +33,9 @@ mask<-T
 
 source(paste0(pre_dir,"LOT4plots.r"))
 
+############################
+#CLEAN UP
+if(clear_int_files==T){
+unlink(paste0(g_intermediate, "/tmp"), recursive = TRUE)
+unlink(paste0(g_intermediate, "/populations"), recursive = TRUE)  
+}
