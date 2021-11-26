@@ -14,8 +14,12 @@ library(rstudioapi)
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 
+#get denominators from denominator.r in p_steps
+source("denominator.r")
+#this also creates base_folder 
+
 #create a plot folder to store output
-dir.create(paste0(projectFolder, "/g_output/plots"))
+dir.create(paste0(base_folder, "/g_output/plots"))
 
 #extract count files
 
