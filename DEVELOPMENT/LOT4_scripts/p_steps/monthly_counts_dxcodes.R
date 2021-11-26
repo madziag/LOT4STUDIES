@@ -14,6 +14,11 @@ print("Loading Concept Sets")
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
 # Reads in study population
 if(length(actual_tables$EVENTS)>0){
+  # Create a new folder for each code group type (to store records with matching codes)
+  for (z in 1:length(conditions_all)){
+    ifelse(!dir.exists(file.path(events_tmp_dx, names(conditions_all[z]))), dir.create(paste(events_tmp_dx, names(conditions_all[z]), sep="")), FALSE)
+    # events_variable[[z]] <- paste(events_tmp_dx, names(conditions_all[z]), sep="")
+  }
   # Lists for saving info
   count_list <- list() # Saves counts for all variables in a list 
   events_variable <- list() # For folder creation (for each code group)
@@ -42,7 +47,7 @@ if(length(actual_tables$EVENTS)>0){
     df[,year:=year(event_date)]
     #remove records with both dates missing
     df<-df[!is.na(year)]
-    df<-df[year>2009 | year<2019]
+    df<-df[year>2009 & year<2019]
     #identify persons that have an event before start_of_follow_up
     df[,date_dif:=start_follow_up-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)]
     #get person_id
@@ -58,11 +63,7 @@ if(length(actual_tables$EVENTS)>0){
     df<-df[is.na(event_vocabulary) | event_vocabulary %in% vocabularies_list] #remove records where vocabularies are not of interest
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]#remove unspecified sex
     print(paste0("Finding matching records in ", actual_tables$EVENTS[y]))
-    # Create a new folder for each code group type (to store records with matching codes)
-    for (z in 1:length(conditions_all)){
-      ifelse(!dir.exists(file.path(events_tmp_dx, names(conditions_all[z]))), dir.create(paste(events_tmp_dx, names(conditions_all[z]), sep="")), FALSE)
-      events_variable[[z]] <- paste(events_tmp_dx, names(conditions_all[z]), sep="")
-    }
+
     #################################################################
     #Match codes based on coding system and code: algorithm start with
     #################################################################
@@ -214,7 +215,12 @@ if(length(actual_tables$EVENTS)>0){
     }
   } 
 
-
+folders <- list.dirs(events_tmp_dx, recursive = FALSE)
+for(folder in folders){
+  if(length(dir(folder)) == 0){
+    unlink(folder, recursive = TRUE)
+  }
+}
 # Add rates to counts tables 
 count_names_diag<-list.files(monthly_counts_dx, pattern="count")
 count_files_diag<-lapply(paste0(monthly_counts_dx,"/", count_names_diag), readRDS)

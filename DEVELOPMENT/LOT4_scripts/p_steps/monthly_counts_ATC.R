@@ -53,7 +53,7 @@ if(length(actual_tables$MEDICINES)>0){
     df[,year:=year(event_date)]
     # Remove records with missing year, or year is less than 2009 or more than 2019
     df<-df[!is.na(year)]
-    df<-df[year>2009 | year<2019]
+    df<-df[year>2009 & year<2019]
     # remove records that are outside the obs_period for all subjects
     df[(event_date<start_follow_up | event_date>end_follow_up), obs_out:=1]
     df<-df[is.na(obs_out)] 
@@ -62,13 +62,17 @@ if(length(actual_tables$MEDICINES)>0){
     df<-df[!is.na(Code)]
     # remove unspecified sex
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"]
-    print(paste0("Finding matching records in ", actual_tables$MEDICINES[y]))
+    
     # Match codes: Saves df for each ATC code group, per Medicine Table
-    for (i in 1:length(codelist_all)){
-      df_subset[[i]] <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
-      saveRDS(data.table(df_subset[[i]]), paste0(events_tmp_ATC, names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
-
+    if(nrow(df)>0){
+      print(paste0("Finding matching records in ", actual_tables$MEDICINES[y]))
+      for (i in 1:length(codelist_all)){
+        df_subset[[i]] <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
+        saveRDS(data.table(df_subset[[i]]), paste0(events_tmp_ATC, names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
       }
+    }
+
+      
   }
     print("Counting records")
     # Concatenate files belonging to the same ATC group. Perform counts per year/month
@@ -130,7 +134,7 @@ names(count_files_med) <- count_names_med
 
 for(i in 1:length(count_names_med)){
   count_files_med[[i]] <- within(count_files_med[[i]], YM<- sprintf("%d-%02d", year, month))
-  count_files_med[[i]] <- merge(x = count_files_med[[i]], y = FUmonths_df, by = c("YM"), all.x = TRUE)   
+  count_files_med[[i]] <- merge(x = count_files_med[[i]], y = FUmonths_df, by = c("YM"), all.x = TRUE)
   count_files_med[[i]] <-count_files_med[[i]][,c("YM", "N", "Freq")]
   count_files_med[[i]]$rates <- as.integer(count_files_med[[i]]$N)/as.integer(count_files_med[[i]]$Freq)
   saveRDS(count_files_med[[i]], paste0(monthly_counts_atc,"/",names(count_files_med[i])))
