@@ -123,6 +123,17 @@ if(length(actual_tables$MEDICINES)>0){
   }
 }
 
+# Add rates to counts tables
+count_names_med<-list.files(monthly_counts_atc, pattern="count")
+count_files_med<-lapply(paste0(monthly_counts_atc,"/", count_names_med), readRDS)
+names(count_files_med) <- count_names_med
 
+for(i in 1:length(count_names_med)){
+  count_files_med[[i]] <- within(count_files_med[[i]], YM<- sprintf("%d-%02d", year, month))
+  count_files_med[[i]] <- merge(x = count_files_med[[i]], y = FUmonths_df, by = c("YM"), all.x = TRUE)   
+  count_files_med[[i]] <-count_files_med[[i]][,c("YM", "N", "Freq")]
+  count_files_med[[i]]$rates <- as.integer(count_files_med[[i]]$N)/as.integer(count_files_med[[i]]$Freq)
+  saveRDS(count_files_med[[i]], paste0(monthly_counts_atc,"/",names(count_files_med[i])))
+}
 
 

@@ -215,3 +215,15 @@ if(length(actual_tables$EVENTS)>0){
   } 
 
 
+# Add rates to counts tables 
+count_names_diag<-list.files(monthly_counts_dx, pattern="count")
+count_files_diag<-lapply(paste0(monthly_counts_dx,"/", count_names_diag), readRDS)
+names(count_files_diag) <- count_names_diag
+
+for(i in 1:length(count_names_diag)){
+  count_files_diag[[i]] <- within(count_files_diag[[i]], YM<- sprintf("%d-%02d", year, month))
+  count_files_diag[[i]] <- merge(x = count_files_diag[[i]], y = FUmonths_df, by = c("YM"), all.x = TRUE)   
+  count_files_diag[[i]] <-count_files_diag[[i]][,c("YM", "N", "Freq")]
+  count_files_diag[[i]]$rates <- as.integer(count_files_diag[[i]]$N)/as.integer(count_files_diag[[i]]$Freq)
+  saveRDS(count_files_diag[[i]], paste0(monthly_counts_dx,"/",names(count_files_diag[i])))
+}
