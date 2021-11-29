@@ -4,6 +4,8 @@ setwd('..') #in ConcePTION
 dir_base<-getwd()
 # set the name of the study
 StudyName <- "LOT4"
+### NOTE FOR DAPS: If you have run the preselection script and would like to use the subsetted data sets that it produces instead of your full ETL'd data files, you should change the text "/CDMInstances/" to "/CDMInstances_preselect/"
+### Below you must set
 path_dir<-paste0(dir_base,"/CDMInstances/",StudyName,"/")
 # path<-path_dir
 
