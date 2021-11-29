@@ -37,13 +37,12 @@ count_files_all<-c(count_files_diag, count_files_med)
 # calculate rates
 
 for(i  in 1: length (count_files_all)){
-  count_files_all[[i]]$rate<-(count_files_all[[i]]$N)/denominator$Freq
+  var_counts<-denominator$Freq
+  if(mask==T){var_counts[(0<var_counts)&(var_counts<=5)]<-5}
+  count_files_all[[i]]$rate<-(count_files_all[[i]]$N)/var_counts
   count_files_all[[i]]$ratep1000<-round((count_files_all[[i]]$rate*1000),2)
 }
 
-#masking
-
-mask<-T
 
 for(i in 1:length(count_files_all)){
   main_name<-substr(count_names_all[[i]], 1,nchar(count_names_all[[i]])-11)
@@ -72,6 +71,7 @@ for(i in 1:length(count_files_all)){
   pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
   
   var_counts<-count_files_all[[i]]$ratep1000
+  
   
   mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2020)
   mydates<-paste0(15,"-",count_files_all[[i]]$month, "-", count_files_all[[i]]$year)
