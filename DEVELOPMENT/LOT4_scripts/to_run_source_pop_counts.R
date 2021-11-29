@@ -33,7 +33,7 @@ source(paste0(pre_dir,"plots.R"))
 ############################################
 #user input parameter
 my_format<- "csv"
-my_format<-"xlsx"
+#my_format<-"xlsx"
 
 source(paste0(pre_dir,"write_output.R"))
 

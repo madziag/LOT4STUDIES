@@ -2,7 +2,7 @@
 
 
 if(my_format=="xlsx"){
-if(!require(xlsx)){install.packages("writexl")}
+if(!require(writexl)){install.packages("writexl")}
 library(writexl)}
 
 all_rds_outputs<-list.files(output_dir, recursive=T, pattern="rds")
