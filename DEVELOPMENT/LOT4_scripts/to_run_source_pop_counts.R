@@ -30,11 +30,10 @@ mask<-T
 #to see unmasked plots, set mask<-F
 source(paste0(pre_dir,"plots.R"))
 
-
 ############################################
 #user input parameter
 my_format<- "csv"
-# my_format<-"xlxs"
+my_format<-"xlsx"
 
 source(paste0(pre_dir,"write_output.R"))
 
