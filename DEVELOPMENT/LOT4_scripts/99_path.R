@@ -5,6 +5,7 @@ dir_base<-getwd()
 # set the name of the study
 StudyName <- "LOT4"
 path_dir<-paste0(dir_base,"/CDMInstances/",StudyName,"/")
+# path_dir<-paste0(dir_base,"/CDMInstances_preselect/") # use this option if you want to use the preselection files
 # path<-path_dir
 
 # If g_intermediate and g_output folders exist remove them 
