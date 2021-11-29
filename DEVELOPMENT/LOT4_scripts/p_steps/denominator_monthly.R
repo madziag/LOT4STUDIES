@@ -47,10 +47,10 @@ FUmonths_df$YM<-format(as.Date(FUmonths_df$YM),"%Y-%m")
 
 # for plots need to split(FUmonths,by=year)?
 
-saveRDS(data.table(FUmonths_df), paste0(populations_dir, "denominator.rds"))
-write.csv(FUmonths_df,paste0(populations_dir, "denominator.csv"))
+saveRDS(data.table(FUmonths_df), paste0(output_dir, "denominator.rds"))
 
-pdf((paste0(output_dir, "/plots/denominator.pdf")), width=8, height=4)
+
+pdf((paste0(output_dir, "plots/denominator.pdf")), width=8, height=4)
 plot(FUmonths_df$studyFUmonths, FUmonths_df$Freq, ylab="Persons Observed per Month", xlab="Year and Month")
 invisible(dev.off())
 
