@@ -30,3 +30,5 @@ if(!require(zoo)){install.packages("zoo")}
 suppressPackageStartupMessages(library(zoo))
 if(!require(readxl)){install.packages("readxl")}
 suppressPackageStartupMessages(library(readxl))
+if(!require(writexl)){install.packages("writexl")}
+suppressPackageStartupMessages(library(writexl))
