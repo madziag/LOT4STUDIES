@@ -6,7 +6,8 @@ projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
 setwd(projectFolder)
 
 ###############################################
-
+### NOTE FOR DAPS: If you have run the preselection script and would like to use the subsetted data sets that it produces instead of your full ETL'd data files, you need to go to the "99_path.R" file and change the text "/CDMInstances/" to "/CDMInstances_preselect/" before running the script below.
+### Below you must set
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
 source(paste0(pre_dir,"info.R"))
