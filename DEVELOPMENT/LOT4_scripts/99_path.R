@@ -39,7 +39,8 @@ dir.create(paste(output_dir, "monthly_counts_dxcodes", sep=""))
 monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes")   
 dir.create(paste(output_dir, "monthly_counts_atc", sep=""))
 monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-
+dir.create(paste(output_dir, "plots", sep=""))
+plot_folder <- paste0(output_dir, "plots")
 
 
 

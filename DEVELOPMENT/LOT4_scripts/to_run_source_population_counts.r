@@ -9,7 +9,7 @@ setwd(projectFolder)
 
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
-source(paste0(pre_dir, "info.R"))
+source(paste0(pre_dir,"info.R"))
 source(paste0(pre_dir,"study_parameters.R"))
 setwd(projectFolder)
 

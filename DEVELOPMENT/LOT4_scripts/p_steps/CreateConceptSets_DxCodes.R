@@ -108,4 +108,6 @@ names(conditions_read_all) <- names(codelist_list)
 names(conditions_snomed_all) <- names(codelist_list)
 names(conditions_start_all) <- names(codelist_list)
 rm(codelist_list, conditions_read, conditions_snomed, conditions_start, conditions, codelist, i,j,l)
-
+rm(list= ls(pattern = "adr"))
+rm(list= ls(pattern = "ind"))
+rm(depression, iud_diag, pregtest, sterility)

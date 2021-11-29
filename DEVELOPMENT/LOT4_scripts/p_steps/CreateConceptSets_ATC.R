@@ -22,3 +22,6 @@ for(i in seq_along(codelist_list)) {
 }
 
 names(codelist_all) <- names(codelist_list)
+rm(list= ls(pattern = "altmed"))
+rm(list= ls(pattern = "contracep_"))
+rm(Retinoid, Valproate, folic_acid)
