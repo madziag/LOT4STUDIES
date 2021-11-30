@@ -15,6 +15,6 @@ for (i in 1:length(all_rds_outputs)){
   my_name<-gsub(".*/","",all_rds_outputs[i])
   my_name<-substr(my_name, 1,nchar(my_name)-4)
   my_table<-readRDS(paste0(output_dir, all_rds_outputs[i]))
-  if(my_format=="csv"){write.csv(my_table, paste0(my_output_folder, my_name,".csv"))}
+  if(my_format=="csv"){write.csv(my_table, paste0(my_output_folder, my_name,".csv"), row.names = F )}
   else{writexl::write_xlsx(mytable,paste0(my_output_folder, my_name,".xlxs"))}
 }
