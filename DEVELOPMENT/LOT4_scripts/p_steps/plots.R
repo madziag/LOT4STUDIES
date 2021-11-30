@@ -22,7 +22,7 @@ setwd(projectFolder)
 
 #extract denominators
 
-denominator<-readRDS(paste0(populations_dir,"denominator.rds"))
+denominator<-readRDS(paste0(output_dir,"denominator.rds"))
 
 #extract count files
 

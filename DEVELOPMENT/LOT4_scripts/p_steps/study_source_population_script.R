@@ -107,15 +107,15 @@ source(paste0(pre_dir,"Step_06_AddVariablesStudyPopulation.R"))
 source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
 
 #Save analyses output tables in output
-source(paste0(pre_dir,"Step_Report_01_01_PopulationTree.R"))
-source(paste0(pre_dir,"Step_Report_01_02_CompareStudySource.R"))
-source(paste0(pre_dir,"Step_Report_01_03_Persontime.R"))
-source(paste0(pre_dir,"Step_Report_01_0405_CountPersontime.R"))
-source(paste0(pre_dir,"Step_Report_01_0609_AnalyseDates.R"))
-source(paste0(pre_dir,"Step_Report_01_1011_FollowUp.R"))
-source(paste0(pre_dir,"Step_Report_01_12_Visits.R"))
+#source(paste0(pre_dir,"Step_Report_01_01_PopulationTree.R"))
+#source(paste0(pre_dir,"Step_Report_01_02_CompareStudySource.R"))
+#source(paste0(pre_dir,"Step_Report_01_03_Persontime.R"))
+#source(paste0(pre_dir,"Step_Report_01_0405_CountPersontime.R"))
+#source(paste0(pre_dir,"Step_Report_01_0609_AnalyseDates.R"))
+#source(paste0(pre_dir,"Step_Report_01_1011_FollowUp.R"))
+#source(paste0(pre_dir,"Step_Report_01_12_Visits.R"))
 # source(paste0(pre_dir,"Step_Report_01_13_LifeStyle.R"))
-source(paste0(pre_dir,"Step_Report_01_Mask.R"))
+#source(paste0(pre_dir,"Step_Report_01_Mask.R"))
 
 
 
