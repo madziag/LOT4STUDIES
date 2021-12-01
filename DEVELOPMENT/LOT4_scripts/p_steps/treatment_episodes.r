@@ -50,4 +50,6 @@ for (i in 1:length(MED_tables)){
   table_name<-substr(all_MED[[1]], 1,nchar(all_MED[[i]])-8)
   myname<-paste0("treatment_episode_",table_name,".rds")
   saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes")), myname)
-  }
+}
+
+#does write work for you?
