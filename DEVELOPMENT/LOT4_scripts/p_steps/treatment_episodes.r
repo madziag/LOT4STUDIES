@@ -8,7 +8,7 @@ all_MED<-list.files(path_dir, pattern="^MEDICINES")
 MED_tables<-lapply((paste0(path_dir, all_MED)), read.csv)
 
 for (i in 1:length(MED_tables)){
-MED_tables[[i]]$disp_date<-as.Date(as.character(MED_tables[[1]]$date_dispensing), format="%Y%m%d")
+MED_tables[[i]]$disp_date<-as.Date(as.character(MED_tables[[i]]$date_dispensing), format="%Y%m%d")
 MED_tables[[i]]$duration<-30
   # sample(c(10, 30, 60), nrow(MED_tables[[i]]))
 MED_tables[[i]]$end_date<-((MED_tables[[i]]$disp_date)+(MED_tables[[i]]$duration))
@@ -47,9 +47,10 @@ for (i in 1:length(MED_tables)){
   suppress.warnings = FALSE,
   return.data.table = FALSE
   ) 
-  table_name<-substr(all_MED[[1]], 1,nchar(all_MED[[i]])-8)
+  table_name<-substr(all_MED[[i]], 1,nchar(all_MED[[i]])-8)
   myname<-paste0("treatment_episode_",table_name,".rds")
-  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes")), myname)
+  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/")), myname)
 }
 
+summary(my_treat_episode)
 #does write work for you?
