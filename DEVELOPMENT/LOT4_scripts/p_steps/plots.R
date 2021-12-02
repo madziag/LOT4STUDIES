@@ -52,7 +52,7 @@ for(i in 1:length(count_files_all)){
   var_counts<-count_files_all[[i]]$N
   if(mask==T){var_counts[(0<var_counts)&(var_counts<=5)]<-5}
   
-  mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2020)
+  mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
   mydates<-paste0(15,"-",count_files_all[[i]]$month, "-", count_files_all[[i]]$year)
   count_files_all[[i]]$date<-as.Date(mydates, "%d-%m-%y")
 
@@ -73,7 +73,7 @@ for(i in 1:length(count_files_all)){
   var_counts<-count_files_all[[i]]$ratep1000
   
   
-  mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2020)
+  mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
   mydates<-paste0(15,"-",count_files_all[[i]]$month, "-", count_files_all[[i]]$year)
   count_files_all[[i]]$date<-as.Date(mydates, "%d-%m-%y")
   

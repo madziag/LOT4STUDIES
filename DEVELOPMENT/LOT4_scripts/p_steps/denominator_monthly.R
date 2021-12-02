@@ -39,7 +39,7 @@ for (i in 1:length(ym1)){
 #doesn't take too long
 
 FUmonths<-unlist(FUmonths)
-studyFUmonths<-FUmonths[(FUmonths>=200901)&(FUmonths<=201912)]
+studyFUmonths<-FUmonths[(FUmonths>=200901)&(FUmonths<=202012)]
 
 FUmonths_df<-as.data.frame(table(studyFUmonths))
 FUmonths_df$YM<-as.Date(paste0(as.character(FUmonths_df$studyFUmonths),"01"), format="%Y%m%d")
