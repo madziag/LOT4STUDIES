@@ -35,8 +35,7 @@ for(i in seq_along(codelist_list)) {
   # Create df based on vocab group types and presence or absence of dots
   codelist_start_dot   <- codelist[dot_present==TRUE & vocab=="start"]
   codelist_start_nodot <- codelist[dot_present==FALSE & vocab=="start" ]
-  codelist_read_dot    <- codelist[dot_present==TRUE & vocab=="READ"]
-  codelist_read_nodot  <- codelist[dot_present==FALSE & vocab=="READ"]
+  codelist_read        <- codelist[dot_present==TRUE & vocab=="READ"]
   codelist_snomed      <- codelist[vocab=="SNOMED"]
 
   # Create code lists  
@@ -45,15 +44,18 @@ for(i in seq_along(codelist_list)) {
   setnames(codelist_start_dot,"code_no_dot", "Code")
   codelist_start_nodot[,dot_present:=NULL][,code_no_dot:=NULL][,vocab:=NULL]
   codelist_start <- rbind(codelist_start_dot, codelist_start_nodot)
-  # READ codes (has variants with dotes and without dots)
-  codelist_read_dot[,dot_present:=NULL][,Code:=NULL][,vocab:=NULL]
-  setnames(codelist_read_dot,"code_no_dot", "Code")
-  codelist_read_nodot[,dot_present:=NULL][,code_no_dot:=NULL][,vocab:=NULL]
-  codelist_read <- rbind(codelist_read_dot, codelist_read_nodot)
+  # READ codes
+  codelist_read[,dot_present:=NULL][,code_no_dot:=NULL][,vocab:=NULL]
   # SNOMED 
   codelist_snomed[,dot_present:=NULL][,code_no_dot:=NULL][,vocab:=NULL]
   # ALL 
   codelist <- rbind(codelist_start, codelist_read, codelist_snomed)
+  # Create list of codes
+  codelist[,comb:=paste(Concept_name, Coding_System,"_")]
+  codelist[,Codes:=paste0(Code, collapse = ", "), by="comb"]
+  codelist<-codelist[!duplicated(comb)]
+  codelist[,Code:=NULL][,comb:=NULL]
+  setnames(codelist,"Codes", "Code")
   # Save codelists
   assign(var_names[i], as.data.table(codelist))
   write.csv(get(var_names[i]), paste0(conceptsets_DX_dir, var_names[i], ".csv"), row.names = FALSE)
@@ -70,4 +72,4 @@ names(codelist_snomed_all) <- names(codelist_list)
 names(codelist_all) <- names(codelist_list)
 # Cleanup 
 rm(list = noquote(names(codelist_list)))
-rm(codelist, codelist_list, codelist_read, codelist_read_dot, codelist_read_nodot, codelist_snomed, codelist_start, codelist_start_dot, codelist_start_nodot)
+rm(codelist, codelist_list, codelist_read, codelist_snomed, codelist_start, codelist_start_dot, codelist_start_nodot)
