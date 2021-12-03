@@ -137,7 +137,7 @@ if(length(actual_tables$EVENTS)>0){
 }
 # Clean up
 rm(list=ls(pattern="codelist"))
-
+rm(comb_meds, counts, df, df_subset, empty_counts_df)
 
   
 

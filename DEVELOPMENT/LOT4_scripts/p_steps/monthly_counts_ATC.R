@@ -124,4 +124,5 @@ if(length(actual_tables$MEDICINES)>0){
 # CLEAN UP
 rm(list=ls(pattern="codelist"))
 rm(list=ls(pattern="df"))
+rm(comb_meds, counts)
 
