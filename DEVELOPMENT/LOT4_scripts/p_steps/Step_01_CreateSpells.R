@@ -149,9 +149,10 @@ OBSERVATION_PERIODS1 <- CreateSpells(
 
 after_CreateSpells<-nrow<-OBSERVATION_PERIODS1
 
-select_most_recent<-nrow(OBSERVATION_PERIODS1[(duplicated(OBSERVATION_PERIODS1$person_id, fromLast = TRUE)==F),])
 
 OBSERVATION_PERIODS1<- OBSERVATION_PERIODS1[(duplicated(OBSERVATION_PERIODS1$person_id, fromLast = TRUE)==F),]
+
+select_most_recent<-nrow(OBSERVATION_PERIODS1)
 
 OBSERVATION_PERIODS1 <- OBSERVATION_PERIODS1[,temp := lapply(.SD, max), by = c("person_id"), .SDcols = "num_spell"][temp == num_spell,][,temp := NULL]
 setnames(OBSERVATION_PERIODS1, "entry_spell_category", "op_start_date")
@@ -178,7 +179,7 @@ if(exists("FlowChartOverlap")){
   rm(FlowChartOverlap)
 }
   
-rm(before,after,OBSERVATION_PERIODS,FlowChartCreateSpells)
+rm(before_CreateSpells,after_CreateSpells, select_most_recent, OBSERVATION_PERIODS,FlowChartCreateSpells)
 gc()
 
 
