@@ -168,10 +168,9 @@ saveRDS(OBSERVATION_PERIODS1, file = paste0(std_pop_tmp,"ALL_OBS_SPELLS.rds"))
 
 ###################################################################################################################### 
 print("store FlowChart data on attrition")
-
- CreateSpellsStep<-c("nrow in OBSERVATION_PERIODS BEFORE running CreateSpells", 
-                     "nrow in OBSERVATION_PERIODS1 AFTER running CreateSpells,  including merging gaps <= 7 days", 
-"nrow in OBSERVATION_PERIODS1 AFTER selecting the most recent observation, equivalent to number of unique IDs")
+CreateSpellsStep<-c("original number of OBSERVATION PERIODS", 
+                    "number of OBSERVATION PERIODS after concatenating observations with gaps <= 7 days", 
+                    "number of OBSERVATION PERIODS after selecting the most recent observation (one spell per unique ID)")
 
 OBS_number<-c(before_CreateSpells,after_CreateSpells, select_most_recent)
 
