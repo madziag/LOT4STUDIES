@@ -4,6 +4,7 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
+
 print('Import and append observation periods files')
 
 
@@ -136,7 +137,7 @@ if(SUBP){
 ######################################################################################################################  
 print("Create spells and select latest for ALL")
 
-before_CreateSpells <- nrow(OBSERVATION_PERIODS)
+before <- nrow(OBSERVATION_PERIODS)
 
 OBSERVATION_PERIODS1 <- CreateSpells(
   dataset=OBSERVATION_PERIODS,
@@ -147,44 +148,31 @@ OBSERVATION_PERIODS1 <- CreateSpells(
   only_overlaps = F
 )
 
-print("CreateSpells run OK")
-
-after_CreateSpells<-nrow(OBSERVATION_PERIODS1)
-
-print("select most recent Observation Period")
-
-OBSERVATION_PERIODS1<- OBSERVATION_PERIODS1[(duplicated(OBSERVATION_PERIODS1$person_id, fromLast = TRUE)==F),]
-
-select_most_recent<-nrow(OBSERVATION_PERIODS1)
-
-print("CLEANUP OBSERVATION_PERIODS1")
 OBSERVATION_PERIODS1 <- OBSERVATION_PERIODS1[,temp := lapply(.SD, max), by = c("person_id"), .SDcols = "num_spell"][temp == num_spell,][,temp := NULL]
 setnames(OBSERVATION_PERIODS1, "entry_spell_category", "op_start_date")
 setnames(OBSERVATION_PERIODS1, "exit_spell_category", "op_end_date")
 OBSERVATION_PERIODS1[,op_start_date := as.IDate(op_start_date)]
 OBSERVATION_PERIODS1[,op_end_date := as.IDate(op_end_date)]
 saveRDS(OBSERVATION_PERIODS1, file = paste0(std_pop_tmp,"ALL_OBS_SPELLS.rds"))
-
+after <- nrow(OBSERVATION_PERIODS1)
+FlowChartCreateSpells[["Spells_ALL"]]$step <- "01_CreateSpells"
+FlowChartCreateSpells[["Spells_ALL"]]$population <- "ALL"
+FlowChartCreateSpells[["Spells_ALL"]]$before <- before
+FlowChartCreateSpells[["Spells_ALL"]]$after <- after
+rm(OBSERVATION_PERIODS1)
 
 ###################################################################################################################### 
-print("store FlowChart data on attrition")
 
- CreateSpellsStep<-c("nrow in OBSERVATION_PERIODS BEFORE running CreateSpells", 
-                     "nrow in OBSERVATION_PERIODS1 AFTER running CreateSpells,  including merging gaps <= 7 days", 
-"nrow in OBSERVATION_PERIODS1 AFTER selecting the most recent observation, equivalent to number of unique IDs")
+        
 
-OBS_number<-c(before_CreateSpells,after_CreateSpells, select_most_recent)
-
-FlowChartCreateSpells<-as.data.frame(cbind(CreateSpellsStep, OBS_number))
-
-saveRDS(FlowChartCreateSpells, file = paste0(output_dir,"FlowChartCreateSpells.rds"))
+saveRDS(FlowChartCreateSpells, file = paste0(std_pop_tmp,"FlowChartCreateSpells.rds"))
 
 if(exists("FlowChartOverlap")){ 
   saveRDS(FlowChartOverlap, file = paste0(std_pop_tmp,"FlowChartOverlap.rds"))
   rm(FlowChartOverlap)
 }
   
-rm(before_CreateSpells,after_CreateSpells, select_most_recent, OBSERVATION_PERIODS, OBSERVATION_PERIODS1, FlowChartCreateSpells)
+rm(before,after,OBSERVATION_PERIODS,FlowChartCreateSpells)
 gc()
 
 

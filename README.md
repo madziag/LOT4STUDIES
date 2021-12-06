@@ -1,5 +1,5 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V1.1</h3>
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V1.2</h3>
  <p align="center"> R scripts for the analyses of the Lot 4 retinoids and valproates studies, Release V1.1. </p>
  
 <!-- TABLE OF CONTENTS -->
