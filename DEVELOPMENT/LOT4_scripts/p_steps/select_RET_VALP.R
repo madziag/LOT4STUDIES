@@ -1,6 +1,8 @@
 
 # fetch data
 MED_list<-list.files(paste0(data_folder,"/"), pattern="^MEDICINES")
+# fetch ALL_study_population
+readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 
 #ATC of interest
 
