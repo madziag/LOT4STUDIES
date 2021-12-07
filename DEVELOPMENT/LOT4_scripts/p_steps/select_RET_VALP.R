@@ -35,5 +35,5 @@ PERSONS_RETINOID<- PERSONS[(PERSONS$person_id%in%ATCfilter_ID_unique),]
 
 # PERSONS_VALPROATE<- PERSONS[(PERSONS$person_id%in%ATCfilter_ID_unique),]
 
-saveRDS(PERSONS_RETINOID,output_folder, "PERSONS_RETINOID.rds")
-# saveRDS(PERSONS_RETINOID,output_folder, "PERSONS_VALPROATE.rds")
+saveRDS(PERSONS_RETINOID,output_dir, "PERSONS_RETINOID.rds")
+# saveRDS(PERSONS_RETINOID,output_dir, "PERSONS_VALPROATE.rds")
