@@ -45,13 +45,14 @@ SelectionCriteria <- list(
   Study_Period_and_spell_overlap  = expression(op_start_date %between% intv| op_end_date %between% intv | (op_start_date  < start_study_date & op_end_date > end_study_date)),
   Spells_less_then_lookback_period = expression(op_end_date - op_start_date > lookback_period),
   Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - op_start_date > lookback_period),
-  #Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - date_min > lookback_period),
+    #Remaning_time_to_end_study_date_less_then_lookback_period = expression(end_study_date - date_min > lookback_period),
   Remaning_time_to_date_max_less_then_lookback_period = expression(date_max - op_start_date > lookback_period),
   Age_min_to_end_of_study_above_0 = expression(end_study_date - date_min > 0),
   Start_of_study_Age_max_to_above_0 = expression(date_max - start_study_date > 0),
-Age_filter_spells = expression(age_op_start_date < Age_max & age_op_end_date > Age_min),
-Age_start_study = expression(age_start_study < Age_max & age_start_study >= Age_min),
-Sex=expression(sex_at_instance_creation=="F")
+  Age_filter_spells = expression(age_op_start_date < Age_max & age_op_end_date > Age_min),
+    #Age_start_study = expression(age_start_study < Age_max & age_start_study >= Age_min),
+  Age_start_study = expression((date_max > start_study_date) & (date_min < end_study_date)),
+  Sex=expression(sex_at_instance_creation=="F")
 )
 
 
