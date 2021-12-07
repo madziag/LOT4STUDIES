@@ -31,9 +31,9 @@ for(i in 1:length(MED_list$MEDICINES)) {
 
 ATCfilter_ID_unique<-as.vector(unique(unlist(ATCfilter_ID)))
 
-PERSONS_RETINOID<- PERSONS[(PERSONS$person_id%in%ATCfilter_ID_unique),]
+STUDY_POP_RETINOID<- ALL_study_population[(ALL_study_population$person_id%in%ATCfilter_ID_unique),]
 
-# PERSONS_VALPROATE<- PERSONS[(PERSONS$person_id%in%ATCfilter_ID_unique),]
+# STUDY_POP_VALPROATE<- ALL_study_population[(ALL_study_population$person_id%in%ATCfilter_ID_unique),]
 
-saveRDS(PERSONS_RETINOID,output_dir, "PERSONS_RETINOID.rds")
-# saveRDS(PERSONS_RETINOID,output_dir, "PERSONS_VALPROATE.rds")
+saveRDS(STUDY_POP_RETINOID,output_dir, "PERSONS_RETINOID.rds")
+# saveRDS(STUDY_POP_RETINOID,output_dir, "PERSONS_VALPROATE.rds")
