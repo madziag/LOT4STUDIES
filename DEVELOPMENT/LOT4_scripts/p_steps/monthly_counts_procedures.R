@@ -1,6 +1,7 @@
 #Load study population
 study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
+matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
 # Load Procedure files 
 proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
@@ -121,7 +122,7 @@ if(length(proc_files)>0){
     }
   }
   # # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-   unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
+   # unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
   
 }
 # Clean up

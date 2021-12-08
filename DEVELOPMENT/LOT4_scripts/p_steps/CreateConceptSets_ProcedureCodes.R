@@ -1,11 +1,9 @@
 # Load functions
 source(paste0(pre_dir,"/functions/LoadCodelist.R"))
-# Load concept sets
-filename <- "CodeLists/Procedure_codes.xlsx"
-matches <- c()
 # Print Message
 print("Loading Concept Sets")
 # Load code lists 
+filename <- "CodeLists/Procedure_codes.xlsx"
 codelist_list <- load_codelist(paste0(pre_dir,filename), matches <- matches)
 # Create lists for saving Info
 var_names <- names(codelist_list)

@@ -1,8 +1,7 @@
 # Load functions
 source(paste0(pre_dir,"/functions/LoadCodelist.R"))
-# Load concept sets
+# # Load concept sets
 filename <- "CodeLists/Lot4_completediagnosis_codelist_20211110.xlsx"
-matches <- c()
 # Print Message
 print("Loading Concept Sets")
 # Load code lists 

@@ -1,5 +1,7 @@
 #Load study population
 study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+# Load concept sets
+matches <- c()
 # Load Create Concept Sets file
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
 # Create empty table for counts 
@@ -134,7 +136,7 @@ if(length(actual_tables$EVENTS)>0){
     }
   }
   # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-   unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
+   # unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
 
 }
 # Clean up
