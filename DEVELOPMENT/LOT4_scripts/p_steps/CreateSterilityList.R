@@ -188,13 +188,13 @@ if(length(proc_files)>0){
 sterility_events[,table_origin:='EVENTS']
 sterility_procedures[,table_origin:='PROCEDURES']
 # Rename columns
-setnames(sterility_events,"event_date","date")
-setnames(sterility_procedures,"procedure_date","date")
+setnames(sterility_events,"event_date","sterility_date")
+setnames(sterility_procedures,"procedure_date","sterility_date")
 setnames(sterility_events,"event_vocabulary","vocabulary")
 # Join sterility records from events and procedures
 sterility_all <- rbind(sterility_events, sterility_procedures)
 # Choose record with earliest date of sterility
-sterility_all_first_occurrence  <- setDT(sterility_all)[order(date), head(.SD, 1L), by = person_id]
+sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
 # Save records 
 saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
 saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
