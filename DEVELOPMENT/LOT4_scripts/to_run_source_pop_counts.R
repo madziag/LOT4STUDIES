@@ -22,6 +22,7 @@ source(paste0(pre_dir,"study_source_population_script.R"))
 source(paste0(pre_dir,"denominator_monthly.R"))
 source(paste0(pre_dir,"monthly_counts_dxcodes.R"))
 source(paste0(pre_dir,"monthly_counts_ATC.R"))
+source(paste0(pre_dir,"monthly_counts_procedures.R"))
 
 ##############################################
 #plot output

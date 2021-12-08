@@ -8,8 +8,8 @@ names(empty_counts_df) <- c("year", "month")
 # Check for EVENTS Tables present
 if(length(actual_tables$EVENTS)>0){
   # Create a new folder for each code group type (to store records with matching codes) 
-  for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_dx, names(codelist_all[z]))), dir.create(paste(events_tmp_dx, names(codelist_all[z]), sep="")), FALSE)}
-  # Processe each EVENTS table
+  for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_DX, names(codelist_all[z]))), dir.create(paste(events_tmp_DX, names(codelist_all[z]), sep="")), FALSE)}
+  # Process each EVENTS table
   for (y in 1:length(actual_tables$EVENTS)){
     # Load table 
     df<-fread(paste(path_dir, actual_tables$EVENTS[y], sep=""), stringsAsFactors = FALSE)
@@ -58,9 +58,9 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_dx, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
-            new_file <-c(list.files(events_tmp_dx, "\\_start.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_dx, x), to = file.path(paste0(events_tmp_dx, names(codelist_start_all[i])), x))})
+            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
+            new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
+            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_start_all[i])), x))})
             }
         }
       # Cover RCD, RCD2, READ, CPRD_Read Codes 
@@ -69,9 +69,9 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_dx, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
-            new_file <-c(list.files(events_tmp_dx, "\\_READ.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_dx, x), to = file.path(paste0(events_tmp_dx, names(codelist_read_all[i])), x))})
+            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+            new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
+            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
           }
         }
       # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
@@ -80,12 +80,14 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_dx, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
-            new_file <-c(list.files(events_tmp_dx, "\\_SNOMED.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_dx, x), to = file.path(paste0(events_tmp_dx, names(codelist_snomed_all[i])), x))})
+            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+            new_file <-c(list.files(events_tmp_DX, "\\_SNOMED.rds$"))
+            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_snomed_all[i])), x))})
           }
         }
-      } else {print(paste(vocab, " is not part of code list vocabulary"))}
+      } else { 
+        print(paste0(unique(df$event_vocabulary), " is not part of code list vocabulary"))
+        }
       
     } else {
       print(paste0("There are no matching records in ", actual_tables$EVENTS[y]))
@@ -96,11 +98,11 @@ if(length(actual_tables$EVENTS)>0){
   # Monthly Counts 
   for(i in 1:length(codelist_all)){
     # Get list of files in each code group folder 
-    files <- list.files(path=paste0(events_tmp_dx, names(codelist_all[i]))) 
+    files <- list.files(path=paste0(events_tmp_DX, names(codelist_all[i]))) 
     # Perform counts per month/year
     if (length(files)>0){
       # Loads files 
-      files <- list.files(path=paste0(events_tmp_dx, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
+      files <- list.files(path=paste0(events_tmp_DX, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
       # Count by month-year
       counts <- comb_meds[,.N, by = .(year,month(event_date))]
@@ -116,13 +118,13 @@ if(length(actual_tables$EVENTS)>0){
       # Save files in g_output monthly counts 
       if (subpopulations_present=="Yes"){
         if(comb_meds[,.N]>0){
-          saveRDS(comb_meds, paste0(diagnosis_tmp,subpopulations_names[s], "/", names(codelist_all[i]),".rds"))
+          saveRDS(comb_meds, paste0(diagnoses_pop,subpopulations_names[s], "/", names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_dx,"/",subpopulations_names[s], "/", names(codelist_all[i]),"_counts.rds"))
         } else {
           print(paste("There are no matching records for", names(codelist_all[i])))}
       } else {
         if(comb_meds[,.N]>0){
-          saveRDS(comb_meds, paste0(diagnoses_tmp,names(codelist_all[i]),".rds"))
+          saveRDS(comb_meds, paste0(diagnoses_pop,names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_dx,"/",names(codelist_all[i]),"_counts.rds"))
         } else {print(paste("There are no matching records for", names(codelist_all[i])))
           }
