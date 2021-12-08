@@ -1,6 +1,7 @@
 # Load study population
 study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
+matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
 # Create empty table for counts 
 empty_counts_df <- expand.grid(seq(2009, 2020), seq(1, 12))
@@ -122,11 +123,10 @@ if(length(actual_tables$MEDICINES)>0){
       
     }
     # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-    unlink(paste0(tmp, "/events_atc"), recursive = TRUE)
+    # unlink(paste0(tmp, "/events_atc"), recursive = TRUE)
 }
 
 # CLEAN UP
 rm(list=ls(pattern="codelist"))
-rm(list=ls(pattern="df"))
 rm(comb_meds, counts)
 

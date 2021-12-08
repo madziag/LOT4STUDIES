@@ -19,9 +19,11 @@ setwd(projectFolder)
 #Study_source_population
 #################################################
 source(paste0(pre_dir,"study_source_population_script.R"))
+source(paste0(pre_dir,"CreateSterilityList.R"))
 source(paste0(pre_dir,"denominator_monthly.R"))
 source(paste0(pre_dir,"monthly_counts_dxcodes.R"))
 source(paste0(pre_dir,"monthly_counts_ATC.R"))
+source(paste0(pre_dir,"monthly_counts_procedures.R"))
 
 ##############################################
 #plot output
@@ -49,3 +51,4 @@ if(clear_int_files==T){
 unlink(paste0(g_intermediate, "/tmp"), recursive = TRUE)
 unlink(paste0(g_intermediate, "/populations"), recursive = TRUE)  
 }
+

@@ -2,7 +2,6 @@
 source(paste0(pre_dir,"/functions/LoadCodelist.R"))
 # Load code file
 filename <- "CodeLists/ATC_lot4_formatted.xlsx"
-matches <- c()
 # Print Message
 print("Loading concept sets")
 # Load code lists 
