@@ -20,7 +20,14 @@ SCHEME_04$ncols <- as.integer(NA)
 
 SCHEME_04$ncolsneeded <- 23
 
-FlowChartSourcetoStudy <- list()
+# FlowChartSourcetoStudy <- list()
+FlowChartSourcetoStudy <- data.frame(selection_criteria=rep(NA, length(SelectionCriteria)),
+                 subpopulation=rep(SUBP, length(SelectionCriteria)), 
+                 before=rep(NA, length(SelectionCriteria)), 
+                 after=rep(NA, length(SelectionCriteria)),
+                 attrition<-rep(NA, length(SelectionCriteria)))
+
+
 for(i in 1:nrow(SCHEME_04)){
     SOURCE <- readRDS(paste0(std_pop_tmp, SCHEME_04[["file_in"]][i]))
     
@@ -32,15 +39,24 @@ for(i in 1:nrow(SCHEME_04)){
       before <- nrow(SOURCE)
       SOURCE <- SOURCE[eval(SelectionCriteria[[j]]),]
       after <- nrow(SOURCE)
+      attrition<-before-after
+      crit_name<-names(SelectionCriteria)[j]
       
-      FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$step <- "04_CreateStudyPopulation"
-      FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$population <- SCHEME_04[["subpopulations"]][i]
-      FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$before <- before
-      FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$after <- after
+      # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$step <- "04_CreateStudyPopulation"
+      # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$population <- SCHEME_04[["subpopulations"]][i]
+      # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$before <- before
+      # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$after <- after
       
-      rm(before,after)
+      FlowChartSourcetoStudy$selection_criteria[j]<- crit_name
+      FlowChartSourcetoStudy$before[j] <- before
+      FlowChartSourcetoStudy$after[j] <- after
+      FlowChartSourcetoStudy$attrition[j] <- attrition
+      
+      rm(before,after, crit_name)
       gc()
-    } 
+    }} 
+    
+
     
     FlowChart3 <- list()
     
@@ -82,13 +98,14 @@ for(i in 1:nrow(SCHEME_04)){
 
 saveRDS(FlowChart3,file = paste0(std_pop_tmp,"FlowChart3.rds"))
 saveRDS(FlowChartSourcetoStudy,file = paste0(std_pop_tmp,"FlowChartSourcetoStudy.rds"))
+saveRDS(FlowChartSourcetoStudy,file = paste0(output_dir,"FlowChartSourcetoStudy.rds"))
 saveRDS(SCHEME_04,file = paste0(std_pop_tmp,"SCHEME_04.rds"))
 rm(FlowChart3,FlowChartSourcetoStudy,SCHEME_04)
 
 gc()
 
 
-
+# plot(x=(1:nrow(FlowChartSourcetoStudy)), y=(FlowChartSourcetoStudy$after), type="b")
 
 
 

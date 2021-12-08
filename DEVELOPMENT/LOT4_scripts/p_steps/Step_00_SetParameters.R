@@ -52,7 +52,7 @@ SelectionCriteria <- list(
   Age_filter_spells = expression(age_op_start_date < Age_max & age_op_end_date > Age_min),
     #Age_start_study = expression(age_start_study < Age_max & age_start_study >= Age_min),
   Age_start_study = expression((date_max > start_study_date) & (date_min < end_study_date)),
-  Sex=expression(sex_at_instance_creation=="F")
+  Sex_F=expression(sex_at_instance_creation=="F")
 )
 
 
