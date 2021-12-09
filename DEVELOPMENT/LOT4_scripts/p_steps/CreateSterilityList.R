@@ -180,6 +180,7 @@ if(length(proc_files)>0){
   } else {
     print(paste("There are no matching records for", names(codelist_all[i])))
   }
+  unlink(paste0(tmp, "/events_sterility"), recursive = TRUE)
 
 }
 
