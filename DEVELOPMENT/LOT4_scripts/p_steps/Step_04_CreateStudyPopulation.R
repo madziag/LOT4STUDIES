@@ -60,6 +60,7 @@ for(i in 1:nrow(SCHEME_04)){
     
     FlowChart3 <- list()
     
+    for(i in 1:nrow(SCHEME_04)){
     print(paste0("Set start_follow up date and end follow_up_date ",SCHEME_04[["subpopulations"]][i]))
     STUDY_POPULATION <- SOURCE[,start_follow_up := max(start_study_date,op_start_date+lookback_period,date_min),by = list(row.names(SOURCE))]
     STUDY_POPULATION <- STUDY_POPULATION[,end_follow_up := min(end_study_date,op_end_date,date_creation,recommended_end_date,date_max),by = list(row.names(SOURCE))]
