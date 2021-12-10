@@ -32,10 +32,11 @@ if(length(actual_tables$EVENTS)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
     df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(event_date)]
     df<-df[!is.na(year)] # Remove records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
+    # df<-df[year>2008 & year<2021] # Years used in study
     df[,date_dif:=start_follow_up-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
@@ -59,6 +60,12 @@ if(length(actual_tables$EVENTS)>0){
         for (i in 1:length(codelist_start_all)){
           df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
+          
+          if (names(codelist_start_all[i]) == "ind_bipolar" | names(codelist_start_all[i]) == "ind_epilepsy" |names(codelist_start_all[i]) == "ind_migraine"){
+            df_subset <- df_subset
+          } else {
+            df_subset <-df_subset[year>2008 & year<2021] # Years used in study
+          }
           if(nrow(df_subset)>0){
             saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
             new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
@@ -70,6 +77,12 @@ if(length(actual_tables$EVENTS)>0){
         for (i in 1:length(codelist_read_all)){
           df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
+          
+          if (names(codelist_read_all[i]) == "ind_bipolar" | names(codelist_read_all[i]) == "ind_epilepsy" |names(codelist_read_all[i]) == "ind_migraine"){
+            df_subset <- df_subset
+          } else {
+            df_subset <-df_subset[year>2008 & year<2021] # Years used in study
+          }
           if(nrow(df_subset)>0){
             saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
             new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
@@ -81,6 +94,11 @@ if(length(actual_tables$EVENTS)>0){
         for (i in 1:length(codelist_snomed_all)){
           df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
+          if (names(codelist_snomed_all[i]) == "ind_bipolar" | names(codelist_snomed_all[i]) == "ind_epilepsy" |names(codelist_snomed_all[i]) == "ind_migraine"){
+            df_subset <- df_subset
+          } else {
+            df_subset <-df_subset[year>2008 & year<2021] # Years used in study
+          }
           if(nrow(df_subset)>0){
             saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
             new_file <-c(list.files(events_tmp_DX, "\\_SNOMED.rds$"))
@@ -111,7 +129,7 @@ if(length(actual_tables$EVENTS)>0){
   }
   
    # Remove folder with table level records - these have been concatenated and stored in diagnosis folder 
-  unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
+  # unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
   
 }
 
@@ -120,6 +138,7 @@ if(length(actual_tables$EVENTS)>0){
 #### MEDICINES TABLES #######################################################################################################################
 #############################################################################################################################################
 # Load Create Concept Sets file
+matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
 # Create other lists
 comb_meds <- list()
@@ -146,6 +165,7 @@ if(length(actual_tables$MEDICINES)>0){
     # Remove records with missing values in the medicine table 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
     df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Create year variable 
     df[,year:=year(event_date)] 
     df<-df[!is.na(year)] # Remove records with both dates missing
@@ -192,6 +212,7 @@ if(length(actual_tables$MEDICINES)>0){
 #############################################################################################################################################
 #### PROCEDURES TABLES #######################################################################################################################
 #############################################################################################################################################
+matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
 # Load Procedure files 
 proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
@@ -218,6 +239,7 @@ if(length(proc_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,procedure_date :=as.IDate(procedure_date ,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(procedure_date )]
     df<-df[!is.na(year)] # Remove records with both dates missing

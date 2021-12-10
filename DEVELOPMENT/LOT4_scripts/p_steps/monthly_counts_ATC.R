@@ -4,7 +4,10 @@ study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
 # Create empty table for counts 
-empty_counts_df <- expand.grid(seq(2009, 2020), seq(1, 12))
+# Get min and max year from denominator file
+FUmonths_df <- as.data.table(FUmonths_df)
+FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
+empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
 # Create List of Retinoid and Valproates for individual counts
 codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)

@@ -67,7 +67,9 @@ monthly_counts_mo <- paste0(output_dir, "monthly_counts_mo")
 # Directories for plots
 dir.create(paste(output_dir, "plots", sep=""))
 plot_folder <- paste0(output_dir, "plots")
-
+# Directories for baseline tables 
+dir.create(paste(output_dir, "baseline_tables", sep=""))
+baseline_tables_dir <- paste0(output_dir, "baseline_tables")
 
 
 

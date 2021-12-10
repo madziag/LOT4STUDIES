@@ -6,7 +6,11 @@ source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
 # Load Procedure files 
 proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
 # Create empty table for counts 
-empty_counts_df <- expand.grid(seq(2009, 2020), seq(1, 12))
+# Get min and max year from denominator file
+FUmonths_df <- as.data.table(FUmonths_df)
+FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
+empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+# empty_counts_df <- expand.grid(seq(min(year(study_population$start_follow_up)), max(year(study_population$end_follow_up))), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
 # Check for PROCEDURE Tables present
 if(length(proc_files)>0){

@@ -1,79 +1,103 @@
 #Load study population
-study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
-# Load concept sets
-matches <- c()
+# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+#Load study population/populations 
+populations <- list.files(populations_dir, pattern = "study_population")
 # Load Create Concept Sets file
+matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
 # Create empty table for counts 
-empty_counts_df <- expand.grid(seq(2009, 2020), seq(1, 12))
+# Get min and max year from denominator file
+FUmonths_df <- as.data.table(FUmonths_df)
+FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
+empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
-# Check for EVENTS Tables present
-if(length(actual_tables$EVENTS)>0){
-  # Create a new folder for each code group type (to store records with matching codes) 
-  for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_DX, names(codelist_all[z]))), dir.create(paste(events_tmp_DX, names(codelist_all[z]), sep="")), FALSE)}
-  # Process each EVENTS table
-  for (y in 1:length(actual_tables$EVENTS)){
-    # Load table 
-    df<-fread(paste(path_dir, actual_tables$EVENTS[y], sep=""), stringsAsFactors = FALSE)
-    # Data Cleaning
-    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")] # Keep necessary columns
-    df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
-    setnames(df,"meaning_of_event","meaning") # Rename column names
-    setnames(df,"start_date_record","event_date") # Rename column names
-    setnames(df,"event_record_vocabulary","event_vocabulary") # Rename column names
-    setnames(df,"event_code","Code") # Rename column names
-    colnames_events<-names(df)
-    std_names_events<-names(study_population)
-    colnames_events<-colnames_events[!colnames_events %in% "person_id"]
-    # Merge Events table with study_population table(there is no missing data in this table)
-    df[,person_id:=as.character(person_id)]
-    study_population[,person_id:=as.character(person_id)]
-    df<-df[study_population,on=.(person_id)] # Left join, keep all people in the study population even if they didn't have an event
-    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
-    df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
-    df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
-    # Creates year variable
-    df[,year:=year(event_date)]
-    df<-df[!is.na(year)] # Remove records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=start_follow_up-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
-    persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(event_date<start_follow_up | event_date>end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Remove records outside study period
-    df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(event_vocabulary)]# Remove records with both event code and event record vocabulary missing
-    df<-df[!is.na(event_vocabulary)] # Remove empty vocabularies
-    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
-    # Add column with event_vocabulary main type i.e. start, READ, SNOMED
-    df[,vocab:= ifelse(df[,event_vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
-                       ifelse(df[,event_vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
-                              ifelse(df[,event_vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
-    # Print Message
-    print(paste0("Finding matching records in ", actual_tables$EVENTS[y]))
-    # Check if df is NOT empty
-    if(nrow(df)>0){
-      # Look for matches in df using event vocabulary type specific code list
-      # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
-      if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
-        for (i in 1:length(codelist_start_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
-          if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
-            new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_start_all[i])), x))})
-            }
-        }
-      # Cover RCD, RCD2, READ, CPRD_Read Codes 
-      } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ") {
-        for (i in 1:length(codelist_read_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
-          if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
-            new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
+
+for(pop in 1:length(populations)){
+  study_population <- readRDS(paste0(populations_dir, populations[pop]))
+  # Check for EVENTS Tables present
+  if(length(actual_tables$EVENTS)>0){
+    # Create a new folder for each code group type (to store records with matching codes) 
+    for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_DX, names(codelist_all[z]))), dir.create(paste(events_tmp_DX, names(codelist_all[z]), sep="")), FALSE)}
+    # Process each EVENTS table
+    for (y in 1:length(actual_tables$EVENTS)){
+      # Load table 
+      df<-fread(paste(path_dir, actual_tables$EVENTS[y], sep=""), stringsAsFactors = FALSE)
+      # Data Cleaning
+      df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")] # Keep necessary columns
+      df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
+      setnames(df,"meaning_of_event","meaning") # Rename column names
+      setnames(df,"start_date_record","event_date") # Rename column names
+      setnames(df,"event_record_vocabulary","event_vocabulary") # Rename column names
+      setnames(df,"event_code","Code") # Rename column names
+      colnames_events<-names(df)
+      std_names_events<-names(study_population)
+      colnames_events<-colnames_events[!colnames_events %in% "person_id"]
+      # Merge Events table with study_population table(there is no missing data in this table)
+      df[,person_id:=as.character(person_id)]
+      study_population[,person_id:=as.character(person_id)]
+      df<-df[study_population,on=.(person_id)] # Left join, keep all people in the study population even if they didn't have an event
+      df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
+      df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
+      df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+      # Creates year variable
+      df[,year:=year(event_date)]
+      df<-df[!is.na(year)] # Remove records with both dates missing
+      df<-df[year>2008 & year<2021] # Years used in study
+      df[,date_dif:=start_follow_up-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
+      persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
+      df[,date_dif:=NULL][,filter:=NULL]
+      df[(event_date<start_follow_up | event_date>end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
+      df<-df[is.na(obs_out)] # Remove records outside study period
+      df[,obs_out:=NULL]
+      df<-df[!is.na(Code) | !is.na(event_vocabulary)]# Remove records with both event code and event record vocabulary missing
+      df<-df[!is.na(event_vocabulary)] # Remove empty vocabularies
+      df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
+      # Add column with event_vocabulary main type i.e. start, READ, SNOMED
+      df[,vocab:= ifelse(df[,event_vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
+                         ifelse(df[,event_vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
+                                ifelse(df[,event_vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
+      # Print Message
+      print(paste0("Finding matching records in ", actual_tables$EVENTS[y]))
+      # Check if df is NOT empty
+      if(nrow(df)>0){
+        # Look for matches in df using event vocabulary type specific code list
+        # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
+        if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
+          
+          for (i in 1:length(codelist_start_all)){
+            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset <- df_subset[,-c("vocab")]
+            
+            if(nrow(df_subset)>0){
+              
+              if(SUBP == TRUE){
+                saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_start_all[i]), "_",populations[pop], "_",actual_tables$EVENTS[y], "_start.rds"))
+                new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
+                lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_start_all[i])), x))})
+              } else { 
+                saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_start_all[i]), "_", actual_tables$EVENTS[y], "_start.rds"))
+                new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
+                lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_start_all[i])), x))})
+                }
+              }
+            # Cover RCD, RCD2, READ, CPRD_Read Codes 
+            } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ") {
+              for (i in 1:length(codelist_read_all)){
+                df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
+                df_subset <- df_subset[,-c("vocab")]
+          
+                if(nrow(df_subset)>0){
+                  if(SUBP == TRUE){
+                    saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+                    new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
+                    lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
+                  } else {                  
+                    saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+                    new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
+                    lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
+                    }
+            
+                  
           }
         }
       # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
@@ -138,6 +162,8 @@ if(length(actual_tables$EVENTS)>0){
   # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
    # unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
 
+}
+  
 }
 # Clean up
 rm(list=ls(pattern="codelist"))
