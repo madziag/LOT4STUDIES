@@ -32,5 +32,17 @@ for(i in 1:nrow(ALL_study_population)){
 
 summary(ALL_study_population$exit_date)
 print("exit date OK")
+
+#add spell_start and spell_end
+print("merge spell_start spell_end from ALL_OBS_SPELLS")
+
+ALL_OBS_SPELLS<-readRDS(paste0(g_intermediate,"tmp/STUDY_SOURCE_POPULATION/ALL_OBS_SPELLS.rds"))
+names(ALL_OBS_SPELLS)[names(ALL_OBS_SPELLS) == 'op_start_date'] <- 'spell_start_date'
+names(ALL_OBS_SPELLS)[names(ALL_OBS_SPELLS) == 'op_end_date'] <- 'spell_end_date'
+ALL_OBS_SPELLS<-ALL_OBS_SPELLS[,c("person_id","spell_start_date", "spell_end_date")]
+ALL_study_population<-dplyr::left_join(ALL_study_population, ALL_OBS_SPELLS)
+
+print("save ALL_study_population.rds with entry, exit and spells start and end")
 saveRDS(ALL_study_population, paste0(populations_dir, "ALL_study_population.rds"))
+
 
