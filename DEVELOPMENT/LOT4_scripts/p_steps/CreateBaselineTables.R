@@ -94,15 +94,27 @@ for (i in 1:length(all_dfs_meds)){
       age_at_ID_mean <-mean(df$age_at_entry_date)
       age_at_ID_SD   <-sd(df$age_at_entry_date)
       # age_at_ID_SD <- do we calculate SD if we are calculating mean
-      age_at_ID_12_18.9_count <-  sum(df$age_groups == "12-18.9")
+      if(sum(df$age_groups == "12-18.9")>5){
+      age_at_ID_12_18.9_count <-  sum(df$age_groups == "12-18.9")}else{age_at_ID_12_18.9_count<-"count=<5"}
+        
+      if(sum(df$age_groups == "19-25.9")>5){
+      age_at_ID_19_25.9_count <- sum(df$age_groups == "19-25.9")}  else{age_at_ID_19_25.9_coun<-"count=<5"}
+      
+      if(sum(df$age_groups == "26-35.9")){
+      age_at_ID_26_35.9_count <- sum(df$age_groups == "26-35.9")} else {age_at_ID_26_35.9_count<-"count=<5"}
+      
+      if(sum(df$age_groups == "36-45.9")>5)
+      age_at_ID_36_45.9_count <- sum(df$age_groups == "36-45.9")else{age_at_ID_36_45.9_count<-"count=<5"}    
+      
+      if(sum(df$age_groups == "46-55.9")>5){
+      age_at_ID_46_55.9_count <-  sum(df$age_groups == "46-55.9")}  else{age_at_ID_46_55.9_count<-"count=<5"}
+      
+      print("NAs will be generated for masked counts- ignore error")
+      
       age_at_ID_12_18.9_prec  <-   (age_at_ID_12_18.9_count/nrow(df)) * 100
-      age_at_ID_19_25.9_count <- sum(df$age_groups == "19-25.9")   
       age_at_ID_19_25.9_prec  <-  (age_at_ID_19_25.9_count/nrow(df)) * 100
-      age_at_ID_26_35.9_count <- sum(df$age_groups == "26-35.9")     
       age_at_ID_26_35.9_prec  <- (age_at_ID_26_35.9_count/nrow(df)) * 100
-      age_at_ID_36_45.9_count <- sum(df$age_groups == "36-45.9")      
       age_at_ID_36_45.9_prec  <- (age_at_ID_36_45.9_count/nrow(df)) * 100
-      age_at_ID_46_55.9_count <-  sum(df$age_groups == "46-55.9")    
       age_at_ID_46_55.9_prec  <- (age_at_ID_46_55.9_count/nrow(df)) * 100
       
       # Create dataframe
