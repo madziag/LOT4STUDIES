@@ -1,5 +1,5 @@
 # Load study population
-study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
@@ -37,6 +37,7 @@ if(length(actual_tables$MEDICINES)>0){
     # Remove records with missing values in the medicine table 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
     df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Create year variable 
     df[,year:=year(event_date)] 
     df<-df[!is.na(year)] # Remove records with both dates missing
@@ -57,7 +58,11 @@ if(length(actual_tables$MEDICINES)>0){
       # Look for matches in df using event vocabulary type specific code list
       for (i in 1:length(codelist_all)){
         df_subset <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
-        saveRDS(data.table(df_subset), paste0(events_tmp_ATC, names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
+        if(SUBP == TRUE){
+          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, populations[pop], names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
+        }else{
+          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
+          }
       }
     }
   }
@@ -82,17 +87,18 @@ if(length(actual_tables$MEDICINES)>0){
         counts <-counts[,c("YM", "N", "Freq")]
         counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
         # Save files in g_output monthly counts 
-        if (subpopulations_present=="Yes"){
           if(comb_meds[[i]][,.N]>0){
-            saveRDS(comb_meds[[i]], paste0(medications_pop,subpopulations_names[s], "/", names(codelist_all[i]),".rds"))
-            saveRDS(counts, paste0(monthly_counts_atc,"/",subpopulations_names[s], "/", names(codelist_all[i]),"_counts.rds"))
-            } else {print(paste("There are no matching records for", names(codelist_all[i])))}
-        } else {
-          if(comb_meds[[i]][,.N]>0){
-            saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
-            saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_counts.rds"))
-          } else {print(paste("There are no matching records for", names(codelist_all[i])))}
-        }
+            if (SUBP == TRUE){
+              saveRDS(comb_meds[[i]], paste0(medications_pop,populations[pop], "_", names(codelist_all[i]),".rds"))
+              saveRDS(counts, paste0(monthly_counts_atc,"/", populations[pop], "_",names(codelist_all[i]),"_counts.rds"))
+            }else {
+              saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
+              saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_counts.rds"))
+            }
+            
+          } else {
+            print(paste("There are no matching records for", names(codelist_all[i])))
+            }
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))
       }
@@ -101,8 +107,13 @@ if(length(actual_tables$MEDICINES)>0){
   # Individual counts for Valproates and Retinoids
     # Individual counts for Valproates and Retinoids
     for(i in 1:length(codelist_ind)){
-      df_ind<- readRDS(paste0(medications_pop, list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))))
-      for(j in 1:length(unique(codelist_ind[[i]]$Code))){
+      ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
+      
+      
+      for(x in 1:length(ind_files)){
+        df_ind<- readRDS(paste0(medications_pop, ind_files[x]))
+
+        for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
         counts_ind<- sub_ind[,.N, by = .(year,month(event_date))]
         counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
@@ -112,24 +123,26 @@ if(length(actual_tables$MEDICINES)>0){
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
         counts_ind <-counts_ind[,c("YM", "N", "Freq")]
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
-        
-        if (subpopulations_present=="Yes"){
-          if(comb_meds[[i]][,.N]>0){
-            saveRDS(counts_ind, paste0(medications_pop,subpopulations_names[s], "/",tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
-          } else {print(paste("There are no matching records for", names(codelist_all[i])))}
+
+        if(comb_meds[[i]][,.N]>0){
+          if(SUBP == TRUE){
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",populations[pop],"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
+          }else{
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",names(codelist_ind[i]),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
+          }
+
         } else {
-          if(comb_meds[[i]][,.N]>0){
-            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
-          } else {print(paste("There are no matching records for", names(codelist_all[i])))}
-        }
+          print(paste("There are no matching records for", names(codelist_all[i])))
+          }
       }
-      
+
+      }
     }
     # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
     # unlink(paste0(tmp, "/events_atc"), recursive = TRUE)
 }
 
 # CLEAN UP
-rm(list=ls(pattern="codelist"))
-rm(comb_meds, counts)
+# rm(list=ls(pattern="codelist"))
+# rm(comb_meds, counts)
 
