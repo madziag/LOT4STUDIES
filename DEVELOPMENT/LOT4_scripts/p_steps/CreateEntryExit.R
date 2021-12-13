@@ -8,7 +8,7 @@ start_date<-as.Date(as.character(20100101), "%Y%m%d")
 ALL_study_population$entry_date<-as.Date(as.character("18000101"), "%Y%m%d")
 print("calculating entry date")
 for(i in 1:nrow(ALL_study_population)){
-  entry_dates<-c(ALL_study_population$date_min[i], ALL_study_population$op_start_date[i], start_date)
+  entry_dates<-c(ALL_study_population$date_min[i], ALL_study_population$spell_start_date[i], start_date)
   max_date<-max(entry_dates)
   ALL_study_population$entry_date[i]<-as.Date(max_date, "%Y%m%d")
 }
@@ -25,7 +25,7 @@ end_date<-as.Date(as.character(20201231), "%Y%m%d")
 
 print("calculating exit date")
 for(i in 1:nrow(ALL_study_population)){
-  exit<-c(ALL_study_population$date_max[i], ALL_study_population$op_end_date[i], ALL_study_population$sterility_date[i], end_date)
+  exit<-c(ALL_study_population$date_max[i], ALL_study_population$spell_end_date[i], ALL_study_population$sterility_date[i], end_date)
   min_date<-min(exit,na.rm = T)
   ALL_study_population$exit_date[i]<-as.Date(min_date, "%Y%m%d")
 }
