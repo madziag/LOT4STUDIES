@@ -37,6 +37,8 @@ names(empty_counts_df) <- c("year", "month")
       df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
       df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
       df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+      df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
+      df[,exit_date:=as.IDate(exit_date,"%Y%m%d")] # Transform to date variables
       # Creates year variable
       df[,year:=year(event_date)]
       df<-df[!is.na(year)] # Remove records with both dates missing

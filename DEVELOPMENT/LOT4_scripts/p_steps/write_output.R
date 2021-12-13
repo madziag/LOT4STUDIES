@@ -6,7 +6,8 @@ if(!require(writexl)){install.packages("writexl")}
 library(writexl)}
 
 all_rds_outputs<-list.files(output_dir, recursive=T, pattern="rds")
-dir.create(paste0(output_dir,my_format, "_files"))
+
+invisible(ifelse(!dir.exists(paste0(output_dir,my_format, "_files")),  dir.create(paste0(output_dir,my_format, "_files")), FALSE))
 my_output_folder<-paste0(output_dir,my_format, "_files/")
 
 

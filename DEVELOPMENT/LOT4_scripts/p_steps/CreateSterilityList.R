@@ -10,7 +10,7 @@ if(length(actual_tables$EVENTS)>0){
     # Load table
     df<-fread(paste(path_dir, actual_tables$EVENTS[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")] # Keep necessary columns
+    df<-as.data.table(df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")]) # Keep necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
     setnames(df,"meaning_of_event","meaning") # Rename column names
     setnames(df,"start_date_record","event_date") # Rename column names
