@@ -35,15 +35,15 @@ if(length(proc_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,procedure_date :=as.IDate(procedure_date ,"%Y%m%d")] # Transform to date variables
-    df[,start_follow_up :=as.IDate(start_follow_up ,"%Y%m%d")] # Transform to date variables
+    df[,entry_date :=as.IDate(entry_date ,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(procedure_date )]
     df<-df[!is.na(year)] # Remove records with both dates missing
     df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=start_follow_up-procedure_date ][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
+    df[,date_dif:=entry_date-procedure_date ][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
-    df[(procedure_date <start_follow_up | procedure_date >end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
+    df[(procedure_date <entry_date | procedure_date >exit_date), obs_out:=1] # Remove records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Remove records outside study period
     df[,obs_out:=NULL]
     df<-df[!is.na(Code) | !is.na(vocabulary)]# Remove records with both event code and event record vocabulary missing

@@ -6,21 +6,21 @@ pattern1 = c("Retinoid","Valproate")
 files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse="|"))
 study_pop_all <- do.call(rbind,lapply(paste0(medications_pop, files), readRDS))
 # Drop columns you are not using
-# colsToDelete <- c("day_of_birth", "month_of_birth", "year_of_birth", "day_of_death", "month_of_death", "year_of_death", "start_follow_up_month", "start_follow_up_year", "start_follow_up_day", "end_follow_up_month", "end_follow_up_year", "end_follow_up_day", "birth_date_month", "birth_date_year", "birth_date_day", "diff_T1_T0_W", "diff_T2_T1_M", "PY", "Year_op" , "Year", "year")
+# colsToDelete <- c("day_of_birth", "month_of_birth", "year_of_birth", "day_of_death", "month_of_death", "year_of_death", "entry_date_month", "entry_date_year", "entry_date_day", "exit_date_month", "exit_date_year", "exit_date_day", "birth_date_month", "birth_date_year", "birth_date_day", "diff_T1_T0_W", "diff_T2_T1_M", "PY", "Year_op" , "Year", "year")
 # study_pop_all[, (colsToDelete) := NULL]
 # We need to filter on Entry and Exit date (SFU AND EFU NEED TO BE CHANGED TO THE NEW VARIABLES!!!)
 # Both Retinoids and Valproates
-# study_pop_all[event_date >= start_follow_up & event_date <= end_follow_up]
+# study_pop_all[event_date >= entry_date & event_date <= exit_date]
 # Create fu_dur_days col: exit_date - entry_date (WHICH START AND STOP DATE VARIABLES NEED TO BE USED )
-# entry_date <- start_follow_up
-# exit_date  <- end_follow_up
+# entry_date <- entry_date
+# exit_date  <- exit_date
 #### THIS NEEDS TO BE CHANGES TO NEW START AND STOP VARIABLES!!
-study_pop_all[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
-study_pop_all[,end_follow_up:=as.IDate(end_follow_up, "%Y%m%d")] # Transform to date variables
+study_pop_all[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
+study_pop_all[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables
 
-study_pop_all[, fu_dur_days := end_follow_up - start_follow_up]
+study_pop_all[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
-study_pop_all[, age_at_entry_date := floor((start_follow_up - birth_date)/365)]
+study_pop_all[, age_at_entry_date := floor((entry_date - birth_date)/365)]
 study_pop_all[,age_groups:= ifelse(study_pop_all[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
                                       ifelse(study_pop_all[,age_at_entry_date < 26], "19-25.9",
                                              ifelse(study_pop_all[,age_at_entry_date < 36],  "26-35.9",
@@ -84,7 +84,7 @@ names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retin
 for (i in 1:length(all_dfs_meds)){
       df <- all_dfs_meds[[i]]
       # Check if within correct range (PENDING CORRECT DATES)
-      df[event_date >= start_follow_up & event_date <= end_follow_up]
+      df[event_date >= entry_date & event_date <= exit_date]
       if(nrow(df > 0)){
       ################## BASELINE ALL POPULATION ########################
       # Calculate median of followup in years 

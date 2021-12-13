@@ -41,10 +41,10 @@ names(empty_counts_df) <- c("year", "month")
       df[,year:=year(event_date)]
       df<-df[!is.na(year)] # Remove records with both dates missing
       df<-df[year>2008 & year<2021] # Years used in study
-      df[,date_dif:=start_follow_up-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
+      df[,date_dif:=entry_date-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
       persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
       df[,date_dif:=NULL][,filter:=NULL]
-      df[(event_date<start_follow_up | event_date>end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
+      df[(event_date<entry_date | event_date>exit_date), obs_out:=1] # Remove records that are outside the obs_period for all subjects
       df<-df[is.na(obs_out)] # Remove records outside study period
       df[,obs_out:=NULL]
       df<-df[!is.na(Code) | !is.na(event_vocabulary)]# Remove records with both event code and event record vocabulary missing
