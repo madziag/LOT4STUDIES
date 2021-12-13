@@ -1,5 +1,5 @@
 #Load study population
-study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load concept sets
 matches <- c("sterility")
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
@@ -26,6 +26,7 @@ if(length(actual_tables$EVENTS)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
     df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(event_date)]
     df<-df[!is.na(year)] # Remove records with both dates missing
@@ -54,8 +55,12 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
-            new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))
+            if(SUBP == TRUE){            
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_start.rds"))
+              new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))
+              }else{            
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
+                new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))}
           }
         }
         # Cover RCD, RCD2, READ, CPRD_Read Codes
@@ -64,8 +69,13 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
-            new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))
+            if(SUBP == TRUE){        
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_READ.rds"))
+              new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))
+              }else{        
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+                new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))}
+    
            }
         }
         # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes
@@ -74,8 +84,13 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            # saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
-            new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
+            if(SUBP == TRUE){            
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+              new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
+              }else{            
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+                new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
+                }
           }
         }
       } else {
@@ -124,6 +139,7 @@ if(length(proc_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,procedure_date :=as.IDate(procedure_date ,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(procedure_date )]
     df<-df[!is.na(year)] # Remove records with both dates missing
@@ -152,8 +168,14 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
-            new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+            if(SUBP == TRUE){            
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_CPRD_all[i]), "_", populations[pop], "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+              }else{            
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
+                new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+                }
+
             }
         }
         # Covers PHARMO Codes
@@ -162,8 +184,14 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
-            new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+            if(SUBP == TRUE){            
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_PHARM0_all[i]), "_", populations[pop], "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+              }else{            
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
+                new_file <-c(list.files(events_tmp_sterility, "\\_.rds$"))
+                }
+
            }
         }
       } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))}
@@ -180,7 +208,7 @@ if(length(proc_files)>0){
   } else {
     print(paste("There are no matching records for", names(codelist_all[i])))
   }
-  unlink(paste0(tmp, "/events_sterility"), recursive = TRUE)
+  # unlink(paste0(tmp, "/events_sterility"), recursive = TRUE)
 
 }
 
@@ -197,8 +225,14 @@ sterility_all <- rbind(sterility_events, sterility_procedures)
 # Choose record with earliest date of sterility
 sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
 # Save records 
-saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
-saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
+if (SUBP == TRUE){
+  saveRDS(sterility_all, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
+  saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
+}else {
+  saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
+  saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
+}
+
 # Clean Up 
-rm(list=ls(pattern="codelist"))
-rm(df, df_subset)
+# rm(list=ls(pattern="codelist"))
+# rm(df, df_subset)

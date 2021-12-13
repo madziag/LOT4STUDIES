@@ -1,7 +1,7 @@
 #Load study population
 # study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 #Load study population/populations 
-populations <- list.files(populations_dir, pattern = "study_population")
+# populations <- list.files(populations_dir, pattern = "study_population")
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
@@ -12,8 +12,6 @@ FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
 
-for(pop in 1:length(populations)){
-  study_population <- readRDS(paste0(populations_dir, populations[pop]))
   # Check for EVENTS Tables present
   if(length(actual_tables$EVENTS)>0){
     # Create a new folder for each code group type (to store records with matching codes) 
@@ -79,16 +77,18 @@ for(pop in 1:length(populations)){
                 new_file <-c(list.files(events_tmp_DX, "\\_start.rds$"))
                 lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_start_all[i])), x))})
                 }
-              }
+            }
+          }
             # Cover RCD, RCD2, READ, CPRD_Read Codes 
             } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ") {
+              
               for (i in 1:length(codelist_read_all)){
                 df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
                 df_subset <- df_subset[,-c("vocab")]
           
                 if(nrow(df_subset)>0){
                   if(SUBP == TRUE){
-                    saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+                    saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_READ.rds"))
                     new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
                     lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
                   } else {                  
@@ -96,19 +96,27 @@ for(pop in 1:length(populations)){
                     new_file <-c(list.files(events_tmp_DX, "\\_READ.rds$"))
                     lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_read_all[i])), x))})
                     }
-            
-                  
+       
           }
         }
       # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
+        
         for (i in 1:length(codelist_snomed_all)){
           df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
+          
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
-            new_file <-c(list.files(events_tmp_DX, "\\_SNOMED.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_snomed_all[i])), x))})
+            if(SUBP == TRUE){
+              saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_snomed_all[i]), "_", populations[pop],"_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+              new_file <-c(list.files(events_tmp_DX, "\\_SNOMED.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_snomed_all[i])), x))})
+            }else{
+              saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+              new_file <-c(list.files(events_tmp_DX, "\\_SNOMED.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_DX, x), to = file.path(paste0(events_tmp_DX, names(codelist_snomed_all[i])), x))})
+            }
+
           }
         }
       } else { 
@@ -118,7 +126,8 @@ for(pop in 1:length(populations)){
     } else {
       print(paste0("There are no matching records in ", actual_tables$EVENTS[y]))
       }
-  }
+    }
+      
   # Print Message
   print("Counting records") 
   # Monthly Counts 
@@ -142,18 +151,17 @@ for(pop in 1:length(populations)){
       counts <-counts[,c("YM", "N", "Freq")]
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       # Save files in g_output monthly counts 
-      if (subpopulations_present=="Yes"){
-        if(comb_meds[,.N]>0){
-          saveRDS(comb_meds, paste0(diagnoses_pop,subpopulations_names[s], "/", names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_dx,"/",subpopulations_names[s], "/", names(codelist_all[i]),"_counts.rds"))
+      if(comb_meds[,.N]>0){
+        
+        if(SUBP == TRUE){      
+          saveRDS(comb_meds, paste0(diagnoses_pop,populations[pop], "_", names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_dx,"/",populations[pop], "_", names(codelist_all[i]),"_counts.rds"))
         } else {
-          print(paste("There are no matching records for", names(codelist_all[i])))}
-      } else {
-        if(comb_meds[,.N]>0){
           saveRDS(comb_meds, paste0(diagnoses_pop,names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_dx,"/",names(codelist_all[i]),"_counts.rds"))
-        } else {print(paste("There are no matching records for", names(codelist_all[i])))
           }
+      } else {
+        print(paste("There are no matching records for", names(codelist_all[i])))
       }
     } else {
       print(paste("There are no matching records for", names(codelist_all[i])))
@@ -164,10 +172,10 @@ for(pop in 1:length(populations)){
 
 }
   
-}
+
 # Clean up
-rm(list=ls(pattern="codelist"))
-rm(comb_meds, counts, df, df_subset, empty_counts_df)
+# rm(list=ls(pattern="codelist"))
+# rm(comb_meds, counts, df, df_subset, empty_counts_df)
 
   
 

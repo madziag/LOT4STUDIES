@@ -1,5 +1,5 @@
 #Load study population
-study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
@@ -35,6 +35,7 @@ if(length(proc_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,procedure_date :=as.IDate(procedure_date ,"%Y%m%d")] # Transform to date variables
+    df[,start_follow_up :=as.IDate(start_follow_up ,"%Y%m%d")] # Transform to date variables
     # Creates year variable
     df[,year:=year(procedure_date )]
     df<-df[!is.na(year)] # Remove records with both dates missing
@@ -59,13 +60,20 @@ if(length(proc_files)>0){
       # Look for matches in df using event vocabulary type specific code list
       # Covers: CPRD codes
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
+        
         for (i in 1:length(codelist_CPRD_all)){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_PROC, names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
-            new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
+            if (SUBP == TRUE){
+              saveRDS(data.table(df_subset), paste0(events_tmp_PROC, populations[pop], "_", names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
+            }else{
+              saveRDS(data.table(df_subset), paste0(events_tmp_PROC, names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
+            }
           }
         }
         # Covers PHARMO Codes
@@ -74,9 +82,15 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_PROC, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
-            new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
+            if(SUBP == TRUE) {saveRDS(data.table(df_subset), paste0(events_tmp_PROC, populations[pop], "_",names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
+            }else {
+              saveRDS(data.table(df_subset), paste0(events_tmp_PROC, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
+              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
+              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
+              }
+            
           }
         }
       } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))}
@@ -84,7 +98,11 @@ if(length(proc_files)>0){
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
     }
-  }
+    }
+    
+    
+    
+    
   # Print Message
   print("Counting records")
   # Monthly Counts
@@ -108,29 +126,31 @@ if(length(proc_files)>0){
       counts <-counts[,c("YM", "N", "Freq")]
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       # Save files in g_output monthly counts
-      if (subpopulations_present=="Yes"){
-        if(comb_meds[,.N]>0){
-          saveRDS(comb_meds, paste0(procedures_pop,subpopulations_names[s], "/", names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",subpopulations_names[s], "/", names(codelist_all[i]),"_counts.rds"))
+      if(comb_meds[,.N]>0){
+        
+        if(SUBP == TRUE){      
+          saveRDS(comb_meds, paste0(procedures_pop,populations[pop], "_",names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_proc,"/",populations[pop], "_",names(codelist_all[i]),"_counts.rds"))
         } else {
-          print(paste("There are no matching records for", names(codelist_all[i])))}
-      } else {
-        if(comb_meds[,.N]>0){
           saveRDS(comb_meds, paste0(procedures_pop,names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_proc,"/",names(codelist_all[i]),"_counts.rds"))
-        } else {print(paste("There are no matching records for", names(codelist_all[i])))
         }
+      } else {
+        print(paste("There are no matching records for", names(codelist_all[i])))
       }
     } else {
       print(paste("There are no matching records for", names(codelist_all[i])))
     }
   }
-  # # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-   # unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
+  # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
+  # unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
   
-}
+  }
+
 # Clean up
-rm(list=ls(pattern="codelist"))
+# rm(list=ls(pattern="codelist"))
+
+
 
 
 
