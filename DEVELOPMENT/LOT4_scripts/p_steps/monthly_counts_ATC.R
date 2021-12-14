@@ -89,8 +89,9 @@ if(length(actual_tables$MEDICINES)>0){
         # Save files in g_output monthly counts 
           if(comb_meds[[i]][,.N]>0){
             if (SUBP == TRUE){
-              saveRDS(comb_meds[[i]], paste0(medications_pop,populations[pop], "_", names(codelist_all[i]),".rds"))
-              saveRDS(counts, paste0(monthly_counts_atc,"/", populations[pop], "_",names(codelist_all[i]),"_counts.rds"))
+              pop_names <- gsub(".rds", "", populations[pop])
+              saveRDS(comb_meds[[i]], paste0(medications_pop,pop_names, "_", names(codelist_all[i]),".rds"))
+              saveRDS(counts, paste0(monthly_counts_atc,"/", pop_names, "_",names(codelist_all[i]),"_counts.rds"))
             }else {
               saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
               saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_counts.rds"))
@@ -126,7 +127,8 @@ if(length(actual_tables$MEDICINES)>0){
 
         if(comb_meds[[i]][,.N]>0){
           if(SUBP == TRUE){
-            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",populations[pop],"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
+            pop_names <- gsub(".rds", "", populations[pop])
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_names,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
           }else{
             saveRDS(counts_ind, paste0(monthly_counts_atc,"/",names(codelist_ind[i]),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
           }
@@ -140,7 +142,7 @@ if(length(actual_tables$MEDICINES)>0){
     }
     # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
     # unlink(paste0(tmp, "/events_atc"), recursive = TRUE)
-}
+} else {"There are no MEDICATIONS tables to analyse!"}
 
 # CLEAN UP
 # rm(list=ls(pattern="codelist"))

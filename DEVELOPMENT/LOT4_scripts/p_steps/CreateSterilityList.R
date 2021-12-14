@@ -109,7 +109,10 @@ if(length(actual_tables$EVENTS)>0){
     } else {
       print(paste("There are no matching records for", names(codelist_all[i])))
     }
+} else {
+  print("There are no EVENTS tables available")
 }
+
 
 #### PROCEDURES TABLES
 # Load Create Concept Sets file
@@ -210,28 +213,69 @@ if(length(proc_files)>0){
   }
   # unlink(paste0(tmp, "/events_sterility"), recursive = TRUE)
 
+} else {
+  print("There are no PROCEDURES  table available")
+}
+
+# Create Sterility list 
+if (length(actual_tables$EVENTS)>0 & length(proc_files)>0) {
+  # Create column that indicates if record comes from events or procedures
+  sterility_events[,table_origin:='EVENTS']
+  sterility_procedures[,table_origin:='PROCEDURES']
+  # Rename columns
+  setnames(sterility_events,"event_date","sterility_date")
+  setnames(sterility_procedures,"procedure_date","sterility_date")
+  setnames(sterility_events,"event_vocabulary","vocabulary")
+  # Join sterility records from events and procedures
+  sterility_all <- rbind(sterility_events, sterility_procedures)
+  # Choose record with earliest date of sterility
+  sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
+  # Save records 
+  if (SUBP == TRUE){
+    saveRDS(sterility_all, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
+  }else {
+    saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
+  }
+} else if (length(actual_tables$EVENTS)>0 & length(proc_files) == 0) {
+  # Create column that indicates if record comes from events or procedures
+  sterility_events[,table_origin:='EVENTS']
+  # Rename columns
+  setnames(sterility_events,"event_date","sterility_date")
+  setnames(sterility_events,"event_vocabulary","vocabulary")
+  # Choose record with earliest date of sterility
+  sterility_all_first_occurrence  <- setDT(sterility_events)[order(sterility_date), head(.SD, 1L), by = person_id]
+  # Save records 
+  if (SUBP == TRUE){
+    saveRDS(sterility_events, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
+  }else {
+    saveRDS(sterility_events, paste0(sterility_pop, "sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
+  }
+} else if (length(actual_tables$EVENTS) == 0 & length(proc_files) >0) {
+  # Create column that indicates if record comes from events or procedures
+  sterility_procedures[,table_origin:='PROCEDURES']
+  # Rename columns
+  setnames(sterility_procedures,"procedure_date","sterility_date")
+  # Choose record with earliest date of sterility
+  sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
+  # Save records 
+  if (SUBP == TRUE){
+    saveRDS(sterility_procedures, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
+  }else {
+    saveRDS(sterility_procedures, paste0(sterility_pop, "sterility_all.rds"))
+    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
+  }
+  
+} else {
+  print("There are no EVENTS or PROCEDURES tables")
 }
 
 
-# Create column that indicates if record comes from events or procedures
-sterility_events[,table_origin:='EVENTS']
-sterility_procedures[,table_origin:='PROCEDURES']
-# Rename columns
-setnames(sterility_events,"event_date","sterility_date")
-setnames(sterility_procedures,"procedure_date","sterility_date")
-setnames(sterility_events,"event_vocabulary","vocabulary")
-# Join sterility records from events and procedures
-sterility_all <- rbind(sterility_events, sterility_procedures)
-# Choose record with earliest date of sterility
-sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
-# Save records 
-if (SUBP == TRUE){
-  saveRDS(sterility_all, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
-  saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
-}else {
-  saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
-  saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
-}
+
 
 # Clean Up 
 # rm(list=ls(pattern="codelist"))

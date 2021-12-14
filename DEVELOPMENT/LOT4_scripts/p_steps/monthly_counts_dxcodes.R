@@ -156,8 +156,9 @@ names(empty_counts_df) <- c("year", "month")
       if(comb_meds[,.N]>0){
         
         if(SUBP == TRUE){      
-          saveRDS(comb_meds, paste0(diagnoses_pop,populations[pop], "_", names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_dx,"/",populations[pop], "_", names(codelist_all[i]),"_counts.rds"))
+          pop_names <- gsub(".rds", "", populations[pop])
+          saveRDS(comb_meds, paste0(diagnoses_pop,pop_names, "_", names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_dx,"/",pop_names, "_", names(codelist_all[i]),"_counts.rds"))
         } else {
           saveRDS(comb_meds, paste0(diagnoses_pop,names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_dx,"/",names(codelist_all[i]),"_counts.rds"))
@@ -172,6 +173,8 @@ names(empty_counts_df) <- c("year", "month")
   # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
    # unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
 
+  } else {
+  print("There are no EVENTS tables to analyse!")
 }
   
 

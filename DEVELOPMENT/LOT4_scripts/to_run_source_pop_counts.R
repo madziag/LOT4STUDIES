@@ -13,16 +13,21 @@ source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
 source(paste0(pre_dir,"info.R"))
 source(paste0(pre_dir,"study_parameters.R"))
+
 #user input parameter
 mask<-T
+# mask <- F
 
-# if analysis for multiple regions # BIFAP
-multiple_regions = F
-
-# Set directory for multiple regions
 #user input parameter
-# multiple_regions = T # BIFAP
-# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+# Analysis for multiple regions # BIFAP
+# multiple_regions = F
+multiple_regions = T # BIFAP
+multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+
+#user input parameter
+# Chose format to save files 
+my_format<- "csv"
+#my_format<-"xlsx"
 
 #################################################
 #Study_source_population + counts + plots
@@ -30,21 +35,16 @@ multiple_regions = F
 source(paste0(pre_dir,"run_analysis.R"))
 
 
- #user input parameter
-my_format<- "csv"
-#my_format<-"xlsx"
-
-# source(paste0(pre_dir,"write_output.R"))
 # # ############################################
-# # #clear g_intermediate
+# # #clear g_intermediate 
 # # #set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"
-# clear_int_files<-F
-# #user input parameter
-# 
-# if(clear_int_files==T){
-#   unlink(paste0(g_intermediate, "/tmp"), recursive = TRUE)
-#   unlink(paste0(g_intermediate, "/populations"), recursive = TRUE)
-# }
+clear_int_files<-F
+#user input parameter
+
+if(clear_int_files==T){
+  unlink(paste0(g_intermediate, "/tmp"), recursive = TRUE)
+  unlink(paste0(g_intermediate, "/populations"), recursive = TRUE)
+}
 
 
 
