@@ -20,9 +20,9 @@ mask<-T
 
 #user input parameter
 # Analysis for multiple regions # BIFAP
-# multiple_regions = F
-multiple_regions = T # BIFAP
-multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+multiple_regions = F
+# multiple_regions = T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 
 #user input parameter
 # Chose format to save files 

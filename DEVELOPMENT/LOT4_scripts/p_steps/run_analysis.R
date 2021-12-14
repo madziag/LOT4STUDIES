@@ -71,7 +71,6 @@ if(multiple_regions == T){
     
     path_dir<- paste0(multiple_regions_dir, regions[reg], "/")
     source(paste0(pre_dir,"study_source_population_script.R"))
-    SUBP <- TRUE
     source(paste0(pre_dir,"run_all_counts.R"))
     
     file.copy(paste(projectFolder, "/g_intermediate", sep=""), paste(projectFolder, "/", regions[reg], sep=""), recursive=TRUE)
