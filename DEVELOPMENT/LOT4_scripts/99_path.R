@@ -1,5 +1,10 @@
 #Directory
 # setwd('..') #in Data Characterisation
+
+
+projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
+setwd(projectFolder)
+
 setwd('..') #in ConcePTION
 dir_base<-getwd()
 # set the name of the study
