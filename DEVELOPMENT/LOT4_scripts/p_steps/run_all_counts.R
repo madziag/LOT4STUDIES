@@ -1,3 +1,5 @@
+# Accomodates for analysis for subpopulations 
+
 #Load study population/populations 
 populations <- list.files(populations_dir, pattern = "study_population")
 
@@ -9,8 +11,9 @@ for(pop in 1:length(populations)){
   source(paste0(pre_dir,"denominator_monthly.R"))
   source(paste0(pre_dir,"monthly_counts_dxcodes.R"))
   source(paste0(pre_dir,"monthly_counts_ATC.R"))
-  # # source(paste0(pre_dir,"monthly_counts_procedures.R"))
+  source(paste0(pre_dir,"monthly_counts_procedures.R"))
   source(paste0(pre_dir,"plots.R"))
+  source(paste0(pre_dir,"write_output.R"))
 }
 
 unlink(paste0(tmp, "/events_sterility"), recursive = TRUE)

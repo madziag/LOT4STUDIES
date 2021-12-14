@@ -1,3 +1,5 @@
+# Accomodates for analysis from multiple regions 
+
 if(multiple_regions == T){
   multiple_regions_dir <- multiple_regions_dir
   regions <- list.files(multiple_regions_dir)

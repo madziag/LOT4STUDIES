@@ -3,9 +3,9 @@
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
-# Load Procedure files 
+# Load Procedure files
 proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
-# Create empty table for counts 
+# Create empty table for counts
 # Get min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
@@ -18,7 +18,7 @@ if(length(proc_files)>0){
   for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_PROC, names(codelist_all[z]))), dir.create(paste(events_tmp_PROC, names(codelist_all[z]), sep="")), FALSE)}
   # Process each PROCEDURES table
   for (y in 1:length(proc_files)){
-    # Load table 
+    # Load table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
     df<-df[,c("person_id", "procedure_date", "procedure_code", "procedure_code_vocabulary", "meaning_of_procedure")] # Keep necessary columns
@@ -32,7 +32,7 @@ if(length(proc_files)>0){
     df[,person_id:=as.character(person_id)]
     study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)] # Left join, keep all people in the study population even if they didn't have an event
-    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables 
+    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,procedure_date :=as.IDate(procedure_date ,"%Y%m%d")] # Transform to date variables
     df[,entry_date :=as.IDate(entry_date ,"%Y%m%d")] # Transform to date variables
@@ -60,7 +60,7 @@ if(length(proc_files)>0){
       # Look for matches in df using event vocabulary type specific code list
       # Covers: CPRD codes
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
-        
+
         for (i in 1:length(codelist_CPRD_all)){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
@@ -90,19 +90,20 @@ if(length(proc_files)>0){
               new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
               lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
               }
-            
+
           }
         }
-      } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))}
+      } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))
+        }
 
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
     }
     }
-    
-    
-    
-    
+
+
+
+
   # Print Message
   print("Counting records")
   # Monthly Counts
@@ -127,10 +128,11 @@ if(length(proc_files)>0){
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       # Save files in g_output monthly counts
       if(comb_meds[,.N]>0){
-        
-        if(SUBP == TRUE){      
-          saveRDS(comb_meds, paste0(procedures_pop,populations[pop], "_",names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",populations[pop], "_",names(codelist_all[i]),"_counts.rds"))
+
+        if(SUBP == TRUE){
+          pop_names <- gsub(".rds", "", populations[pop])
+          saveRDS(comb_meds, paste0(procedures_pop,pop_names, "_",names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_proc,"/",pop_names, "_",names(codelist_all[i]),"_counts.rds"))
         } else {
           saveRDS(comb_meds, paste0(procedures_pop,names(codelist_all[i]),".rds"))
           saveRDS(counts, paste0(monthly_counts_proc,"/",names(codelist_all[i]),"_counts.rds"))
@@ -142,9 +144,11 @@ if(length(proc_files)>0){
       print(paste("There are no matching records for", names(codelist_all[i])))
     }
   }
-  # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
+  # Delete events folder -> records have now been concatenated and saved in diagnosis folder
   # unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
-  
+
+} else {
+    print("There are no PROCEDURES tables to analyse!")
   }
 
 # Clean up
