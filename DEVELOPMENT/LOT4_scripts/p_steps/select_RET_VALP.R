@@ -1,8 +1,8 @@
 
 # fetch data
-MED_list<-list.files(paste0(data_folder,"/"), pattern="^MEDICINES")
+MED_list<-list.files(paste0(path_dir,"/"), pattern="^MEDICINES")
 # fetch ALL_study_population
-readRDS(paste0(populations_dir, "ALL_study_population.rds"))
+ALL_study_population<-readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 
 #ATC of interest
 
@@ -14,7 +14,7 @@ readRDS(paste0(populations_dir, "ALL_study_population.rds"))
  
 ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_atc_code", Lot4ATC= RETINOID){
   
-  newMED<-medtable[(medtabke[ATC]%in%Lot4ATC),]
+  newMED<-medtable[(medtable[ATC]%in%Lot4ATC),]
   
   medID<-unique(newMED[[ID]])
   flowchart_ATC<-c(nrow(medtable), nrow(newMED))
@@ -25,8 +25,8 @@ ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_a
 # user input RETINOID or VALPROATE for function parameter Lot4ATC
 
 ATCfilter_ID<- list()
-for(i in 1:length(MED_list$MEDICINES)) {
-  MEDS<-fread(paste0(data_folder,"/",actual_tables_preselect$MEDICINES[[i]]))
+for(i in 1:length(MED_list)) {
+  MEDS<-fread(paste0(path_dir,MED_list[i]))
   output<- ATCfilter(medtable = MEDS, Lot4ATC=RETINOID)
   ATCfilter_ID[[i]]<-unique(output[[1]])
 }
