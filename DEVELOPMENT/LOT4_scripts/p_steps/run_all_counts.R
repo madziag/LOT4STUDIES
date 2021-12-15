@@ -3,7 +3,7 @@
 #Load study population/populations 
 populations <- list.files(populations_dir, pattern = "study_population")
 
-# Rub Analysis for all 
+# Run Analysis for all 
 for(pop in 1:length(populations)){
   study_population <- readRDS(paste0(populations_dir, populations[pop]))
   source(paste0(pre_dir,"CreateSterilityList.R"))
