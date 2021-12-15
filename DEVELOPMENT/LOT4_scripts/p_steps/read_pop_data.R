@@ -15,4 +15,4 @@ if(multiple_regions==T){
   }
   study_population<-unlist(study_population)
   readRDS(study_population)
-}else{readRDS(readRDS(paste0(populations_dir, "ALL_study_population.rds"))}
+}else{readRDS(readRDS(paste0(populations_dir, "ALL_study_population.rds")))}
