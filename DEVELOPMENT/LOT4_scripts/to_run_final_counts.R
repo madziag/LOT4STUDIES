@@ -1,4 +1,4 @@
-rm(list=ls())
+# rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
 library(rstudioapi)
 
@@ -14,14 +14,25 @@ source(paste0(pre_dir,"packages.R"))
 source(paste0(pre_dir,"info.R"))
 source(paste0(pre_dir,"study_parameters.R"))
 
-# Source intermediate files created by to_run_source_pop_counts
-### INSERT SCRIPT OF EMA AND DELETE THIS COMMENT
 
-
+#user input parameters
+## MULTIPLE REGIONS
+multiple_regions = F
+# multiple_regions = T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+## STUDY TYPE 
+# study_type <- "Retinoids"
+study_type <- "Valproates"
+# study_type <- "Both"
+## MASKING 
+mask<-T
+# mask <- F
 # Source script which sources the following-
 ## Source Baseline table
+source(paste0(pre_dir,"run_all_counts_final.R"))
 ## Source treatment episodes
 ## Source create study variables
 ## Source counts script
 ### MAGDA TO CREATE run_all_counts_final.R
+
 
