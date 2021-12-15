@@ -1,5 +1,7 @@
 
 # fetch data
+#needs to accomodate BIFAP
+
 MED_list<-list.files(paste0(path_dir,"/"), pattern="^MEDICINES")
 # fetch ALL_study_population
 ALL_study_population<-readRDS(paste0(populations_dir, "ALL_study_population.rds"))
