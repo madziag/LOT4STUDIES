@@ -1,4 +1,4 @@
-# Accomodates for analysis from multiple regions 
+# Accommodates for analysis from multiple regions 
 
 if(multiple_regions == T){
   multiple_regions_dir <- multiple_regions_dir
@@ -69,16 +69,21 @@ if(multiple_regions == T){
     dir.create(paste(output_dir, "baseline_tables", sep=""))
     baseline_tables_dir <- paste0(output_dir, "baseline_tables")
     
+    # Sets paths to each region folder 
     path_dir<- paste0(multiple_regions_dir, regions[reg], "/")
+    # Creates the study population
     source(paste0(pre_dir,"study_source_population_script.R"))
+    # Creates a patient files with relevant codes (for the counts) + count files + plots
     source(paste0(pre_dir,"run_all_counts.R"))
     
+    # Moves files from g_intermediate + g_output  to individual region folders
     file.copy(paste(projectFolder, "/g_intermediate", sep=""), paste(projectFolder, "/", regions[reg], sep=""), recursive=TRUE)
     file.copy(paste(projectFolder, "/g_output", sep=""), paste(projectFolder, "/", regions[reg], sep=""), recursive=TRUE)
     if("g_intermediate" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_intermediate"), recursive = T)}
     if("g_output" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output"), recursive = T)}
   }
 }else{
+  # creates study population + patient files with relevant codes + counts + plots 
   source(paste0(pre_dir,"study_source_population_script.R"))
   source(paste0(pre_dir,"run_all_counts.R"))
 }
