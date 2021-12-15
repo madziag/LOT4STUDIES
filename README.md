@@ -1,6 +1,6 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V1.2</h3>
- <p align="center"> R scripts for the analyses of the Lot 4 retinoids and valproates studies, Release V1.1. </p>
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.0</h3>
+ <p align="center"> IMPORTANT RELEASE NOTE: "BUG to be fixed in v2.1 - ICD procedure codes not yet included in counts" </p>
  
 <!-- TABLE OF CONTENTS -->
 <details open="open">
