@@ -132,10 +132,10 @@ if(length(proc_files)>0){
         if(SUBP == TRUE){
           pop_names <- gsub(".rds", "", populations[pop])
           saveRDS(comb_meds, paste0(procedures_pop,pop_names, "_",names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",pop_names, "_",names(codelist_all[i]),"_counts.rds"))
+          saveRDS(counts, paste0(monthly_counts_proc,"/",pop_names, "_",names(codelist_all[i]),"_PROC_counts.rds"))
         } else {
           saveRDS(comb_meds, paste0(procedures_pop,names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",names(codelist_all[i]),"_counts.rds"))
+          saveRDS(counts, paste0(monthly_counts_proc,"/",names(codelist_all[i]),"_PROC_counts.rds"))
         }
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))

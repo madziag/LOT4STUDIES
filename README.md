@@ -1,6 +1,6 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.0</h3>
- <p align="center"> IMPORTANT RELEASE NOTE: "BUG to be fixed in v2.1 - ICD procedure codes not yet included in counts" </p>
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.1</h3>
+ <p align="center"> IMPORTANT RELEASE NOTE: "v2.1 solves bugs reported by DAPs and detected by programmers on 16 DEC 21" </p>
  
 <!-- TABLE OF CONTENTS -->
 <details open="open">

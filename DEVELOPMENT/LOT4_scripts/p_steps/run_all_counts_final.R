@@ -8,8 +8,12 @@ if(multiple_regions == T){
   for(reg in 1:length(regions)){
     # MED_list <-list.files(paste0(multiple_regions_dir,"/", regions[reg]), pattern="^MEDICINES") # for select_RET_VAL.R
     # output_dir <- paste0(projectFolder, "/", regions[reg], "/g_output") # for select_RET_VAL.R
+  
     # Sets path to study population
     study_pop_dir_reg <- paste0(projectFolder, "/", regions[reg], "/g_intermediate/populations")
+    populations <- list.files(study_pop_dir_reg, pattern = "study_population")
+    # Reads in study_population file
+    study_pop_reg <- readRDS(paste0(study_pop_dir_reg, "/",populations[pop]))
     # Sets path to baseline folders
     baseline_dir <- paste0(projectFolder, "/", regions[reg], "/g_output/baseline_tables")
     # Sets paths to medication folders (gets a list of patients with either retinoid or valproate id's)
@@ -33,6 +37,8 @@ if(multiple_regions == T){
     if("g_output" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output"), recursive = T)}
     }
   }else{
+    populations <- list.files(populations_dir, pattern = "study_population")
+    study_population <- readRDS(paste0(populations_dir, populations[pop]))
     if (study_type == "Retinoids"){
       pattern1 = c("Retinoid")
       } else if (study_type == "Valproates") {
