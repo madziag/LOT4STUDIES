@@ -65,7 +65,7 @@ if (study_type == "Retinoids"){
   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
   
-  all_dfs_meds <- list(study_pop_first_occurrence, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+  all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
   
   }
