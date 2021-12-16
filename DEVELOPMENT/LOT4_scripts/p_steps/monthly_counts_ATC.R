@@ -95,10 +95,10 @@ if(length(med_files)>0){
             if (SUBP == TRUE){
               pop_names <- gsub(".rds", "", populations[pop])
               saveRDS(comb_meds[[i]], paste0(medications_pop,pop_names, "_", names(codelist_all[i]),".rds"))
-              saveRDS(counts, paste0(monthly_counts_atc,"/", pop_names, "_",names(codelist_all[i]),"_counts.rds"))
+              saveRDS(counts, paste0(monthly_counts_atc,"/", pop_names, "_",names(codelist_all[i]),"_MEDS_counts.rds"))
             }else {
               saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
-              saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_counts.rds"))
+              saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_MEDS_counts.rds"))
             }
             
           } else {
@@ -132,9 +132,9 @@ if(length(med_files)>0){
         if(comb_meds[[i]][,.N]>0){
           if(SUBP == TRUE){
             pop_names <- gsub(".rds", "", populations[pop])
-            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_names,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_names,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
           }else{
-            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",names(codelist_ind[i]),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_counts.rds"))
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",names(codelist_ind[i]),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
           }
 
         } else {

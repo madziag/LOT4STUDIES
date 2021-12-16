@@ -34,11 +34,11 @@ count_names_proc_dxcodes<-list.files(monthly_counts_proc_dxcodes, pattern="count
 count_files_diag<-lapply(paste0(monthly_counts_dx,"/", count_names_diag), readRDS)
 count_files_med<-lapply(paste0(monthly_counts_atc,"/", count_names_med), readRDS)
 count_files_proc<-lapply(paste0(monthly_counts_proc,"/", count_names_proc), readRDS)
-count_files_proc_dxcodes<-lapply(paste0(monthly_counts_proc_dxcodes,"/", count_names_proc_dxcodes), readRDS)
-
+count_files_proc_dxcodes <-lapply(paste0(monthly_counts_proc_dxcodes,"/", count_names_proc_dxcodes), readRDS)
 
 count_names_all<-c(count_names_diag, count_names_med, count_names_proc, count_names_proc_dxcodes)
 count_files_all<-c(count_files_diag, count_files_med, count_files_proc, count_files_proc_dxcodes)
+
 # calculate rates
 
 for(i  in 1: length (count_files_all)){
