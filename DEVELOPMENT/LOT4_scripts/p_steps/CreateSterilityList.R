@@ -3,12 +3,14 @@
 # Load concept sets
 matches <- c("sterility")
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
+
+events_files <- list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE)
 # EVENTS TABLES
-if(length(actual_tables$EVENTS)>0){
+if(length(events_files)>0){
   # Process each EVENTS table
-  for (y in 1:length(actual_tables$EVENTS)){
+  for (y in 1:length(events_files)){
     # Load table
-    df<-fread(paste(path_dir, actual_tables$EVENTS[y], sep=""), stringsAsFactors = FALSE)
+    df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
     df<-as.data.table(df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")]) # Keep necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
@@ -45,7 +47,87 @@ if(length(actual_tables$EVENTS)>0){
                        ifelse(df[,event_vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
                               ifelse(df[,event_vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
     # Print Message
-    print(paste0("Finding matching records in ", actual_tables$EVENTS[y]))
+    print(paste0("Finding matching records in ", events_files[y]))
+    if (length(unique(df$vocab)) > 1){
+      # create a subset for each of the unique values and run the filter on each subset 
+      for (voc in 1:length(unique(df$vocab))){
+        # Create subsets for each vocab type
+        df_subset_vocab <- setDT(df)[vocab == unique(df$vocab)[voc]]
+        
+        # Check if df is NOT empty
+        if(nrow(df_subset_vocab)>0){
+          # Look for matches in df using event vocabulary type specific code list
+          # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
+          if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
+            
+            for (i in 1:length(codelist_start_all)){
+              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              
+              if(nrow(df_subset)>0){
+                
+                if(SUBP == TRUE){
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",populations[pop], "_",events_files[y], "_start.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))
+                  
+                } else { 
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", events_files[y], "_start.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))
+                  
+                }
+              }
+            }
+            # Cover RCD, RCD2, READ, CPRD_Read Codes 
+          } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ") {
+            
+            for (i in 1:length(codelist_read_all)){
+              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              
+              if(nrow(df_subset)>0){
+                if(SUBP == TRUE){
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",events_files[y], "_READ.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))
+                } else {                  
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",events_files[y], "_READ.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))
+       
+                }
+                
+              }
+            }
+            # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
+          } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
+            
+            for (i in 1:length(codelist_snomed_all)){
+              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              
+              if(nrow(df_subset)>0){
+                if(SUBP == TRUE){
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop],"_",events_files[y], "_SNOMED.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
+                  
+                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",events_files[y], "_SNOMED.rds"))
+                  new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
+                  
+                }
+                
+              }
+            }
+          } else { 
+            print(paste0(unique(df_subset_vocab$event_vocabulary), " is not part of code list vocabulary"))
+          }
+          
+        } else {
+          print(paste0("There are no matching records in ", events_files[y]))
+        }
+        
+        
+      }
+    
+      } else {
+    
     # Check if df is NOT empty
     if(nrow(df)>0){
       # Look for matches in df using event vocabulary type specific code list
@@ -56,10 +138,10 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
             if(SUBP == TRUE){            
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_start.rds"))
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", populations[pop], "_",events_files[y], "_start.rds"))
               new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))
               }else{            
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",actual_tables$EVENTS[y], "_start.rds"))
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",events_files[y], "_start.rds"))
                 new_file <-c(list.files(events_tmp_sterility, "\\_start.rds$"))}
           }
         }
@@ -70,10 +152,10 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
             if(SUBP == TRUE){        
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_READ.rds"))
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",events_files[y], "_READ.rds"))
               new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))
               }else{        
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",actual_tables$EVENTS[y], "_READ.rds"))
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",events_files[y], "_READ.rds"))
                 new_file <-c(list.files(events_tmp_sterility, "\\_READ.rds$"))}
     
            }
@@ -85,10 +167,10 @@ if(length(actual_tables$EVENTS)>0){
           df_subset <- df_subset[,-c("vocab")]
           if(nrow(df_subset)>0){
             if(SUBP == TRUE){            
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop], "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop], "_",events_files[y], "_SNOMED.rds"))
               new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
               }else{            
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",actual_tables$EVENTS[y], "_SNOMED.rds"))
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",events_files[y], "_SNOMED.rds"))
                 new_file <-c(list.files(events_tmp_sterility, "\\_SNOMED.rds$"))
                 }
           }
@@ -98,9 +180,10 @@ if(length(actual_tables$EVENTS)>0){
       }
 
     } else {
-      print(paste0("There are no matching records in ", actual_tables$EVENTS[y]))
+      print(paste0("There are no matching records in ", events_files[y]))
     }
-}
+      }
+  }
 
   # Get a list of files in sterility folder
     files <- list.files(path= events_tmp_sterility, pattern = "sterility")
@@ -218,7 +301,7 @@ if(length(proc_files)>0){
 }
 
 # Create Sterility list 
-if (length(actual_tables$EVENTS)>0 & length(proc_files)>0) {
+if (length(events_files)>0 & length(proc_files)>0) {
   # Create column that indicates if record comes from events or procedures
   sterility_events[,table_origin:='EVENTS']
   sterility_procedures[,table_origin:='PROCEDURES']
@@ -238,7 +321,7 @@ if (length(actual_tables$EVENTS)>0 & length(proc_files)>0) {
     saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
     saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
   }
-} else if (length(actual_tables$EVENTS)>0 & length(proc_files) == 0) {
+} else if (length(events_files)>0 & length(proc_files) == 0) {
   # Create column that indicates if record comes from events or procedures
   sterility_events[,table_origin:='EVENTS']
   # Rename columns
@@ -254,7 +337,7 @@ if (length(actual_tables$EVENTS)>0 & length(proc_files)>0) {
     saveRDS(sterility_events, paste0(sterility_pop, "sterility_all.rds"))
     saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
   }
-} else if (length(actual_tables$EVENTS) == 0 & length(proc_files) >0) {
+} else if (length(events_files) == 0 & length(proc_files) >0) {
   # Create column that indicates if record comes from events or procedures
   sterility_procedures[,table_origin:='PROCEDURES']
   # Rename columns

@@ -14,12 +14,16 @@ codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(cod
 codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
 # Create other lists
 comb_meds <- list()
+
+# Load Medicines files
+med_files <- list.files(path=path_dir, pattern = "MEDICINES", ignore.case = TRUE) 
+
 # Check for MEDICINES Tables present
-if(length(actual_tables$MEDICINES)>0){
+if(length(med_files)>0){
   # Process each EVENTS table
-  for (y in 1:length(actual_tables$MEDICINES)){
+  for (y in 1:length(med_files)){
     # Load table
-    df<-fread(paste(path_dir, actual_tables$MEDICINES[y], sep=""), stringsAsFactors = FALSE)
+    df<-fread(paste(path_dir, med_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
     df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record")] # Keep necessary columns
     df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
@@ -52,16 +56,16 @@ if(length(actual_tables$MEDICINES)>0){
     df<-df[!is.na(Code)]
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
     # Print Message
-    print(paste0("Finding matching records in ", actual_tables$MEDICINES[y]))
+    print(paste0("Finding matching records in ", med_files[y]))
     # Check if df is NOT empty
     if(nrow(df)>0){
       # Look for matches in df using event vocabulary type specific code list
       for (i in 1:length(codelist_all)){
         df_subset <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
         if(SUBP == TRUE){
-          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, populations[pop], names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
+          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, populations[pop], names(codelist_all[i]), "_",med_files[y], ".rds"))
         }else{
-          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, names(codelist_all[i]), "_",actual_tables$MEDICINES[y], ".rds"))
+          saveRDS(data.table(df_subset), paste0(events_tmp_ATC, names(codelist_all[i]), "_",med_files[y], ".rds"))
           }
       }
     }

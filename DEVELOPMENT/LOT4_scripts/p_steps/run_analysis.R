@@ -42,17 +42,14 @@ if(multiple_regions == T){
     events_tmp_DX <- paste0(tmp, "events_dx/")
     dir.create(paste(tmp, "events_atc", sep=""))
     events_tmp_ATC <- paste0(tmp, "events_atc/")
-    dir.create(paste(tmp, "events_proc", sep=""))
-    events_tmp_PROC <- paste0(tmp, "events_proc/")
     dir.create(paste(tmp, "events_sterility", sep=""))
     events_tmp_sterility <- paste0(tmp, "events_sterility/")
+    
     # Directories for combined events -> for counts 
     dir.create(paste(tmp, "diagnoses", sep=""))
     diagnoses_pop <- paste0(tmp, "diagnoses/")
     dir.create(paste(tmp, "medications", sep=""))
     medications_pop <- paste0(tmp, "medications/")
-    dir.create(paste(tmp, "procedures", sep=""))
-    procedures_pop <- paste0(tmp, "procedures/")
     dir.create(paste(tmp, "sterility", sep=""))
     sterility_pop <- paste0(tmp, "sterility/")
     #  Directories for monthly counts 
@@ -60,8 +57,26 @@ if(multiple_regions == T){
     monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes")   
     dir.create(paste(output_dir, "monthly_counts_atc", sep=""))
     monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-    dir.create(paste(output_dir, "monthly_counts_proc", sep=""))
-    monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+
+    # Creates folders only if procedures tables are available 
+    if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
+      dir.create(paste(tmp, "events_proc", sep=""))
+      events_tmp_PROC <- paste0(tmp, "events_proc/")
+      dir.create(paste(tmp, "events_proc_dxcodes", sep=""))
+      events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
+      
+      dir.create(paste(tmp, "procedures", sep=""))
+      procedures_pop <- paste0(tmp, "procedures/")
+      dir.create(paste(tmp, "procedures_dxcodes", sep=""))
+      procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
+      
+      dir.create(paste(output_dir, "monthly_counts_proc", sep=""))
+      monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+      dir.create(paste(output_dir, "monthly_counts_proc_dxcodes", sep=""))
+      monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
+      
+    }
+      
     # Directories for plots
     dir.create(paste(output_dir, "plots", sep=""))
     plot_folder <- paste0(output_dir, "plots")
@@ -84,6 +99,7 @@ if(multiple_regions == T){
   }
 }else{
   # creates study population + patient files with relevant codes + counts + plots 
+  path_dir <- path_dir
   source(paste0(pre_dir,"study_source_population_script.R"))
   source(paste0(pre_dir,"run_all_counts.R"))
 }
