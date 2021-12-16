@@ -65,7 +65,7 @@ for(i in 1:nrow(SCHEME_04)){
     STUDY_POPULATION <- SOURCE[,start_follow_up := max(start_study_date,op_start_date+lookback_period,date_min),by = list(row.names(SOURCE))]
     STUDY_POPULATION <- STUDY_POPULATION[,end_follow_up := min(end_study_date,op_end_date,date_creation,recommended_end_date,date_max),by = list(row.names(SOURCE))]
     
-    rm(SOURCE)
+    # rm(SOURCE)
     gc()
     
     before <- nrow(STUDY_POPULATION)
@@ -107,11 +107,6 @@ gc()
 
 
 # plot(x=(1:nrow(FlowChartSourcetoStudy)), y=(FlowChartSourcetoStudy$after), type="b")
-
-
-
-
-
 
 
 

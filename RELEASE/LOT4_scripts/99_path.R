@@ -43,8 +43,6 @@ invisible(ifelse(!dir.exists(paste0(tmp, "events_dx")), dir.create(paste0(tmp, "
 events_tmp_DX<-paste0(tmp, "events_dx/")
 invisible(ifelse(!dir.exists(paste0(tmp, "events_atc")), dir.create(paste0(tmp, "events_atc")), FALSE))
 events_tmp_ATC <- paste0(tmp, "events_atc/")
-invisible(ifelse(!dir.exists(paste0(tmp, "events_proc")), dir.create(paste0(tmp, "events_proc")), FALSE))
-events_tmp_PROC <- paste0(tmp, "events_proc/")
 invisible(ifelse(!dir.exists(paste0(tmp, "events_sterility")), dir.create(paste0(tmp, "events_sterility")), FALSE))
 events_tmp_sterility <- paste0(tmp, "events_sterility/")
 
@@ -53,8 +51,6 @@ invisible(ifelse(!dir.exists(paste0(tmp, "diagnoses")), dir.create(paste0(tmp, "
 diagnoses_pop <- paste0(tmp, "diagnoses/")
 invisible(ifelse(!dir.exists(paste0(tmp, "medications")), dir.create(paste0(tmp, "medications")), FALSE))
 medications_pop <- paste0(tmp, "medications/")
-invisible(ifelse(!dir.exists(paste0(tmp, "procedures")), dir.create(paste0(tmp, "procedures")), FALSE))
-procedures_pop <- paste0(tmp, "procedures/")
 invisible(ifelse(!dir.exists(paste0(tmp, "sterility")), dir.create(paste0(tmp, "sterility")), FALSE))
 sterility_pop <- paste0(tmp, "sterility/")
 
@@ -63,8 +59,28 @@ invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_dxcodes")), dir.
 monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes") 
 invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_atc")), dir.create(paste0(output_dir, "monthly_counts_atc")), FALSE))
 monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc")), dir.create(paste0(output_dir, "monthly_counts_proc")), FALSE))
-monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+
+
+# There may or may not be procedures tables 
+# Load Procedure files
+
+if(length(list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
+  # EVENTS TMP FOLDERS
+  invisible(ifelse(!dir.exists(paste0(tmp, "events_proc")), dir.create(paste0(tmp, "events_proc")), FALSE))
+  events_tmp_PROC <- paste0(tmp, "events_proc/")
+  invisible(ifelse(!dir.exists(paste0(tmp, "events_proc_dxcodes")), dir.create(paste0(tmp, "events_proc_dxcodes")), FALSE))
+  events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
+  # PROCEDURES FOLDERS
+  invisible(ifelse(!dir.exists(paste0(tmp, "procedures")), dir.create(paste0(tmp, "procedures")), FALSE))
+  procedures_pop <- paste0(tmp, "procedures/")
+  invisible(ifelse(!dir.exists(paste0(tmp, "procedures_dxcodes")), dir.create(paste0(tmp, "procedures_dxcodes")), FALSE))
+  procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
+  # MONTHLY COUNTS FOLDERS
+  invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc")), dir.create(paste0(output_dir, "monthly_counts_proc")), FALSE))
+  monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+  invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes")), FALSE))
+  monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
+}
 
 # PLOTS
 invisible(ifelse(!dir.exists(paste0(output_dir, "plots")), dir.create(paste0(output_dir, "plots")), FALSE))
