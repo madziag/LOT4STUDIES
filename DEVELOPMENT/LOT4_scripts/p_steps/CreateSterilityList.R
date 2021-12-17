@@ -346,7 +346,7 @@ if ((length(list.files(path = events_tmp_sterility, pattern = "sterility")) > 0 
   # Rename columns
   setnames(sterility_procedures,"procedure_date","sterility_date")
   # Choose record with earliest date of sterility
-  sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
+  sterility_all_first_occurrence  <- setDT(sterility_procedures)[order(sterility_date), head(.SD, 1L), by = person_id]
   # Save records 
   if (SUBP == TRUE){
     saveRDS(sterility_procedures, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
