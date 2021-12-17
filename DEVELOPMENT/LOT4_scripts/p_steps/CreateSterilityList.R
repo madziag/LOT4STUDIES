@@ -300,8 +300,11 @@ if(length(proc_files)>0){
   print("There are no PROCEDURES  table available")
 }
 
+
+
 # Create Sterility list 
-if (length(events_files)>0 & length(proc_files)>0) {
+if ((length(list.files(path = events_tmp_sterility, pattern = "sterility")) > 0 )& (length(list.files(path = events_tmp_sterility, pattern = "sterilization" )) > 0 )) 
+    {
   # Create column that indicates if record comes from events or procedures
   sterility_events[,table_origin:='EVENTS']
   sterility_procedures[,table_origin:='PROCEDURES']
@@ -310,7 +313,7 @@ if (length(events_files)>0 & length(proc_files)>0) {
   setnames(sterility_procedures,"procedure_date","sterility_date")
   setnames(sterility_events,"event_vocabulary","vocabulary")
   # Join sterility records from events and procedures
-  sterility_all <- rbind(sterility_events, sterility_procedures)
+  sterility_all <- dplyr::bind_rows(sterility_events, sterility_procedures)
   # Choose record with earliest date of sterility
   sterility_all_first_occurrence  <- setDT(sterility_all)[order(sterility_date), head(.SD, 1L), by = person_id]
   # Save records 
@@ -321,7 +324,7 @@ if (length(events_files)>0 & length(proc_files)>0) {
     saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
     saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
   }
-} else if (length(events_files)>0 & length(proc_files) == 0) {
+} else if (length(list.files(path = events_tmp_sterility, pattern = "sterility")) == 0 & length(list.files(path = events_tmp_sterility, pattern = "sterilization" )) > 0 ) {
   # Create column that indicates if record comes from events or procedures
   sterility_events[,table_origin:='EVENTS']
   # Rename columns
@@ -337,7 +340,7 @@ if (length(events_files)>0 & length(proc_files)>0) {
     saveRDS(sterility_events, paste0(sterility_pop, "sterility_all.rds"))
     saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
   }
-} else if (length(events_files) == 0 & length(proc_files) >0) {
+} else if ((length(list.files(path = events_tmp_sterility, pattern = "sterility")) > 0) & (length(list.files(path = events_tmp_sterility, pattern = "sterilization")) == 0 )) {
   # Create column that indicates if record comes from events or procedures
   sterility_procedures[,table_origin:='PROCEDURES']
   # Rename columns
