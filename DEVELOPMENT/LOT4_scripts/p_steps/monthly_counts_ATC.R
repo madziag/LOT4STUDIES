@@ -1,5 +1,3 @@
-# Load study population
-# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
@@ -66,59 +64,57 @@ if(length(med_files)>0){
           saveRDS(data.table(df_subset), paste0(events_tmp_ATC, populations[pop], names(codelist_all[i]), "_",med_files[y], ".rds"))
         }else{
           saveRDS(data.table(df_subset), paste0(events_tmp_ATC, names(codelist_all[i]), "_",med_files[y], ".rds"))
-          }
+        }
       }
     }
   }
-    print("Counting records")
-    # Monthly Counts 
-    for(i in 1:length(codelist_all)){
-      # Get list of files in each code group folder
-      files <- list.files(path=events_tmp_ATC, pattern=names(codelist_all[i]))
-      # Perform counts per month/year
-      if (length(files)>0){
-        # Loads files 
-        comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
-        # Count by month-year
-        counts<- comb_meds[[i]][,.N, by = .(year,month(event_date))]
-        # Merge with empty_counts_df
-        counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
-        # Fill in missing values with 0
-        counts[is.na(counts[,N]), N:=0]
-        # Calculate rates
-        counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
-        counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-        counts <-counts[,c("YM", "N", "Freq")]
-        counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-        # Save files in g_output monthly counts 
-          if(comb_meds[[i]][,.N]>0){
-            if (SUBP == TRUE){
-              pop_names <- gsub(".rds", "", populations[pop])
-              saveRDS(comb_meds[[i]], paste0(medications_pop,pop_names, "_", names(codelist_all[i]),".rds"))
-              saveRDS(counts, paste0(monthly_counts_atc,"/", pop_names, "_",names(codelist_all[i]),"_MEDS_counts.rds"))
-            }else {
-              saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
-              saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_MEDS_counts.rds"))
-            }
-            
-          } else {
-            print(paste("There are no matching records for", names(codelist_all[i])))
-            }
+  print("Counting records")
+  # Monthly Counts 
+  for(i in 1:length(codelist_all)){
+    # Get list of files in each code group folder
+    files <- list.files(path=events_tmp_ATC, pattern=names(codelist_all[i]))
+    # Perform counts per month/year
+    if (length(files)>0){
+      # Loads files 
+      comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
+      # Count by month-year
+      counts<- comb_meds[[i]][,.N, by = .(year,month(event_date))]
+      # Merge with empty_counts_df
+      counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
+      # Fill in missing values with 0
+      counts[is.na(counts[,N]), N:=0]
+      # Calculate rates
+      counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
+      counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
+      counts <-counts[,c("YM", "N", "Freq")]
+      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      # Save files in g_output monthly counts 
+      if(comb_meds[[i]][,.N]>0){
+        if (SUBP == TRUE){
+          pop_names <- gsub(".rds", "", populations[pop])
+          saveRDS(comb_meds[[i]], paste0(medications_pop,pop_names, "_", names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_atc,"/", pop_names, "_",names(codelist_all[i]),"_MEDS_counts.rds"))
+        }else {
+          saveRDS(comb_meds[[i]], paste0(medications_pop,names(codelist_all[i]),".rds"))
+          saveRDS(counts, paste0(monthly_counts_atc,"/",names(codelist_all[i]),"_MEDS_counts.rds"))
+        }
+        
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))
       }
-
+    } else {
+      print(paste("There are no matching records for", names(codelist_all[i])))
     }
+    
+  }
   # Individual counts for Valproates and Retinoids
-    # Individual counts for Valproates and Retinoids
-    for(i in 1:length(codelist_ind)){
-      ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
+  for(i in 1:length(codelist_ind)){
+    ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
+    
+    for(x in 1:length(ind_files)){
+      df_ind<- readRDS(paste0(medications_pop, ind_files[x]))
       
-      
-      for(x in 1:length(ind_files)){
-        df_ind<- readRDS(paste0(medications_pop, ind_files[x]))
-
-        for(j in 1:length(unique(codelist_ind[[i]]$Code))){
+      for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
         counts_ind<- sub_ind[,.N, by = .(year,month(event_date))]
         counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
@@ -128,7 +124,7 @@ if(length(med_files)>0){
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
         counts_ind <-counts_ind[,c("YM", "N", "Freq")]
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
-
+        
         if(comb_meds[[i]][,.N]>0){
           if(SUBP == TRUE){
             pop_names <- gsub(".rds", "", populations[pop])
@@ -136,19 +132,17 @@ if(length(med_files)>0){
           }else{
             saveRDS(counts_ind, paste0(monthly_counts_atc,"/",names(codelist_ind[i]),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
           }
-
+          
         } else {
           print(paste("There are no matching records for", names(codelist_all[i])))
-          }
+        }
       }
-
-      }
+      
     }
-    # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-    # unlink(paste0(tmp, "/events_atc"), recursive = TRUE)
-} else {"There are no MEDICATIONS tables to analyse!"}
+  }
+} else {
+  print("There are no MEDICATIONS tables to analyse!")
+}
 
-# CLEAN UP
-# rm(list=ls(pattern="codelist"))
-# rm(comb_meds, counts)
+
 

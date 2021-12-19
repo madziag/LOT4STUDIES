@@ -17,7 +17,7 @@ for(i in seq_along(codelist_list)) {
   codelist <-codelist[,c("Code", "Code name")]
   # Rename columns
   setnames(codelist,"Code name", "Medication")
- # Delete records where code is missing (-)
+  # Delete records where code is missing (-)
   codelist <- codelist[ !Code == '-',]
   # Save codelist
   assign(var_names[i], as.data.table(codelist))
