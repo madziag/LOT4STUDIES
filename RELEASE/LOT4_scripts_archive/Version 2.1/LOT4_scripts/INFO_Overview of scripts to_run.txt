@@ -1,0 +1,31 @@
+00. Separate to the LOT4_scripts, DAPs will first run the pregnancy algorithm, which will create a dataset of pregnancies that we will use in step 3.
+
+0. 99_path.R <- setting path. If a folder has already been created by this script, it will not recreate the folder if run a second time. 
+
+1. to_run_preselect <- creates the preselection data subsets
+
+2. to_run_source_pop_counts.R <- intermediate analysis that gives overall monthly counts of events per 1000 people per month for all concept sets
+Latest update v1.3 includes:
+- splits data processing by region and subpopulation if required (BIFAP)
+- create study population
+- creates sterility file
+- create entry/exit dates
+- creates denominator (persons who are in the study each month)
+- creates concept set data sets for EVENTS, MEDICINES, PROCEDURES
+- does the counts and csv/excel files
+- creates plots
+
+3. to_run_final_counts.R <- This is an upgraded copy of to_run_source_pop_counts.R
+This will include in addition:
+- read in the study population and concept set data sets that were created by to_run_souce_pop_counts.R
+- create baseline table, total number of people, total number of retinoid users, total number of valproate users, between entry/exit.
+- read in created pregnancy data set
+- counts of new study variables: pregnancy test, pregnancy, contraception coverage
+- creation of stratification variables: indication, reason for discontinuation: ADR, pregnancy
+- creation of treatment episodes & pregnancy episodes
+- run new counts (using the existing counts scripts, maybe a modification?)
+
+4. Pooling for BIFAP
+5. ITS analysis
+6. Any final plots/visualisations and pooling
+
