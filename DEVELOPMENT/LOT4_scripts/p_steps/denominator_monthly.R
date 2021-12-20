@@ -16,8 +16,8 @@ library(zoo)
 
 study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 
-start.date<-as.Date(study_population$start_follow_up)
-end.date<-as.Date(study_population$end_follow_up)
+start.date<-as.Date(study_population$entry_date)
+end.date<-as.Date(study_population$exit_date)
 
 
 ym1 <- as.yearmon(as.character(start.date), "%Y-%m-%d") # convert to yearmon
