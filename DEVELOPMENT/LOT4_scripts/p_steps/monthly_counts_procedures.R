@@ -1,5 +1,3 @@
-#Load study population
-# study_population <- readRDS(paste0(populations_dir, "ALL_study_population.rds"))
 # Load Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
@@ -54,13 +52,13 @@ if(length(proc_files)>0){
     # Add column for origin of code i.e. CPRD, PHARMO
     df[,vocab:= ifelse(df[,vocabulary] %chin% c("OPCS"), "CPRD",
                        ifelse(df[,vocabulary] %chin% c("CVV", "CBV", "ZA"), "PHARMO", "UNKNOWN"))]
-
+    
     # Check if df is NOT empty
     if(nrow(df)>0){
       # Look for matches in df using event vocabulary type specific code list
       # Covers: CPRD codes
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
-
+        
         for (i in 1:length(codelist_CPRD_all)){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
@@ -89,20 +87,17 @@ if(length(proc_files)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
               new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
               lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
-              }
-
+            }
+            
           }
         }
       } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))
-        }
-
+      }
+      
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
     }
-    }
-
-
-
+  }
 
   # Print Message
   print("Counting records")
@@ -128,7 +123,7 @@ if(length(proc_files)>0){
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       # Save files in g_output monthly counts
       if(comb_meds[,.N]>0){
-
+        
         if(SUBP == TRUE){
           pop_names <- gsub(".rds", "", populations[pop])
           saveRDS(comb_meds, paste0(procedures_pop,pop_names, "_",names(codelist_all[i]),".rds"))
@@ -144,18 +139,10 @@ if(length(proc_files)>0){
       print(paste("There are no matching records for", names(codelist_all[i])))
     }
   }
-  # Delete events folder -> records have now been concatenated and saved in diagnosis folder
-  # unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
-
+  
 } else {
-    print("There are no PROCEDURES tables to analyse!")
-  }
-
-# Clean up
-# rm(list=ls(pattern="codelist"))
-
-
-
+  print("There are no PROCEDURES tables to analyse!")
+}
 
 
 

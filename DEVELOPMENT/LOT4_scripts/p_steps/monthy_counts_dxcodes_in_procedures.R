@@ -250,17 +250,13 @@ if(length(proc_files)>0){
       print(paste("There are no matching records for", names(codelist_all[i])))
     }
   }
-  # Delete events folder -> records have now been concatenated and saved in diagnosis folder 
-  # unlink(paste0(tmp, "/events_dx"), recursive = TRUE)
   
 } else {
   print("There are no PROCEDURE tables to analyse!")
 }
 
 
-# Clean up
-# rm(list=ls(pattern="codelist"))
-# rm(comb_meds, counts, df, df_subset, empty_counts_df)
+
 
 
 

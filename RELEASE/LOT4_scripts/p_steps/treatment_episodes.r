@@ -1,5 +1,22 @@
+# Create treatment episodes script
+# R.Pajouheshnia; 17 DEC 2021
+# This script does two things:
+# 1. it loads valproate or retinoid concept set data sets created by running "to_run_source_pop_counts.R", for separate subpopulations and regions if necessary.
+# It then applys createDOT or a fixed duration value to create an estimated end date of treatment for every record
+# 2. It creates a new data frame where each row is not a record, but instead a treatment episode.
+
+#INPUTS 
+#study_type (Retinoids, Valproates, Both)
+#Retinoid.rds or Valproate.rds or both
+#p_param\DOT
+
+
+
 install.packages("AdhereR")
 library(AdhereR)
+
+if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all <- study_population}
+
 
 # what does the data need to look like?
 #fetch medicines data from CDMInstances
@@ -54,3 +71,41 @@ for (i in 1:length(MED_tables)){
 
 summary(my_treat_episode)
 #does write work for you?
+
+
+### Run separate depending on study
+
+if (study_type == "Retinoids"){
+  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+  # Retinoids - subgroups
+  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+  
+  all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+  
+} else if (study_type == "Valproates"){
+  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+  
+  all_dfs_meds <- list(study_pop_all, study_pop_val_unique)
+  names(all_dfs_meds) <- c("All Users", "Valproates Only")
+  
+} else if (study_type == "Both"){
+  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+  
+  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+  
+  all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+  
+}
+
+

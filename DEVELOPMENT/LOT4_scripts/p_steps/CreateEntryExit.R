@@ -29,7 +29,7 @@ if(SUBP == TRUE){
 }
 
 
-sterility<-sterility[,c("person_id", "sterility_date")]
+sterility<-sterility[,c("person_id", "Date")]
 study_population<-dplyr::left_join(study_population, sterility)
 end_date<-as.Date(as.character(20201231), "%Y%m%d")
 

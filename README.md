@@ -1,6 +1,6 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.1</h3>
- <p align="center"> IMPORTANT RELEASE NOTE: "v2.1 solves bugs reported by DAPs and detected by programmers on 16 DEC 21" </p>
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.2</h3>
+ <p align="center"> IMPORTANT RELEASE NOTE: "v2.2 solves sterlisation procedures bug, 17 DEC 21" </p>
  
 <!-- TABLE OF CONTENTS -->
 <details open="open">

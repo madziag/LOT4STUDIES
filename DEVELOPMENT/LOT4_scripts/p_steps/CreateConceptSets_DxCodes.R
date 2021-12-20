@@ -29,14 +29,14 @@ for(i in seq_along(codelist_list)) {
   codelist[,code_no_dot:=gsub("\\.","",codelist[,Code])]
   # Create col that specifies vocab type
   codelist[,vocab:= ifelse(codelist[,Coding_System] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
-                                ifelse(codelist[,Coding_System] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
-                                       ifelse(codelist[,Coding_System] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
+                           ifelse(codelist[,Coding_System] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
+                                  ifelse(codelist[,Coding_System] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
   # Create df based on vocab group types and presence or absence of dots
   codelist_start_dot   <- codelist[dot_present==TRUE & vocab=="start"]
   codelist_start_nodot <- codelist[dot_present==FALSE & vocab=="start" ]
   codelist_read        <- codelist[dot_present==TRUE & vocab=="READ"]
   codelist_snomed      <- codelist[vocab=="SNOMED"]
-
+  
   # Create code lists  
   # ICD/ICPC codes (has variants with dotes and without dots)
   codelist_start_dot[,dot_present:=NULL][,Code:=NULL][,vocab:=NULL]
