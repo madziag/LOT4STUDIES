@@ -25,11 +25,17 @@ multiple_regions = F
 # multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 
 #user input parameter
+## STUDY TYPE 
+# study_type <- "Retinoids"
+#  study_type <- "Valproates"
+study_type <- "Both"
+
+#user input parameter
 # Chose format to save files 
 my_format<- "csv"
 #my_format<-"xlsx"
 
-#################################################
+################################################
 #Study_source_population + counts + plots
 #################################################
 source(paste0(pre_dir,"run_analysis.R"))

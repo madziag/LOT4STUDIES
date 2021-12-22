@@ -1,6 +1,6 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.2</h3>
- <p align="center"> IMPORTANT RELEASE NOTE: "v2.2 solves sterlisation procedures bug, 17 DEC 21" </p>
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.3</h3>
+ <p align="center"> IMPORTANT RELEASE NOTE: "v2.3 solves ongoing procedures/sterility code bug, speedier entry/exit dates. Known existing bug that there will be an error if there are no codes in EVENTS or PROCEDURES capturing sterilty (to be fixed in release 3.0) 22 DEC 21" </p>
  
 <!-- TABLE OF CONTENTS -->
 <details open="open">

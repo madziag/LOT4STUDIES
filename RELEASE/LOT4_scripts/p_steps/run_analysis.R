@@ -57,7 +57,7 @@ if(multiple_regions == T){
     monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes")   
     dir.create(paste(output_dir, "monthly_counts_atc", sep=""))
     monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-
+    
     # Creates folders only if procedures tables are available 
     if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
       dir.create(paste(tmp, "events_proc", sep=""))
@@ -76,7 +76,7 @@ if(multiple_regions == T){
       monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
       
     }
-      
+    
     # Directories for plots
     dir.create(paste(output_dir, "plots", sep=""))
     plot_folder <- paste0(output_dir, "plots")
