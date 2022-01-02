@@ -1,4 +1,0 @@
-"","CreateSpellsStep","OBS_number"
-"1","nrow in OBSERVATION_PERIODS BEFORE running CreateSpells","3066"
-"2","nrow in OBSERVATION_PERIODS1 AFTER running CreateSpells,  including merging gaps <= 7 days","995"
-"3","nrow in OBSERVATION_PERIODS1 AFTER selecting the most recent observation, equivalent to number of unique IDs","981"

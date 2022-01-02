@@ -1,0 +1,324 @@
+---
+title: "CONCEPTION - Level 3 checks: EUROCAT Data Quality Indicators"
+output: 
+  html_document:
+    theme: spacelab
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    output_dir: output_dir
+---
+
+```{css,  echo = F}
+/*-- Specify div's for 'boxes', change color of TOC and center align titles: --*/
+div.box1 {background-color: #f5f5f0; border-radius: 5px; padding: 30px; margin-right: 0px}
+div.box2 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box3 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box4 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box5 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box6 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box7 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box8 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+div.box9 {border-style: solid; border-color: #f5f5f0; border-width: medium; border-radius: 30px; padding: 5px; margin-right: 0px}
+
+.list-group-item.active, .list-group-item.active:focus, .list-group-item.active:hover {background-color: #76b82a; border-color: #76b82a}
+h1 {text-align: center; color: #3c7b8a}
+h2 {text-align: center; color: #76b82a}
+
+/*-- Add logo (based on https://rstudio4edu.github.io/rstudio4edu-book/rmd-fancy.html): --*/
+#TOC::before {content: ""; display: block; height: 60px; margin: 30px 10px 30px; background-image: url("conception_logo.png"); background-size: contain; background-position: center center; background-repeat: no-repeat}
+```
+
+<div class = 'box1'>
+
+**EUROCAT: Definition of Data Quality Indicators**
+
+<br> 
+
+The aim of [EUROCAT](https://eu-rd-platform.jrc.ec.europa.eu/eurocat_en) is to carry out epidemiological surveillance of congenital anomalies in Europe. Congenital anomaly registers are established to facilitate the identification of teratogenic exposures, for the planning and evaluation of preventive health services and to provide a mechanism for the audit of prenatal screening practice.     
+Complex factors influence the quality of data collected by a congenital anomaly registry. Registry data are never a “perfect” description of which babies have congenital anomalies in the population and precisely what those anomalies are. [Data Quality Indicators](https://eu-rd-platform.jrc.ec.europa.eu/sites/default/files/Full_Guide_1_4_version_28_DEC2018.pdf) (DQI) have been proposed and are freely available. These indicators will allow registries to evaluate their performance in relation to other registries, and will allow appropriate interpretations to be made of the results of data analyses. The DQI of a particular registry can be compared to the EUROCAT average. Strong deviations on either side of the average should be examined. The set of data quality indicators has been produced under the headings:   
+1. Ascertainment    
+2. Accuracy of Diagnosis    
+3. Completeness of Information     
+4. Timeliness   
+5. Denominator Information    
+
+</div>
+
+<br>
+
+<div class = 'box2'>
+
+<br>
+
+## 1. Ascertainment
+
+```{r echo=F}
+if("ascertainment.csv" %in% list.files(eurocat_dir)){
+asc_table<-data.table::fread(paste0(eurocat_dir, "ascertainment.csv"))
+if (asc_table[,.N]>0){
+ DT::datatable(asc_table) 
+} else {
+  print("This table cannot be produced based on the available data.")
+}
+}
+```
+
+```{r echo=F}
+if ("birth_type_downsynd_by_agemo.csv" %in% list.files(eurocat_dir)){
+agecat_table<-data.table::fread(paste0(eurocat_dir, "birth_type_downsynd_by_agemo.csv"))
+if (agecat_table[,.N]>0){
+DT::datatable(agecat_table)
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+} else {
+ print("This table cannot be produced based on the available data.")  
+}
+```
+
+</div>
+
+<br>
+
+<div class = 'box3'>
+
+## 2. Accuracy
+
+<br>
+
+```{r}
+if ("accuracy.csv" %in% list.files(eurocat_dir)){
+acc_table<-data.table::fread(paste0(eurocat_dir, "accuracy.csv"))
+
+if (acc_table[,.N]>0){
+DT::datatable(acc_table)
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+} else {
+ print("This table cannot be produced based on the available data.")  
+}
+```
+
+</div>
+
+<br>
+
+<div class = 'box4'>
+
+## 3. Completeness
+
+<br>
+
+```{r}
+if ("completeness_90_percent.csv" %in% list.files(eurocat_dir)){
+  comp90<-data.table::fread(paste0(eurocat_dir, "completeness_90_percent.csv"))
+if (comp90[,.N]>0){
+DT::datatable(comp90)
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+} else {
+ print("This table cannot be produced based on the available data.")  
+}
+```
+
+```{r}
+if ("completeness_80_percent.csv" %in% list.files(eurocat_dir)){
+  comp80<-data.table::fread(paste0(eurocat_dir, "completeness_80_percent.csv"))
+  if (comp80[,.N]>0){
+DT::datatable(comp80)
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+} else {
+ print("This table cannot be produced based on the available data.")  
+}
+```
+
+```{r}
+if ("completeness.csv" %in% list.files(eurocat_dir)){
+  comp18_24<-data.table::fread(paste0(eurocat_dir, "completeness.csv"))
+  if (comp18_24[,.N]>0){
+DT::datatable(comp18_24)
+} else {
+  print("This table cannot be produced based on the available data.") 
+}
+} else {
+ print("This table cannot be produced based on the available data.")  
+}
+```
+
+</div>
+
+<br>
+
+<div class = 'box5'>
+
+## 4. Timeliness
+
+<br>
+
+This indicator will not be calculated since the needed information is not provided.
+
+</div>
+
+<br>
+
+<div class = 'box6'>
+
+## 3. Denominator information
+
+<br>
+
+This indicator will not be calculated since the needed information is not provided.
+
+</div>
+
+<br>
+
+<div class = 'box7'>
+
+## 6. EUROCAT DQI 
+
+<br>
+
+```{r echo=F}
+dqi<-data.table(indicator_class=c("Ascertainment","Ascertainment","Ascertainment","Ascertainment","Ascertainment","Ascertainment","Ascertainment","Ascertainment", "Accuracy of diagnosis","Accuracy of diagnosis", "Accuracy of diagnosis", "Accuracy of diagnosis", "Accuracy of diagnosis", "Accuracy of diagnosis", "Accuracy of diagnosis", "Accuracy of diagnosis", "Completeness of information","Completeness of information","Completeness of information","Completeness of information","Completeness of information","Completeness of information","Completeness of information","Completeness of information", "Completeness of information", "Timeliness", "Denominator information","Denominator information"),
+indicator=c("Total number of cases", "Total congenital anomaly prevalence (>200 per 10,000 births expected) with 95% confidence intervals", "Prevalence of anencephalus", "Prevalence of severe cardiac defects", "Prevalence of selected postnatal diagnosis", "Prevalence of genetic syndromes and microdeletions", "Prevalence of malformed fetal deaths", "Down syndrome: Observed/Expected ratio by maternal age", "% potential multiples according to the flowchart variable", "% fetal deaths with post-mortem examination carried out","% TOPFA (GA ≥ 15 weeks) with post-mortem examination carried out", "% chromosomal cases (except trisomy 13, 18 and 21) with karyotype text", "% Non-chromosomal potential multiple cases with known karyotype", "Prevalence of selected exact 4-digit Q-BPA codes", "Prevalence of selected unspecified Q codes", "% livebirths with ASD, VSD, hydronephrosis, hypospadia or club foot with known data on surgery", "Number of core variables 90% complete (out of chosen 11) Variables are: sex, number of babies/fetuses delivered (nbrbaby), number of malformed in multiple set (nbrmalf), type of birth (type), birth weight (weight), length of gestation in completed weeks (gestlength), survival beyond one week of age (survival), when discovered (whendisc), if prenatally diagnosed, gestational age at discovery in completed weeks (agedisc), age of mother at delivery (agemo), civil registration status (civreg)", "Number of non-core variables 80% complete(out of chosen 26)
+date of death (death-date), condition at discovery (condisc), karyotype of infant/fetus (karyo), post mortem examination (pm), date of birth of mother (datemo), mother’s residence code (residmo), total number of previous pregnancies (totpreg), mother’s occupation at time of conception (occupmo), assisted conception (assconcept), illness before pregnancy (illbef), illness during pregnancy (illdur1), drugs1, consanguinity (consang), previous malformed siblings notified to EUROCAT (prevsib), sibling ID number notified to Central Registry (sib1), siblings with anomalies (sibanom), mother’s family with anomalies (moanom), father’s family with anomalies (faanom), first postitive prenatal test (firstpre), first surgical procedure for malformation (surgery), folic acid supplementation (folic), maternal education (matedu), socioeconomic status of mother (socm), socioeconomic status of father (socf), migrant status (migrant), aetiological classification of malformation (aetiology)", "% TOPFA with civil registration known", "% live births with one week survival known", "Medication exposure recorded using 7 digit ATC codes", "% of ATC codes with 7 digits and in correct format", "% genetic syndromes + microdeletions with syndrome text complete", "% malformation 1 text complete", "Number of unresolved data edits (excluding free text fields)","Timeliness for February deadline", "Years with 80% of maternal age denominators (out of 5)","Years with monthly denominators (out of 5)"))
+```
+
+```{r echo=F}
+datatable(dqi)
+```
+
+</div>
+
+<br>
+
+<div class = 'box8'>
+
+## 6. EUROCAT Algorithm
+
+<br>
+
+Definition of a multiple congenital anomaly case (MCA):    
+Two or more unrelated major structural malformations that cannot be explained by an underlying syndrome or sequence.   
+This means that the process of the flowchart is to find cases with two or more codes within the Q chapter, unless the case is transferred to other groups according to the steps described below.     
+Name for groups:    
+C: chromosomal      
+B: genetic syndrome, skeletal dysplasia and monogenic disorder    
+N: NTD isolated      
+A: isolated cardiac     
+R: isolated renal    
+I: isolated other     
+O: non-syndrome outside malformation chapter     
+M: potential multiple anomalies     
+T: teratogenic syndrome    
+
+**Minor, unspecified and invalid codes.**   
+The following codes are ignored in the flowchart, but appear in individual case output: Guide 1.4 list of minors post 2005 to be used for all years.   
+Balanced chromosomal rearrangements (7584 or Q95) as the only code Multiple Malformation code (7597 or Q897).   
+Unspecified malf code (7599 or Q899)   
+No valid ICD code    
+Group X contains cases with only the above-listed codes.    
+
+**Outside Q-chapter codes (except the few codes accepted in “all anomalies”)**
+These codes are ignored by the flowchart process but appear in the individual case output Accepted non Q codes: D215, D821, D1810, P350, P351, P371
+ICD/BPA9: 27910, 2281, 76076, 76280, 7710, 7711, 77121
+
+**The flowchart**
+For 3 and 4 digit codes mentioned here, the coding also includes the codes with more digits Only Q-codes are valid for the process after step 2
+This is a hierarchical procedure:
+```{r echo=F}
+info<-data.table(steps=c("Step 1","Step 2","Step 3","Step 4","Step 5","Step 6","Step 7","Step 8","Step 8", "Step 8", "Step 8", "Step 9","Step 10","Step 11","Step 12","Step 13","Step 14","Step 15","Step 16","Step 17","Step 18","Step 19","Step 19", "Step 19", "Step 19", "Step 20","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 21","Step 22"),
+description=c("Exclude all cases with a chromosomal code",
+              "Exclude all cases with genetic syndrome codes, skeletal dysplasia and congenital skin
+              disorder codes", 
+              "Exclude all cases with a code for teratogenic syndrome code",
+              "Exclude all cases with a heterogenous syndrome code", 
+              "Exclude all cases with only NTD codes", 
+              "Exclude all cases with codes only in cardiac chapter",
+              "Exclude all cases with codes only in renal chapter",
+              "Exclude all cases with only one code within Q chapter",
+              "Exclude all cases with only one code within Q chapter",
+              "Exclude all cases with only one code within Q chapter",
+              "Exclude all cases with only one code within Q chapter", 
+              "Exclude all cases with codes only in eye chapter",
+              "Exclude all cases with codes only with limb reduction defects",
+              "Exclude all cases with codes only for hypospadias",
+              "Exclude all cases with codes only for polydactyly",
+              "Exclude all cases with codes only for reduction defects of brain",
+              "Exclude all cases with codes only for hip anomalies",
+              "Exclude all cases with codes only for syndactyly", 
+              "Exclude all cases with codes only for syndactyly and polydactyly",
+              "Exclude all cases with codes only for small intestinal atresia",
+              "Exclude all cases with codes only for facial clefts",
+              "Exclude all cases with the code for balanced chromosomal rearrangements (Q95 or 7584) 
+              and only one other Q-code",
+              "Exclude all cases with the code for balanced chromosomal rearrangements (Q95 or 7584) 
+              and only one other Q-code",
+              "Exclude all cases with the code for balanced chromosomal rearrangements (Q95 or 7584) 
+              and only one other Q-code",
+              "Exclude all cases with the code for balanced chromosomal rearrangements (Q95 or 7584) 
+              and only one other Q-code", 
+              "Exclude all cases with only outside Q chapter codes (without Q-codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly
+              codes(NB: Anyone of these codes may be used more than once, disregard duplicate
+              codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly
+              codes(NB: Anyone of these codes may be used more than once, disregard duplicate 
+              codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)",
+              "Exclude all known sequences or combinations of anomalies without other anomaly codes 
+              (NB: Anyone of these codes may be used more than once – disregard duplicate codes)", 
+              "The remaining cases are group M: potential multiple anomalies. Manual evaluation of 
+              all remaining cases before final inclusion into multiple anomaly group - or inclusion 
+              in one of the other groups"),
+codes=c("ICD/BPA9: all 759 cases except 7584, Q90-Q93 excluding Q936, Q96-Q99","ICD/BPA9: 7598, 27910, 7571, 7573, 75581 (Larsen syndrome), 75601 (Crouzon), 75604 (Mandibulofacial dysostosis), No ICD9 subgroup for skeletal dysplasia, Excluding 759801,759895, 759844, Q87 Excluding Q8703, Q8704, Q8706, Q8708, Q8724, Q8726, Q936, D821,Q77, Q7800, Q782-788, Q7402Q80-Q82, Q4471 Alagille syndrome, Q6190 Meckel-Gruber, Q7484 Larsen syndrome, Q751 Crouzon /craniofacial dysostosis, Q754 Mandibulofacial dysostosis (Treacher Collin), Q7581 Frontonasal dysplasia","No ICD9 subgroup for teratogenic syndromes, only the codes for infection 7710, 7711, 77121 and fetal alcohol syndrome 76076, Q86, P350, P351, P371","ICD9: 756110, 75680, 759611, 3568 (not exactly the same as ICD10),Q761, Q7982, Q8581, Q8706","ICD/BPA9: 740-741, 7420, Q00-Q01, Q05", "ICD/BPA9: 745-746, 7470-7474, Q20-Q26", "ICD/BPA9: 753, 756.72, 752.61, Q60 – Q64, Q794","Include known local coding variations/errors (for our own purpose, transfer also cases with only cleft codes – chapter Q35-Q37) ICD/BPA9: 740-759 (transfer to groups like ICD10 – see codes for group N, A, and R earlier) If Q00-Q01, Q05","If Q20-Q26","If Q60-Q64, Q794","If only one other Q-code or D1810 or D215/icd9 2281","ICD/BPA9: 743, Q10-Q15", "ICD/BPA9: 7552-7554, Q71-Q73", "ICD/BPA: 75260, Q54", "ICD/BPA9: 7550, Q69", "ICD/BPA9: 7422, Q04", "ICD/BPA9: 75430, Q65", "ICD/BPA9: 7551, Q70", "ICD/BPA9: 7550 and 7551, Q69 and Q70", "ICD/BPA9: 75111, 75112, 75119, Q41", "ICD/BPA9 7490, 7491, 7492, Q35, Q36, Q37", "ICD/BPA9: 7584 (transfer to groups like ICD10 – see codes for group N, A, and R earlier) Q95
+If (Q00-Q01, Q05) and Q95", "If Q20-Q26 and Q95", "If (Q60-Q64, Q794) and Q95","If only one other Q-code and Q95","ICD/BPA9: outside 740-759, 2281 and 76280 accepted as outside malformation chapter codes, Not beginning with Q, D1810 and D215 accepted as outside Q-code", "Spina bifida – talipes – hydrocephalus: ICD/BPA9 741 coded with 7545 and/or 7423, Q05 coded with Q66 and/or Q03","Bilateral renal aplasia/dysplasia – lung hypoplasia - talipes: ICD/BPA9 75300 coded with 74851 and/or 7545, Q601/Q606 coded with Q336 and/or Q66", "Omphalocele/gastroschisis – malrotation of gut – small intestinal atresia: ICD/BPA9 75670/75671 coded with 7514 and/or 7511, Q792/Q793 coded with Q433 and/or Q41", "Anal atresia - rectovaginal fistula: ICD/BPA9 7512 coded with 75242, Q42 coded with Q522", "Diaphragmatic hernia – lung hypoplasia: ICD/BPA9 75661 coded with 74851, Q790 coded with Q336", "Anencephalus - adrenal hypoplasia: ICD/BPA9 740 coded with 75911, Q00 coded with Q891", "Unspecified hydrocephalus - reduction defect of brain: ICD/BPA9 74239 coded with 7422, Q039 coded with Q04", "Unspecified hydrocephalus – Arnold-Chiari: no ICD/BPA9 code for Arnold-Chiari, Q039 coded with Q070", "NTD – Arnold Chiari/: no ICD/BPA9 code for Arnold-Chiari, Q01 or Q05 coded with Q070", "Amniotic band sequence: ICD/BPA9: 76280, All cases with the code Q7980", "Caudal dysplasia sequence
+no ICD/BPA9 code for caudal dysplasia sequence, All cases with the code Q8980", "Sirenomelia sequence
+ICD/BPA9: All cases coded with 759844, All cases coded with Q8724", "Cyclops sequence ICD/BPA9: All cases coded with 759801, All cases coded with Q8703", "Pierre Robin sequence ICD/BPA9: All cases coded with 756030 as only code or with 7490, 7491, 7492, All cases coded with Q8708 as only code or with Q35-Q37", "Holoprosencephaly – median cleft lip: ICD/BPA9: All cases coded with 74226 and 74912, All cases coded with Q042 and Q361", "N/A"),
+decision=c("Transfer to group C","Transfer to group B","Transfer to group T","Transfer to group M", "Transfer to group N", "Transfer to group A", "Transfer to group R", "Transfer to group N", "Transfer to group A", "Transfer to group R", "Transfer to group I", "Transfer to group I", "Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I", "Transfer to group N", "Transfer to group A", "Transfer to group R", "Transfer to group I", "Transfer to group O", "Transfer to group N", "Transfer to group R", "Transfer to group I","Transfer to group I", "Transfer to group I", "Transfer to group N", "Transfer to group I", "Transfer to group I", "Transfer to group N", "Transfer to group I", "Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I","Transfer to group I", "Transfer to group M"))
+```
+
+```{r echo=F}
+datatable(info)
+```
+
+</div>
+
+<br> 
+
+<div class = 'box9'>
+
+Author: Ema Alsina Msc.   
+email: palsinaaer@gmail.com   
+Organisation: UMC Utrecht, Utrecht, The Netherlands    
+
+</div>

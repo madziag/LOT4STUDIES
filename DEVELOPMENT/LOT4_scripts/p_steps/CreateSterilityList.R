@@ -406,40 +406,40 @@ proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TR
 if(length(proc_files)>0){
   # Process each PROCEDURES table
   for (y in 1:length(proc_files)){
-    # Load table
+    # Load events table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "procedure_date", "procedure_code", "procedure_code_vocabulary", "meaning_of_procedure")] # Keep necessary columns
+    df<-as.data.table(df[,c("person_id", "procedure_date", "procedure_code", "procedure_code_vocabulary", "meaning_of_procedure")]) # Keep necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
     setnames(df,"meaning_of_procedure","Meaning") # Rename column names
     setnames(df,"procedure_date","Date") # Rename column names
     setnames(df,"procedure_code_vocabulary","Vocabulary") # Rename column names
     setnames(df,"procedure_code","Code") # Rename column names
-    colnames_procedures<-names(df)
-    colnames_procedures<-colnames_procedures[!colnames_procedures %in% "person_id"]
-    # Merge Procedures table with study_population table(there is no missing data in this table)
+    colnames_events<-names(df)
+    std_names_events<-names(study_population)
+    colnames_events<-colnames_events[!colnames_events %in% "person_id"]
+    # Merge Events table with study_population table(there is no missing data in this table)
     df[,person_id:=as.character(person_id)]
     study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)] # Left join, keep all people in the study population even if they didn't have an event
-    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric
-    df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
-    df[,Date :=as.IDate(Date ,"%Y%m%d")] # Transform to date variables
+    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables
+    df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
+    df[,Date:=as.IDate(Date,"%Y%m%d")] # Transform to date variables
     df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transform to date variables
     # Creates year variable
-    df[,year:=year(Date )]
+    df[,year:=year(Date)]
     df<-df[!is.na(year)] # Remove records with both dates missing
     df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=start_follow_up-Date ][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
+    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date <start_follow_up | Date >end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
+    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Remove records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Remove records outside study period
     df[,obs_out:=NULL]
     df<-df[!is.na(Code) | !is.na(Vocabulary)]# Remove records with both event code and event record vocabulary missing
     df<-df[!is.na(Vocabulary)] # Remove empty vocabularies
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
-    # Print Message
-    print(paste0("Finding matching records in ", proc_files[y]))
+    
     # Add column for origin of code i.e. CPRD, PHARMO
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("OPCS"), "CPRD",
                        ifelse(df[,Vocabulary] %chin% c("CVV", "CBV", "ZA"), "PHARMO", "UNKNOWN"))]

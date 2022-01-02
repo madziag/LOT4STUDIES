@@ -4,21 +4,26 @@
 #using study_population
 # study_population<-readRDS(paste0(populations_dir, "study_population.rds"))
 
-start_date<-as.Date(as.character(20100101), "%Y%m%d")
+# start_date<-as.Date(as.character(20100101), "%Y%m%d")
+# 
+# # study_population$entry_date<-as.Date(as.character("18000101"), "%Y%m%d")
+# 
+# study_population$entry_date <- as.Date(as.character(20100101), "%Y%m%d")
+# 
+# print("calculating entry date")
+# for(i in 1:nrow(study_population)){
+#   entry_dates<-c(study_population$date_min[i], study_population$spell_start_date[i], start_date)
+#   max_date<-max(entry_dates)
+#   study_population$entry_date[i]<-as.Date(max_date, "%Y%m%d")
+# }
 
-# study_population$entry_date<-as.Date(as.character("18000101"), "%Y%m%d")
-
-study_population$entry_date <- as.Date(as.character(20100101), "%Y%m%d")
-
-print("calculating entry date")
-for(i in 1:nrow(study_population)){
-  entry_dates<-c(study_population$date_min[i], study_population$spell_start_date[i], start_date)
-  max_date<-max(entry_dates)
-  study_population$entry_date[i]<-as.Date(max_date, "%Y%m%d")
-}
+study_population$start_date <- as.Date(as.character(20100101), "%Y%m%d")
+study_population$entry_date <- pmax(study_population$date_min, study_population$op_start_date, study_population$start_date, na.rm = TRUE)
+study_population$entry_date <- as.Date(study_population$entry_date, "%Y%m%d")
 
 summary(study_population$entry_date)
 print("entry date OK")
+
 
 #exit date: earliest date at which ANY of the following conditions are met: age>55, observation ends, study ends, sterilization record
 # using study_populations AND sterilization
@@ -29,18 +34,28 @@ if(SUBP == TRUE){
 }
 
 
+# sterility<-sterility[,c("person_id", "Date")]
+# study_population<-dplyr::left_join(study_population, sterility)
+# end_date<-as.Date(as.character(20201231), "%Y%m%d")
+
 sterility<-sterility[,c("person_id", "Date")]
-study_population<-dplyr::left_join(study_population, sterility)
-end_date<-as.Date(as.character(20201231), "%Y%m%d")
+setnames(sterility,"Date","Sterility_Date") # Rename column names
+study_population[,person_id:=as.character(person_id)]
+sterility[,person_id:=as.character(person_id)]
+study_population<-sterility[study_population,on=.(person_id)] # Left join
 
-study_population$exit_date <- as.Date(as.character(20201231), "%Y%m%d")
+# study_population$exit_date <- as.Date(as.character(20201231), "%Y%m%d")
+# 
+# print("calculating exit date")
+# for(i in 1:nrow(study_population)){
+#   exit<-c(study_population$date_max[i], study_population$spell_end_date[i], study_population$sterility_date[i], end_date)
+#   min_date<-min(exit,na.rm = T)
+#   study_population$exit_date[i]<-as.Date(min_date, "%Y%m%d")
+# }
 
-print("calculating exit date")
-for(i in 1:nrow(study_population)){
-  exit<-c(study_population$date_max[i], study_population$spell_end_date[i], study_population$sterility_date[i], end_date)
-  min_date<-min(exit,na.rm = T)
-  study_population$exit_date[i]<-as.Date(min_date, "%Y%m%d")
-}
+study_population$end_date  <- as.Date(as.character(20201231), "%Y%m%d")
+study_population$exit_date <- pmax(study_population$date_max, study_population$op_end_date, study_population$end_date,study_population$Sterility_Date, na.rm = TRUE)
+study_population$exit_date <- as.Date(study_population$exit_date, "%Y%m%d")
 
 summary(study_population$exit_date)
 print("exit date OK")

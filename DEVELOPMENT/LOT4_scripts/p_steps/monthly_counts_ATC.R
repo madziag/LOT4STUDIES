@@ -10,6 +10,22 @@ names(empty_counts_df) <- c("year", "month")
 # Create List of Retinoid and Valproates for individual counts
 codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
 codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
+
+if(study_type == "Retinoids"){
+  # Create List of Retinoid and Valproates for individual counts
+  codelist_ind <- Filter(function(x) names(codelist_all) == "Retinoid", codelist_all)
+  codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
+} else if (study_type == "Valproates") {
+  # Create List of Retinoid and Valproates for individual counts
+  codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate", codelist_all)
+  codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
+} else if (study_type == "Both") {
+  # Create List of Retinoid and Valproates for individual counts
+  codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
+  codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
+} else {
+  print("Please indicate study type")
+  }
 # Create other lists
 comb_meds <- list()
 

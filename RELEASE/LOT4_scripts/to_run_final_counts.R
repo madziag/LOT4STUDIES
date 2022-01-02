@@ -1,4 +1,4 @@
-# rm(list=ls())
+rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
 library(rstudioapi)
 
@@ -29,6 +29,10 @@ study_type <- "Both"
 ## MASKING 
 mask<-T
 # mask <- F
+#user input parameter
+# Chose format to save files 
+my_format<- "csv"
+# my_format<-"xlsx"
 # Source script which sources the following-
 ## Source Baseline table
 source(paste0(pre_dir,"run_all_counts_final.R"))
