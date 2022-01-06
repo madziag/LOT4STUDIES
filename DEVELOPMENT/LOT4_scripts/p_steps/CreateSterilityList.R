@@ -479,7 +479,7 @@ if(length(proc_files)>0){
             
           }
         }
-      } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))}
+      } else {print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))}
       
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
