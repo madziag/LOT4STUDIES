@@ -1,0 +1,4 @@
+"","CreateSpellsStep","OBS_number"
+"1","original number of OBSERVATION PERIODS","3066"
+"2","number of OBSERVATION PERIODS after concatenating observations with gaps <= 7 days","995"
+"3","number of OBSERVATION PERIODS after selecting the most recent observation (one spell per unique ID)","981"

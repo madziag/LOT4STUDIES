@@ -52,6 +52,7 @@ contra_type_dur<-as.data.frame(cbind(types_contra, duration_contra))
 
 dir.create(paste0(tmp, "all_contraception/"))
 
+contra_folder<-(paste0(tmp, "all_contraception/"))
 
 # In each data set, create a new column called start_contraception, where you copy over the value from 
 # the record date column as follows
@@ -62,26 +63,29 @@ dir.create(paste0(tmp, "all_contraception/"))
 
 start_vars<-c("date_record", "procedure_date", "date_dispensing", "date_prescription")
 
-stringr::str_detect(names(my_contra),start_vars)
+# stringr::str_detect(names(my_contra),start_vars)
 
 for (i in 1:length(contracep_tables)){
-  my_contra<-readRDS(contracep_tables[i])
-  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
+  my_contra<-readRDS(contracep_tables[1])
+  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[1],types_contra),]
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
   start_contra<-my_contra[,(stringr::str_detect(names(my_contra),start_vars))]
   #should give me the columns which match... why not? >_<
   if (length(start_contra)>1){
     #here I need a logical test to determine which of the matching columns to use... 
-    is.na()
+    #if all but one is empty (NA) then this will work
+    start_contra<- start_contra[,(apply(X = start_contra, MARGIN = 2, FUN = anyNA)==F)]
   }
-  #my_contra$start_contraception<-my_contra[,paste0(ex_var)]
+  my_contra$start_contraception<-my_contra[,paste0(ex_var)]
+  
+  # In each data set, create a new column called contraception_meaning, where you copy over the value from 
+  # the record date column as follows:
+  #   
+  #   diagnoses\iud_diag.rds: meaning := meaning_of_event variable
+  # procedures\iud.rds: meaning := meaning_of_procedure variable
+  # medications\...: meaning := meaning_of_drug_record variable
   #need to select column name stored in R object... 
-  saveRDS(my_contra, path=paste0(tmp, "all_contraception/"), contracep_names[i])
+  # saveRDS(my_contra, path=paste0(tmp, "all_contraception/"), contracep_names[i])
 }
 
-# In each data set, create a new column called contraception_meaning, where you copy over the value from 
-# the record date column as follows:
-#   
-#   diagnoses\iud_diag.rds: meaning := meaning_of_event variable
-# procedures\iud.rds: meaning := meaning_of_procedure variable
-# medications\...: meaning := meaning_of_drug_record variable
+

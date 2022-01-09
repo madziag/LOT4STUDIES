@@ -16,7 +16,7 @@ print('Import and append persons files')
 PERSONS <- IMPORT_PATTERN(pat = "PERSONS", dir = path_dir)
 
 
-print('Remove abbundant variables')
+print('Remove redundant variables')
 lapply(c("race","country_of_birth","quality"), function (x) PERSONS <- PERSONS[,eval(x) := NULL])
 
 c("race","country_of_birth","quality")
