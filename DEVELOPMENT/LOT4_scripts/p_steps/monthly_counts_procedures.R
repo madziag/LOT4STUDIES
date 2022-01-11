@@ -50,7 +50,7 @@ if(length(proc_files)>0){
     # Print Message
     print(paste0("Finding matching records in ", proc_files[y]))
     # Add column for origin of code i.e. CPRD, PHARMO
-    df[,vocab:= ifelse(df[,vocabulary] %chin% c("OPCS"), "CPRD",
+    df[,vocab:= ifelse(df[,vocabulary] %chin% c("OPCS4"), "CPRD",
                        ifelse(df[,vocabulary] %chin% c("CVV", "CBV", "ZA"), "PHARMO", "UNKNOWN"))]
     
     # Check if df is NOT empty
