@@ -54,7 +54,7 @@ study_population<-sterility[study_population,on=.(person_id)] # Left join
 # }
 
 study_population$end_date  <- as.Date(as.character(20201231), "%Y%m%d")
-study_population$exit_date <- pmax(study_population$date_max, study_population$op_end_date, study_population$end_date,study_population$Sterility_Date, na.rm = TRUE)
+study_population$exit_date <- pmin(study_population$date_max, study_population$op_end_date, study_population$end_date,study_population$Sterility_Date, na.rm = TRUE)
 study_population$exit_date <- as.Date(study_population$exit_date, "%Y%m%d")
 
 summary(study_population$exit_date)
