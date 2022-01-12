@@ -11,7 +11,7 @@
 # medications\contracep_sequenprep.rds
 # medications\contracep_vaginalring.rds
 
-
+#this section finds files matching any contraception vocabulary from the three possible folders: medications, procedures and diagnoses
 
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
 contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud")                               
@@ -39,9 +39,6 @@ contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unli
 # medications\contracep_sequenprep.rds: assumed_duration = 28
 # medications\contracep_vaginalring.rds: assumed_duration = 28
 
-#how do I do this... different DAPS have different tables available... need to match based on file name... oof
-#Redundat IUD labels- may get multiple matches...
-#use stringr match
 
 types_contra<-c("iud_diag", "iud", "fixedcomb", "implant","injection","IUD","patch","progest", "sequenprep", "vaginalring")
 duration_contra<-c(1095, 1095, 28, 1095,84, 1095, 28,28,28,28)
@@ -62,42 +59,54 @@ contra_folder<-(paste0(tmp, "all_contraception/"))
 # medications\...: start_contraception := date_dispending variable or date_prescription variable
 
 start_vars<-c("date_record", "procedure_date", "date_dispensing", "date_prescription")
-meaning_vars<-c("meaning_of_event","meaning_of_procedure","meaning_of_drug_record")
-# stringr::str_detect(names(my_contra),start_vars)
+
+#  empty dataframe to store loop results
+
+all_contra=data.frame()
+
+#empty vector to check dataset collation
+
+my_rows<-vector()
+
+# sapply(substring(contracep_names, ""), function(x) paste0(x[1:(nchar(contracep_names)-4)], collapse=""))
+# 
+# gsub('.{2}$', '', name)
+# apply(x=contracep_names, FUN=substr(contracep_names,1,nchar(contracep_names)-4))
 
 for (i in 1:length(contracep_tables)){
-  my_contra<-readRDS(contracep_tables[i])
-  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
+  my_contra<-readRDS(contracep_tables[1])
+  my_rows[i]<-nrow(my_contra)
+  #match type of contraception in dataframe to options
+  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[4],types_contra),]
+  #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
-  start_contra<-my_contra[,(stringr::str_detect(names(my_contra),start_vars))]
+  #find all possible start dates of contraception
+  start_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),start_vars)))]
+  #warning message not relevant, supressed
+  print(start_contra)
   #should give me the columns which match... why not? >_<
   if (length(start_contra)>1){
     #here I need a logical test to determine which of the matching columns to use... 
     #if all but one is empty (NA) then this will work
-    start_contra<- start_contra[,(apply(X = start_contra, MARGIN = 2, FUN = anyNA)==F)]
-  }
+    start_contra<- my_contra[,start_contra][,(apply(X = my_contra[start_contra], MARGIN = 2, FUN = anyNA)==F)]
+  }else{start_contra<-my_contra[start_contra]}
   my_contra$start_contraception<-start_contra
   
-  #####
-  
-  meaning_contra<-my_contra[,(stringr::str_detect(names(my_contra),meaning_vars))]
-  if (length(meaning_contra)>1){
-    #here I need a logical test to determine which of the matching columns to use... 
-    #if all but one is empty (NA) then this will work
-    meaning_contra<- meaning_contra[,(apply(X = meaning_contra, MARGIN = 2, FUN = anyNA)==F)]
-  }
-  my_contra$contraception_meaning<-meaning_contra
-  
+  ###################################################################################
   # In each data set, create a new column called contraception_meaning, where you copy over the value from 
   # the record date column as follows:
-  #   
-  #   diagnoses\iud_diag.rds: meaning := meaning_of_event variable
-  # procedures\iud.rds: meaning := meaning_of_procedure variable
-  # medications\...: meaning := meaning_of_drug_record variable
+  ###################################################################################
   
+  meaning_contra<-my_contra[,(suppressWarnings( stringr::str_detect(names(my_contra),"meaning")))]
+  ##warning message not relevant, supressed
+  print(names(meaning_contra))
   
-  #need to select column name stored in R object... 
-  saveRDS(my_contra, contra_folder, contracep_names[i])
+  my_contra$contraception_meaning<-meaning_contra[1]
+  
+  all_contra<-rbind(all_contra, my_contra)
 }
 
+#test correct collation of contraception dataframes
 
+if((nrow(all_contra))-(sum(my_rows))==0){print("contraception data ready")
+  saveRDS(all_contra,paste0(contra_folder,"all_contra.rds"))}else{print("contact programmer")}
