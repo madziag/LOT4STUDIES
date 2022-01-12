@@ -95,13 +95,9 @@ study_population <- study_population[study_population$entry_date < study_populat
 #   study_population$exit_date[i]<-as.Date(min_date, "%Y%m%d")
 # }
 
-<<<<<<< Updated upstream
-=======
 study_population$end_date  <- as.Date(as.character(20201231), "%Y%m%d")
 study_population$exit_date <- pmin(study_population$date_max, study_population$spell_end_date, study_population$end_date,study_population$Sterility_Date, na.rm = TRUE)
 study_population$exit_date <- as.Date(study_population$exit_date, "%Y%m%d")
->>>>>>> Stashed changes
-
 
 # Exclude any individuals who have exit_date before Jan 01 2010, as they will never be eligible
 study_population <- study_population[study_population$exit_date > study_population$entry_date,]
