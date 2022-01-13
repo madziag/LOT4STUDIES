@@ -23,21 +23,12 @@ study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date va
 # fu duration 
 study_pop_meds[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
-<<<<<<< Updated upstream
 study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
 study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
                                     ifelse(study_pop_meds[,age_at_entry_date < 26], "19-25.9",
                                            ifelse(study_pop_meds[,age_at_entry_date < 36],  "26-35.9",
                                                   ifelse(study_pop_meds[,age_at_entry_date < 46], "36-45.9",
                                                          ifelse(study_pop_meds[,age_at_entry_date < 56], "46-55.9", "Not in range" )))))]
-=======
-study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365)]
-# age groups defined as per protocol
-study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & age_at_entry_date < 21], "12-20.9", 
-                                    ifelse(study_pop_meds[,age_at_entry_date < 31], "21-30.9",
-                                           ifelse(study_pop_meds[,age_at_entry_date < 41],  "31-40.9",
-                                                         ifelse(study_pop_meds[,age_at_entry_date < 56], "41-55.9", "Not in range" ))))]
->>>>>>> Stashed changes
 
 # Create column that describes if ATC is Retinoid, Valproate or Unknowns
 study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
