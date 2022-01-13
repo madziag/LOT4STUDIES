@@ -24,7 +24,7 @@ multiple_regions = F
 # multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 ## STUDY TYPE 
 # study_type <- "Retinoids"
-#study_type <- "Valproates"
+# study_type <- "Valproates"
 study_type <- "Both"
 ## MASKING 
 mask<-T

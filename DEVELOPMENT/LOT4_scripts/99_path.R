@@ -90,6 +90,12 @@ plot_folder <- paste0(output_dir, "plots")
 invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(paste0(output_dir, "baseline_tables")), FALSE))
 baseline_tables_dir <- paste0(output_dir, "baseline_tables")
 
+# Paths to pregnancy scripts 
+preg_dir <-paste0(dir_base, "/ConcePTIONAlgorithmPregnancies-version_2.0/")
+
+# Folder for pregnancy + medication use counts
+invisible(ifelse(!dir.exists(paste0(output_dir, "objective3_2_counts_per_month")), dir.create(paste0(output_dir, "objective3_2_counts_per_month")), FALSE))
+preg_med_counts <- paste0(output_dir, "objective3_2_counts_per_month")
 
 
 

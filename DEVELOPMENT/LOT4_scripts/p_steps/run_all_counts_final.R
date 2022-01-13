@@ -16,7 +16,9 @@ if(multiple_regions == T){
     med_pop_reg <- paste0(projectFolder, "/", regions[reg], "/g_intermediate/tmp/medications")
     # Sets path to read rds files
     output_dir <- paste0(projectFolder, "/", regions[reg], "/g_output/")
-    
+    # Sets path to save monthly counts for medication use in pregnancies 
+    preg_med_counts <- paste0(output_dir, "objective3_2_counts_per_month") 
+      
     # Based on the type of study (specified in to_run_final_counts.R, loads corresponding medication file)
     if (study_type == "Retinoids"){
       pattern1 = c("Retinoid")

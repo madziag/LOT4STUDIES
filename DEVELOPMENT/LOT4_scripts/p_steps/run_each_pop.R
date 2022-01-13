@@ -10,6 +10,7 @@ for(pop in 1:length(populations)){
   }
   # Runs file to create baseline tables
   source(paste0(pre_dir,"CreateBaselineTables.R"))
+  source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
   source(paste0(pre_dir, "write_output.R"))
 }
 
