@@ -74,43 +74,43 @@ my_cols<-vector()
 # gsub('.{2}$', '', name)
 # apply(x=contracep_names, FUN=substr(contracep_names,1,nchar(contracep_names)-4))
 
-stringr::str_replace(my_files, pattern = ".rds", replacement = "")
+# stringr::str_replace(my_files, pattern = ".rds", replacement = "")
 
 for (i in 1:length(contracep_tables)){
+  #get data
   my_contra<-readRDS(contracep_tables[i])
-  my_rows[i]<-nrow(my_contra)
-  my_cols[i]<-ncol(my_contra)
-  #
-  print(names(my_contra))
+
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
   #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
 
 
-  #find all possible start dates of contraception
-  start_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),start_vars)))]
-  #warning message not relevant, supressed
+  #standardize start date of contraception
+  # event_date is a composite variable indicating the onset of treatment --> rename to contraception_record_date
+  #IUD does not have event_date, but procedure_date
   
-  if (length(start_contra)>1){
-    #here I need a logical test to determine which of the matching columns to use... 
-    #if all but one is empty (NA) then this will work
-    start_contra<- my_contra[,start_contra][,(apply(X = my_contra[start_contra], MARGIN = 2, FUN = anyNA)==F)]
-    #dispensing prefered over prescribing 
-    #event_date (monthly counts medicines atc codes)
-  }else{start_contra<-my_contra[start_contra]}
-  my_contra$start_contraception<-start_contra
+  if("event_date"%in%names(my_contra)){
+  names(my_contra)[names(my_contra)=="event_date"]<-"contraception_record_date"}
+  else{
+  names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date"}
   
   ###################################################################################
-  # In each data set, create a new column called contraception_meaning, where you copy over the value from 
-  # the record date column as follows:
+  # rename meaning column to contraception_meaning,
   ###################################################################################
-  # should only have one per 
+  # should only have one per record- but this could be multiple within the data? 
+  
   meaning_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),"meaning")))]
   ##warning message not relevant, supressed
-  print(meaning_contra)
   
-  my_contra$contraception_meaning<-my_contra[meaning_contra]
+  names(my_contra)[names(my_contra)==meaning_contra]<-"contraception_meaning"
   
   saveRDS(my_contra,(paste0(contra_folder,contracep_names[i] )))
+  
+  #make "master" contraception dataframe for treatment episodes 
+  
+  new_df<-cbind(my_contra$person_id, my_contra$contraception_record_date, my_contra$assumed_duration, my_contra$Code, my_contra$contraception_meaning)
+  all_contra<-rbind(all_contra, new_df)
 }
+
+saveRDS(all_contra,(paste0(contra_folder,"all_contraception_for_treatment_episode.rds" )))
