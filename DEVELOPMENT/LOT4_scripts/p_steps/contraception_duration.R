@@ -74,6 +74,8 @@ my_cols<-vector()
 # gsub('.{2}$', '', name)
 # apply(x=contracep_names, FUN=substr(contracep_names,1,nchar(contracep_names)-4))
 
+stringr::str_replace(my_files, pattern = ".rds", replacement = "")
+
 for (i in 1:length(contracep_tables)){
   my_contra<-readRDS(contracep_tables[i])
   my_rows[i]<-nrow(my_contra)
@@ -89,8 +91,7 @@ for (i in 1:length(contracep_tables)){
   #find all possible start dates of contraception
   start_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),start_vars)))]
   #warning message not relevant, supressed
-  print(start_contra)
-  #should give me the columns which match... why not? >_<
+  
   if (length(start_contra)>1){
     #here I need a logical test to determine which of the matching columns to use... 
     #if all but one is empty (NA) then this will work
@@ -111,15 +112,5 @@ for (i in 1:length(contracep_tables)){
   
   my_contra$contraception_meaning<-my_contra[meaning_contra]
   
-  all_contra<-rbind(all_contra, my_contra)
+  saveRDS(my_contra,(paste0(contra_folder,contracep_names[i] )))
 }
-
-#test correct collation of contraception dataframes
-
-if((nrow(all_contra))-(sum(my_rows))==0){print("contraception data ready")
-  saveRDS(all_contra,paste0(contra_folder,"all_contra.rds"))}else{print("contact programmer")}
-
-
-names(my_contra4)[(names(my_contra1)%in%names(my_contra4))==F]
-names(my_contra1)%in%names(my_contra2)
-names(my_contra1)%in%names(my_contra3)
