@@ -67,6 +67,7 @@ all_contra=data.frame()
 #empty vector to check dataset collation
 
 my_rows<-vector()
+my_cols<-vector()
 
 # sapply(substring(contracep_names, ""), function(x) paste0(x[1:(nchar(contracep_names)-4)], collapse=""))
 # 
@@ -76,10 +77,15 @@ my_rows<-vector()
 for (i in 1:length(contracep_tables)){
   my_contra<-readRDS(contracep_tables[i])
   my_rows[i]<-nrow(my_contra)
+  my_cols[i]<-ncol(my_contra)
+  #
+  print(names(my_contra))
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
   #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
+
+
   #find all possible start dates of contraception
   start_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),start_vars)))]
   #warning message not relevant, supressed
@@ -89,6 +95,8 @@ for (i in 1:length(contracep_tables)){
     #here I need a logical test to determine which of the matching columns to use... 
     #if all but one is empty (NA) then this will work
     start_contra<- my_contra[,start_contra][,(apply(X = my_contra[start_contra], MARGIN = 2, FUN = anyNA)==F)]
+    #dispensing prefered over prescribing 
+    #event_date (monthly counts medicines atc codes)
   }else{start_contra<-my_contra[start_contra]}
   my_contra$start_contraception<-start_contra
   
@@ -96,12 +104,12 @@ for (i in 1:length(contracep_tables)){
   # In each data set, create a new column called contraception_meaning, where you copy over the value from 
   # the record date column as follows:
   ###################################################################################
-  
-  meaning_contra<-my_contra[,(suppressWarnings( stringr::str_detect(names(my_contra),"meaning")))]
+  # should only have one per 
+  meaning_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),"meaning")))]
   ##warning message not relevant, supressed
-  print(names(meaning_contra))
+  print(meaning_contra)
   
-  my_contra$contraception_meaning<-meaning_contra[1]
+  my_contra$contraception_meaning<-my_contra[meaning_contra]
   
   all_contra<-rbind(all_contra, my_contra)
 }
@@ -110,3 +118,8 @@ for (i in 1:length(contracep_tables)){
 
 if((nrow(all_contra))-(sum(my_rows))==0){print("contraception data ready")
   saveRDS(all_contra,paste0(contra_folder,"all_contra.rds"))}else{print("contact programmer")}
+
+
+names(my_contra4)[(names(my_contra1)%in%names(my_contra4))==F]
+names(my_contra1)%in%names(my_contra2)
+names(my_contra1)%in%names(my_contra3)
