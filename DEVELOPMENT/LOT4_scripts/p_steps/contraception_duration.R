@@ -69,12 +69,6 @@ all_contra=data.frame()
 my_rows<-vector()
 my_cols<-vector()
 
-# sapply(substring(contracep_names, ""), function(x) paste0(x[1:(nchar(contracep_names)-4)], collapse=""))
-# 
-# gsub('.{2}$', '', name)
-# apply(x=contracep_names, FUN=substr(contracep_names,1,nchar(contracep_names)-4))
-
-# stringr::str_replace(my_files, pattern = ".rds", replacement = "")
 
 for (i in 1:length(contracep_tables)){
   #get data
@@ -109,8 +103,9 @@ for (i in 1:length(contracep_tables)){
   
   #make "master" contraception dataframe for treatment episodes 
   
-  new_df<-cbind(my_contra$person_id, my_contra$contraception_record_date, my_contra$assumed_duration, my_contra$Code, my_contra$contraception_meaning)
+  new_df<-my_contra[,c("person_id","contraception_record_date", "assumed_duration", "Code", "contraception_meaning")]
   all_contra<-rbind(all_contra, new_df)
+ 
 }
 
-saveRDS(all_contra,(paste0(contra_folder,"all_contraception_for_treatment_episode.rds" )))
+saveRDS(all_contra,(paste0(contra_folder,"all_contra.rds" )))
