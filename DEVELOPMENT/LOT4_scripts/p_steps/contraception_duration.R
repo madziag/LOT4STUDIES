@@ -68,12 +68,11 @@ all_contra=data.frame()
 #empty vector to check dataset collation
 
 my_rows<-vector()
-my_cols<-vector()
-
 
 for (i in 1:length(contracep_tables)){
   #get data
   my_contra<-readRDS(contracep_tables[i])
+  my_rows[i]<-nrow(my_contra)
 
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
@@ -107,4 +106,5 @@ for (i in 1:length(contracep_tables)){
  
 }
 
+if(nrow(all_contra)==sum(my_rows)){print("all_contra OK")}else{print("all contra incomplete")}
 saveRDS(all_contra,(paste0(contra_folder,"all_contra.rds" )))
