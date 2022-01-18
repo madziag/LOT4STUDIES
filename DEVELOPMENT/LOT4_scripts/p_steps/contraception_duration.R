@@ -76,7 +76,7 @@ for (i in 1:length(contracep_tables)){
   my_contra<-readRDS(contracep_tables[i])
 
   #match type of contraception in dataframe to options
-  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[4],types_contra),]
+  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
   #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
 
