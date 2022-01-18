@@ -76,20 +76,22 @@ R version 4.1.0 (2021-05-18)
 1. Download the ZIP folder and extract the contents. ONLY KEEP THE RELEASE FOLDER. Discard the DEVELOPMENT folder.  
 2. Copy the LOT4_scripts folder from the RELEASE folder into the same local folder as where you store the CDMInstances folder as well as Level 1-3 check script folders  
 3. In the folder `LOT4_scripts`, go to the script 99_path.R and change the variable Studyname(line 6) to LOT4.     
-4. Now you are ready to run the (((to_run))) files. Each of these files runs a different analysis, as listed above. If you have not run the preselect script yet, do this first by running the script "to_run_preselect". We ask that you run this and compare this against your CDM instance tables. You may run the following analysis scripts on either your original data OR the preselection data. If you don't wish to use the subsetted preselection files, you may delete them. If you choose to use the subsetted files created by the preselection script, you will need to adjust your path in the 99_path.R file to find the preselect data files (otherwise R will automatically detect the original CDM files. Contact Romin (R.Pajouheshnia@uu.nl) if you need help with this.
-You may now run the "to_run_source_population_counts" fil
-Lastly, in the "to_run" files, make sure that mask = T, so that values <5 are masked. Currently this is implemented by converting them to 5, and labelling the output rows that were masked.
+4. Now you are ready to run the (((to_run))) files. Each of these files runs a different analysis. Run them in the order listed above. If you choose to use the subsetted files created by the preselection script, you will need to adjust your path in the 99_path.R file to find the preselect data files. 
+
+Contact Romin (R.Pajouheshnia@uu.nl) if you need help with this.
 
 ### Additional user inputs
 
-study: in the "to_run" files, select retinoid, valproate or both
-Excel or csv output: You can select for output data files (for export) to be either .xlsx or .csv format
-Subpopulation/Region analysis (BIFAP): In the study script "to_run" files, set the options: regions and subpopulations == T in the scripts
+1. study: in the "to_run" files, select retinoid, valproate or both
+2. Excel or csv output: You can select for output data files (for export) to be either .xlsx or .csv format
+3. Subpopulation/Region analysis (BIFAP): In the study script "to_run" files, set the options: regions and subpopulations == T in the scripts
 
 ### Uploading results to the online research environment
 
 After running the scripts, please upload the LOT4_scripts/g_output folder to YODA (your DAP-specific Analysis_scripts subfolder) with the following naming convention: "g_outupt_DDMMYYYY", where DDMMYYYY is the date of running the script.
+
 IMPORTANT: Although the scripts should suppress any values below 5, please do double check this when inspecting the results, before uploading to YODA.
+
 NO FILES FROM g_intermediate should be uploaded to YODA or shared.
 
 <!-- LICENSE -->
