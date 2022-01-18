@@ -7,12 +7,12 @@
 # count files already masked to_run_study_population
 
 # find correct folders
-
-if(!require(rstudioapi)){install.packages("rstudioapi")}
-library(rstudioapi)
-
-projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-setwd(projectFolder)
+# 
+# if(!require(rstudioapi)){install.packages("rstudioapi")}
+# library(rstudioapi)
+# 
+# projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
+# setwd(projectFolder)
 
 #get denominators from denominator.r in p_steps
 # source("denominator.r") ran in to_run_source_population
@@ -44,17 +44,17 @@ for (folder in 1:length(monthly_counts_folders)){
 count_names_all <- count_names_all[lapply(count_names_all,length)>0]
 count_files_all <- count_files_all[lapply(count_files_all,length)>0]
 
-# calculate rates
-for (i in 1:length(count_files_all)){
-  
-  for (j  in 1: length(count_files_all[[i]])){
-    
-    fu_months<-denominator$Freq
-    
-    count_files_all[[i]][[j]]$rate<-(count_files_all[[i]][[j]]$N)/fu_months
-    count_files_all[[i]][[j]]$ratep1000<-round((count_files_all[[i]][[j]]$rate*1000),2)
-  }
-}
+# # calculate rates
+# for (i in 1:length(count_files_all)){
+#   
+#   for (j  in 1: length(count_files_all[[i]])){
+#     
+#     fu_months<-denominator$Freq
+#     
+#     count_files_all[[i]][[j]]$rate<-(count_files_all[[i]][[j]]$N)/fu_months
+#     count_files_all[[i]][[j]]$ratep1000<-round((count_files_all[[i]][[j]]$rate*1000),2)
+#   }
+# }
 
 
 
@@ -66,22 +66,19 @@ for (i in 1:length(count_files_all)){
     
     pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
     
-    var_counts<-count_files_all[[i]][[j]]$N
+    my_data<-as.data.frame(count_files_all[[i]][[j]])
     
     #indicate masked values with stars
     my_pch<-count_files_all[[i]][[j]]$masked
     my_pch[my_pch==0]<-16
     my_pch[my_pch==1]<-8
     
-    mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
-    mydates<-paste0(15,"-",count_files_all[[i]][[j]]$month, "-", count_files_all[[i]][[j]]$year)
-    count_files_all[[i]][[j]]$date<-as.Date(mydates, "%d-%m-%y")
     
-    plot(mycounts, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
-    tsp = attributes(mycounts)$tsp
-    dates = seq(as.Date("2009-01-01"), by = "month", along = mycounts)
-    axis(1, at = seq(tsp[1], tsp[2], along = mycounts),las=2, labels = format(dates, "%Y-%m"))
-    axis(2, seq(0:(max(count_files_all[[i]][[j]]$N)+1)))
+    plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+    
+    
+    axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
+    axis(2, seq(0:(max(count_files_all[[1]][[1]]$N)+1)))
     dev.off()
     
   }
@@ -98,21 +95,16 @@ for (i in 1:length(count_files_all)){
     
     pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
     
-    var_counts<-count_files_all[[i]][[j]]$ratep1000
+    my_data<-count_files_all[[i]][[j]]
     
     #indicate masked values with stars
-    my_pch<-count_files_all[[i]][[j]]$masked
+    my_pch<-my_data$masked
     my_pch[my_pch==0]<-16
     my_pch[my_pch==1]<-8
     
-    mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
-    mydates<-paste0(15,"-",count_files_all[[i]][[j]]$month, "-", count_files_all[[i]][[j]]$year)
-    count_files_all[[i]][[j]]$date<-as.Date(mydates, "%d-%m-%y")
     
-    plot(mycounts, xaxt="n", xlab="", ylab="rate per 1000 persons", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
-    tsp = attributes(mycounts)$tsp
-    dates = seq(as.Date("2009-01-01"), by = "month", along = mycounts)
-    axis(1, at = seq(tsp[1], tsp[2], along = mycounts),las=2, labels = format(dates, "%Y-%m"))
+    plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n", xlab="", ylab="rate per 1000 persons", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
+    axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
     dev.off()
     
   }
