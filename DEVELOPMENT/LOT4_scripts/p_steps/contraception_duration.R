@@ -40,7 +40,8 @@ contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unli
 # medications\contracep_vaginalring.rds: assumed_duration = 28
 
 
-types_contra<-c("iud_diag", "iud", "fixedcomb", "implant","injection","IUD","patch","progest", "sequenprep", "vaginalring")
+types_contra<-c("iud_diag.rds", "iud.rds", "fixedcomb.rds", "implant.rds","injection.rds","IUD.rds",
+                "patch.rds","progest.rds", "sequenprep.rds", "vaginalring.rds")
 duration_contra<-c(1095, 1095, 28, 1095,84, 1095, 28,28,28,28)
 
 contra_type_dur<-as.data.frame(cbind(types_contra, duration_contra))
@@ -75,7 +76,7 @@ for (i in 1:length(contracep_tables)){
   my_contra<-readRDS(contracep_tables[i])
 
   #match type of contraception in dataframe to options
-  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
+  my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[4],types_contra),]
   #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
 
