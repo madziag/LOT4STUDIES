@@ -116,11 +116,16 @@ if(length(proc_files)>0){
       counts <- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fill in missing values with 0
       counts[is.na(counts[,N]), N:=0]
+      # Masking values less than 5
+      # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      # Changed values less than 5 and more than 0 to 5
+      counts[counts$masked == 1,]$N <- 5
       # Calculate rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,c("YM", "N", "Freq")]
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Save files in g_output monthly counts
       if(comb_meds[,.N]>0){
         

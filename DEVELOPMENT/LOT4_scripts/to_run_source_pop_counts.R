@@ -27,7 +27,7 @@ multiple_regions = F
 #user input parameter
 ## STUDY TYPE 
 # study_type <- "Retinoids"
-#  study_type <- "Valproates"
+# study_type <- "Valproates"
 study_type <- "Both"
 
 #user input parameter
