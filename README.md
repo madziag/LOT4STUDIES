@@ -9,25 +9,11 @@
 <details open="open">
   <summary>Table of Contents</summary>
   <ol>
-    <li>
-      <a href="#Lot 4 studies">Lot 4 studies</a>
-    </li>
-    <li>
-      <a href="#Scripts">Scripts</a>
-    </li>
-    <li>
-      <a href="#getting-started">Getting Started</a>
-      <ul>
-        <li><a href="#prerequisites">Prerequisites</a></li>
-        <li><a href="#installation">Installation</a></li>
-        <li><a href="#subpopulation">Subpopulation analysis</a></li>
-        <li><a href="#uploading">Uploading results to the online research environment</a></li>
-        <li><a href="#links">Data characterization study links</a></li> 
-        <li><a href="#version">Current version</a></li>
-      </ul>
-    </li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#Lot 4 studies">Lot 4 studies</a></li>
+    <li><a href="#Study scripts">Study scripts</a></li>
+    <li><a href="#Getting started">Getting started</a></li>
+    <li><a href="#License">License</a></li>
+    <li><a href="#Contact">Contact</a></li>
   </ol>
 </details>
 
@@ -36,7 +22,7 @@
 
 Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/viewResource.htm?id=31096) and [Lot 4 valproates](https://www.encepp.eu/encepp/viewResource.htm?id=36586) can be found on the EU PAS register.
 
-<!-- Scripts -->
+<!-- Study scripts -->
 ## Study scripts
 
 **GitHub resources for the LOT4 studies**      
@@ -62,7 +48,7 @@ ii) creates counts/plots of the number/rate of retinoid/valproate prescriptions 
 iii) Next major release will provide counts/plots of the number of prevalence users, incident users, discontinuers and switchers of valproate; pregnancy tests before/after exposure and exposure during contraception coverage (the remaining final analyses)
 5. 	***ITSA_scripts*** These scripts will be run by the study statisticians to conduct the time series analyses using outputs from 4ii/iii uploaded to YODA.
 
-<!-- GETTING STARTED -->
+<!-- Getting Started -->
 ## Getting Started
 
 Follow the steps below to run the scripts
