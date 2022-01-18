@@ -25,7 +25,8 @@ This will include in addition:
 - creation of treatment episodes & pregnancy episodes
 - run new counts (using the existing counts scripts, maybe a modification?)
 
-4. Pooling for BIFAP
+The following scripts are not to be run by DAPs; they will be run by UMCU/UU
+4. Pooling for BIFAP - pooled results from the different regions.
 5. ITS analysis
-6. Any final plots/visualisations and pooling
+6. Final plots/visualisations and pooling
 
