@@ -84,10 +84,8 @@ for (i in 1:length(contracep_tables)){
   # event_date is a composite variable indicating the onset of treatment --> rename to contraception_record_date
   #IUD does not have event_date, but procedure_date
   
-  if("event_date"%in%names(my_contra)){
-  names(my_contra)[names(my_contra)=="event_date"]<-"contraception_record_date"}
-  else{
-  names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date"}
+  if("event_date"%in%names(my_contra)) {names(my_contra)[names(my_contra)=="event_date"]<-"contraception_record_date"
+  } else {(names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date")}
   
   ###################################################################################
   # rename meaning column to contraception_meaning,
