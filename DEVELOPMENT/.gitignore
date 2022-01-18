@@ -5,5 +5,11 @@ README.html
 CDMInstances
 CDMInstances_preselect
 .Rhistory
-D3_pregnancy_reconciled.csv
-D3_pregnancy_reconciled.RData
+g_describe_HTML
+g_export
+g_export_SMALL_COUNTS_REMOVED
+g_figure
+g_intermediate
+g_output
+g_parameters
+g_validation
