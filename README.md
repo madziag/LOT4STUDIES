@@ -47,16 +47,20 @@ The following GitHub repositories are used in the Lot 4 studies:
 4.	Scripts for creating sets of pregnancies from study data, to be used in the analyses [ConcePTIONAlgorithmPregnancies](https://github.com/ARS-toscana/ConcePTIONAlgorithmPregnancies)
 5.	The study analysis script suite
 
-**Study analysis script suite is divided in 7 parts:**   
+**Study analysis script suite is divided into the following parts:**   
 
-1.	***preselect***. This script creates a subfolder where your CDM data is stored and creates a copy of the data files, excluding male subjects, subjects outside of the eligible birthdate range, and for MEDICINES, excludes irrelevant ATC classes.
-2.	***source_population_counts***. This script i) creates a study population, excluding ineligiable subjects, ii) creates counts of the occurrence of event (clinical event or prescription/dispensing) records in the data for concept sets in the study per month, iii) counts the number of persons observed in the data per month, iv) plots the counts and saves the output locally. This is a generic analysis that is run for both the retinoids and valproates studies. In the first version of this function (25 NOV 2021), this counts records from the EVENTS and MEDICINES tables. An update is scheduled (29 NOV 2021), where records will be counted from the PROCEDURES and MEDICAL_OBSERVATIONS tables, counts will be stratified by (((meaning))) and (((origin))), rates of records (number of records per person month) will be calculated and plotted, and there will be an option to specify the format of output (.csv or .xls). 
-3.	***baseline***.  This script will create a simple baseline table, where the anchor point will be the moment an individual first is eligible to be observed during the study period. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
-4.	***objective1***. This script will produce the analysis results for Objective 1. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
-5.	***objective2***. This script will produce the analysis results for Objective 2. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
-6.	***objective3***. This script will produce the analysis results for Objective 3. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
-7.	***objective4*** This script will produce the analysis results for Objective 4. There will be two version of this script, one for retinoids and one for valproates. (((Planned release date: 06 NOV 2021)))
-
+1.	***ConcePTION pregnancy script***. This is stored alongside the LOT4_scripts in the RELEASE folder. If pregnancy information is available, this should be run first.
+2.	***preselect***. This script creates a subfolder where your CDM data is stored and creates a copy of the data files, excluding male subjects, subjects outside of the eligible birthdate range, and for MEDICINES, excludes irrelevant ATC classes.
+3.	***source_population_counts***. This is a generic analysis that is run for both the retinoids and valproates studies. This script 
+i) creates a study population, excluding ineligiable subjects, 
+ii) creates counts of the occurrence of event (clinical event, prescription/dispensing, procedure) records in the data for concept sets in the study per month, 
+iii) counts the number of persons observed in the data per month
+iv) plots the counts (and rates per 1000 persons per month) and saves the output locally. 
+4.	***to_run_final_counts.R***.  This script does the following:
+i) creates a simple baseline table, where the anchor point will be the moment an individual first is eligible to be observed during the study period. 
+ii) creates counts/plots of the number/rate of retinoid/valproate prescriptions that occurred during a (possible) pregnancy per month.
+iii) Next major release will provide counts/plots of the number of prevalence users, incident users, discontinuers and switchers of valproate; pregnancy tests before/after exposure and exposure during contraception coverage (the remaining final analyses)
+5. 	***ITSA_scripts*** These scripts will be run by the study statisticians to conduct the time series analyses using outputs from 4ii/iii uploaded to YODA.
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -74,32 +78,19 @@ R version 4.1.0 (2021-05-18)
 3. In the folder `LOT4_scripts`, go to the script 99_path.R and change the variable Studyname(line 6) to LOT4.     
 4. Now you are ready to run the (((to_run))) files. Each of these files runs a different analysis, as listed above. If you have not run the preselect script yet, do this first by running the script "to_run_preselect". We ask that you run this and compare this against your CDM instance tables. You may run the following analysis scripts on either your original data OR the preselection data. If you don't wish to use the subsetted preselection files, you may delete them. If you choose to use the subsetted files created by the preselection script, you will need to adjust your path in the 99_path.R file to find the preselect data files (otherwise R will automatically detect the original CDM files. Contact Romin (R.Pajouheshnia@uu.nl) if you need help with this.
 You may now run the "to_run_source_population_counts" fil
-Lastly, in the "to_run" files, make sure that mask = T, so that values <5 are masked. Currently this is implemented by converting them to 5. This will be changed in an update.
+Lastly, in the "to_run" files, make sure that mask = T, so that values <5 are masked. Currently this is implemented by converting them to 5, and labelling the output rows that were masked.
 
+### Additional user inputs
 
-### Subpopulation analysis (THIS WILL BE UPDATED FOR 29 NOV UPDATE)
-
-A subpopulation analysis can be performed if your data has different provenance(i.e. different levels of the healthcare system such as hospital data and general practitioner data etc). This analysis helps to identify errors for each specific data sub sample. If you already know that your data quality is similar you can skip this analysis.    
-
-To run the analysis scripts with subpopulation analysis follow the next steps:      
-1. Complete the `METADATA` table accordingly. In `type_of_metadata = subpopulations` in the column `values`, add all your subpopulations of interest separated by space. Leave `tablename`, `columnname` and `other` columns empty. Example if you have hospital(HOSP) data and primary care(PC) data you will add `HOSP PC` to the `values` column.     
-2. If you want to analyse the overlap between different subpopulations, add first_subpopulation-sencond_subpopulation in `type_of_metadata = subpopulations` in the column `values` Example if you look at the overlap between hospital data and primary care data add `HOSP-PC` to the `values` column.        
-3. In `type_of_metadata = op_meaning_sets` in the column `values` specify each meaning set referring to a subpopulation. Separate meaning sets by space In the column `other` add the name of the subpopulation. Leave `tablename` and `columnname` empty. Example if for the primary care data you will add the meaning sets meaningsPC and meaningsPHARMA you will add in the `other` column, `PC` and in the `values` column, `meaningsPC meaningsPHARMA`.      
-4. In `type_of_metadata = op_meanings_list_per_set` in the `values` column add all the meanings that should be part of a meaning set and in the `other` column add the name of the meaning set. Leave the `tablename` and `columnname` empty. Example if the meaning set `meaningsPC` contains the meanings primary_care, primary_care_2, and primary_care_3 you will add to the `values` column `primary_care primary_care_2 primary_care_3` and in the `other` column `meaningsPC`. Separate values by space.      
-5. If you want to exclude a specific meaning of a CDM table from a subpopulation, add in `type_of_metadata = exclude_meaning` in the column `tablename` the name of the CDM table, in the column `other` the name of the subpopulation and in the column `values` the meanings to be excluded. Separate meanings by space. Leave the `columnname` column empty. Example of you want to exclude the meaning pc_exclude part of the `EVENTS` table from the subpopulation primary care than you will add `EVENTS` to the column `tablename`, `PC` to the `other` column and `pc_exclude` to the `values` column.    
-
+study: in the "to_run" files, select retinoid, valproate or both
+Excel or csv output: You can select for output data files (for export) to be either .xlsx or .csv format
+Subpopulation/Region analysis (BIFAP): In the study script "to_run" files, set the options: regions and subpopulations == T in the scripts
 
 ### Uploading results to the online research environment
-After running to_run_source_population_counts, the following results from g_output should be uploaded to your DAP-specific folder on YODA:
-a.	monthly_counts_atc folder
-b.	monthly_counts_dxcodes folder
-c.	plots folder
 
-Although the scripts should suppress any values below 5, please do double check this when inspecting the results, before uploading to YODA.
-
+After running the scripts, please upload the LOT4_scripts/g_output folder to YODA (your DAP-specific Analysis_scripts subfolder) with the following naming convention: "g_outupt_DDMMYYYY", where DDMMYYYY is the date of running the script.
+IMPORTANT: Although the scripts should suppress any values below 5, please do double check this when inspecting the results, before uploading to YODA.
 NO FILES FROM g_intermediate should be uploaded to YODA or shared.
-
-###The current version of the script is 1.0 (release 25 NOV 2021).
 
 <!-- LICENSE -->
 ## License
