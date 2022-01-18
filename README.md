@@ -17,12 +17,12 @@
   </ol>
 </details>
 
-<!-- Lot 4 studies -->
+<!-- LOT 4 STUDIES -->
 ## Lot 4 studies
 
 Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/viewResource.htm?id=31096) and [Lot 4 valproates](https://www.encepp.eu/encepp/viewResource.htm?id=36586) can be found on the EU PAS register.
 
-<!-- Study scripts -->
+<!-- STUDY SCRIPTS -->
 ## Study scripts
 
 **GitHub resources for the LOT4 studies**      
@@ -48,7 +48,7 @@ ii) creates counts/plots of the number/rate of retinoid/valproate prescriptions 
 iii) Next major release will provide counts/plots of the number of prevalence users, incident users, discontinuers and switchers of valproate; pregnancy tests before/after exposure and exposure during contraception coverage (the remaining final analyses)
 5. 	***ITSA_scripts*** These scripts will be run by the study statisticians to conduct the time series analyses using outputs from 4ii/iii uploaded to YODA.
 
-<!-- Getting Started -->
+<!-- GETTING STARTED -->
 ## Getting Started
 
 Follow the steps below to run the scripts
