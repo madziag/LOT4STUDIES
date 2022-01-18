@@ -39,11 +39,16 @@ if(nrow(study_pop_meds) > 0) {
             counts <- med_df[,.N, by = .(year(med_df$event_date),month(med_df$event_date))]
             counts <- as.data.table(merge(x = empty_counts, y = counts, by = c("year", "month"), all.x = TRUE))
             counts[is.na(counts[,N]), N:=0]
+            # Masking values less than 5
+            # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+            counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+            # Changed values less than 5 and more than 0 to 5
+            counts[counts$masked == 1,]$N <- 5
             # Calculate rates
             counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
             counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-            counts <-counts[,c("YM", "N", "Freq")]
             counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+            counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
             print(paste("Saving monthly counts: Use of", med_type_unique[mt], "during pregnancy, data quality level:", hq_unique[hq]))
             # Save file
             if(SUBP == TRUE){

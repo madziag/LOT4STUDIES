@@ -97,6 +97,20 @@ preg_dir <-paste0(dir_base, "/ConcePTIONAlgorithmPregnancies-version_2.0/")
 invisible(ifelse(!dir.exists(paste0(output_dir, "objective3_2_counts_per_month")), dir.create(paste0(output_dir, "objective3_2_counts_per_month")), FALSE))
 preg_med_counts <- paste0(output_dir, "objective3_2_counts_per_month")
 
+# Main folders 
+invisible(ifelse(!dir.exists(paste0(output_dir, "preliminary_counts")), dir.create(paste0(output_dir, "preliminary_counts")), FALSE))
+preliminary_counts_dir <- paste0(output_dir, "preliminary_counts")
+invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
+medicines_counts_dir <- paste0(output_dir, "medicines_counts")
+invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
+pregnancy_counts_dir <- paste0(output_dir, "pregnancy_counts")
+invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
+pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
+invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
+contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
+
+
+
 
 
 
