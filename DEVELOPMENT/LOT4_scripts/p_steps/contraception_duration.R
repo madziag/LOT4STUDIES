@@ -40,7 +40,8 @@ contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unli
 # medications\contracep_vaginalring.rds: assumed_duration = 28
 
 
-types_contra<-c("iud_diag", "iud", "fixedcomb", "implant","injection","IUD","patch","progest", "sequenprep", "vaginalring")
+types_contra<-c("iud_diag.rds", "iud.rds", "fixedcomb.rds", "implant.rds","injection.rds","IUD.rds",
+                "patch.rds","progest.rds", "sequenprep.rds", "vaginalring.rds")
 duration_contra<-c(1095, 1095, 28, 1095,84, 1095, 28,28,28,28)
 
 contra_type_dur<-as.data.frame(cbind(types_contra, duration_contra))
@@ -67,12 +68,11 @@ all_contra=data.frame()
 #empty vector to check dataset collation
 
 my_rows<-vector()
-my_cols<-vector()
-
 
 for (i in 1:length(contracep_tables)){
   #get data
   my_contra<-readRDS(contracep_tables[i])
+  my_rows[i]<-nrow(my_contra)
 
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
@@ -84,10 +84,8 @@ for (i in 1:length(contracep_tables)){
   # event_date is a composite variable indicating the onset of treatment --> rename to contraception_record_date
   #IUD does not have event_date, but procedure_date
   
-  if("event_date"%in%names(my_contra)){
-  names(my_contra)[names(my_contra)=="event_date"]<-"contraception_record_date"}
-  else{
-  names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date"}
+  if("event_date"%in%names(my_contra)) {names(my_contra)[names(my_contra)=="event_date"]<-"contraception_record_date"
+  } else {(names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date")}
   
   ###################################################################################
   # rename meaning column to contraception_meaning,
@@ -108,4 +106,5 @@ for (i in 1:length(contracep_tables)){
  
 }
 
+if(nrow(all_contra)==sum(my_rows)){print("all_contra OK")}else{print("all contra incomplete")}
 saveRDS(all_contra,(paste0(contra_folder,"all_contra.rds" )))
