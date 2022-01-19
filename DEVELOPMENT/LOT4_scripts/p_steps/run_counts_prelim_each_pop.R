@@ -28,7 +28,7 @@ unlink(paste0(tmp, "/events_proc"), recursive = TRUE)
 unlink(paste0(tmp, "/events_proc_dxcodes"), recursive = TRUE)
 
 # Move folders to corresponding main files
-pattern1 = c("monthly_counts_atc", "monthly_counts_dxcodes","monthly_counts_proc","monthly_counts_proc_dxcodes", "plots", "csv_files")
+pattern1 = c("monthly_counts_atc", "monthly_counts_dxcodes","monthly_counts_proc","monthly_counts_proc_dxcodes", "plots", paste0(my_format,"_files") )
 files_to_move <- list.files(path=output_dir, pattern=paste0(pattern1, collapse="|"))
 
 for(file in files_to_move){
