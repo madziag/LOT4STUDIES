@@ -441,7 +441,7 @@ if(length(proc_files)>0){
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
     
     # Add column for origin of code i.e. CPRD, PHARMO
-    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("OPCS"), "CPRD",
+    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("OPCS4"), "CPRD",
                        ifelse(df[,Vocabulary] %chin% c("CVV", "CBV", "ZA"), "PHARMO", "UNKNOWN"))]
     
     # Check if df is NOT empty
@@ -479,7 +479,7 @@ if(length(proc_files)>0){
             
           }
         }
-      } else {print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))}
+      } else {print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))}
       
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
@@ -505,4 +505,6 @@ if (length(list.files(events_tmp_sterility))> 0){
     saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
     saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
   }  
-} else {print("There are no Sterility records")}
+} else {
+  print("There are no Sterility records")
+  }
