@@ -42,7 +42,6 @@ if (multiple_regions == T){
   unlink(paste0(projectFolder, "/", regions[reg], "/g_output/", paste0(my_format,"_files")), recursive = TRUE)
   
 } else {
-  print("I am HERE!")
   all_rds_outputs<-list.files(output_dir, recursive=T, pattern=".rds")
 
   # exclude already completed folders 
