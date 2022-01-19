@@ -11,8 +11,11 @@ for(pop in 1:length(populations)){
   # Runs file to create baseline tables
   source(paste0(pre_dir,"CreateBaselineTables.R"))
   source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
-  # source(paste0(pre_dir,"plots.R")) # This also implements the masking of values <5 so they are not included in the output data
-  source(paste0(pre_dir,"plots_mask.R")) # This also implements the masking of values <5 so they are not included in the output data
+  if (mask <- T){  
+    source(paste0(pre_dir,"plots_mask.R")) # This also implements the masking of values <5 so they are not included in the output data
+  } else {
+    source(paste0(pre_dir,"plots.R")) # This also implements the masking of values <5 so they are not included in the output data
+  }
   source(paste0(pre_dir, "write_output_2.R"))
 }
 
