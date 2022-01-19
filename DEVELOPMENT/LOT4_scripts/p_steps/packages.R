@@ -32,3 +32,5 @@ if(!require(readxl)){install.packages("readxl")}
 suppressPackageStartupMessages(library(readxl))
 if(!require(writexl)){install.packages("writexl")}
 suppressPackageStartupMessages(library(writexl))
+if(!require(ff)){install.packages("ff")}
+suppressPackageStartupMessages(library(ff))

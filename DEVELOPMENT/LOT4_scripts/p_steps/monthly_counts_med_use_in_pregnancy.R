@@ -43,7 +43,7 @@ if(nrow(study_pop_meds) > 0) {
             # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
             counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
             # Changed values less than 5 and more than 0 to 5
-            counts[counts$masked == 1,]$N <- 5
+            if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
             # Calculate rates
             counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
             counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
@@ -65,3 +65,6 @@ if(nrow(study_pop_meds) > 0) {
 } else {
   print(paste("There are", nrow(study_pop_meds), "patient(s) who used Retinoids/Valproates during their pregnancy" ))
 }
+
+
+

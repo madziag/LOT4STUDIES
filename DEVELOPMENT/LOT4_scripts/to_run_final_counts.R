@@ -35,7 +35,8 @@ my_format<- "csv"
 # my_format<-"xlsx"
 # Source script which sources the following-
 ## Source Baseline table
-source(paste0(pre_dir,"run_all_counts_final.R"))
+# source(paste0(pre_dir,"run_all_counts_final.R"))
+source(paste0(pre_dir,"run_counts_final.R"))
 ## Source treatment episodes
 ## Source create study variables
 ## Source counts script

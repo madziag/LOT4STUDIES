@@ -24,7 +24,9 @@ setwd(projectFolder)
 
 denominator<-readRDS(paste0(output_dir,"denominator.rds"))
 
-monthly_counts_folders <- list.files(path = output_dir, pattern= "monthly_counts")
+pattern1 = c("monthly_counts", "pregnancy_counts")
+# monthly_counts_folders <- list.files(path = output_dir, pattern= "monthly_counts")
+monthly_counts_folders <- list.files(path = output_dir, pattern=paste0(pattern1, collapse="|"))
 
 count_names_all <- list()
 count_files_all <- list()
@@ -109,3 +111,4 @@ for (i in 1:length(count_files_all)){
   }
   
 }
+

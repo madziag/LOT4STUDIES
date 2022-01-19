@@ -159,12 +159,12 @@ for (i in 1:length(all_dfs_meds)){
         pop_names <- gsub(".rds", "", populations[pop])
         print(paste("Saving baseline table: ", pop_names, names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_dir,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
         
       } else {
         print(paste("Saving baseline table: ", names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_dir,"/", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
       }
       
     }else{
@@ -173,12 +173,12 @@ for (i in 1:length(all_dfs_meds)){
         pop_names <- gsub(".rds", "", populations[pop])
         print(paste("Saving baseline table: ", pop_names, names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_tables_dir,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_tables_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_tables_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
         
       } else {
         print(paste("Saving baseline table: ", names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_tables_dir,"/", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_tables_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_tables_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
       }
     }
     
