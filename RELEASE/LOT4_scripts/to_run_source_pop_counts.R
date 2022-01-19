@@ -27,7 +27,7 @@ multiple_regions = F
 #user input parameter
 ## STUDY TYPE 
 # study_type <- "Retinoids"
-#  study_type <- "Valproates"
+# study_type <- "Valproates"
 study_type <- "Both"
 
 #user input parameter
@@ -38,8 +38,8 @@ my_format<- "csv"
 ################################################
 #Study_source_population + counts + plots
 #################################################
-source(paste0(pre_dir,"run_analysis.R"))
-
+# source(paste0(pre_dir,"run_analysis.R"))
+source(paste0(pre_dir,"run_counts_prelim.R"))
 
 # # ############################################
 # # #clear g_intermediate 

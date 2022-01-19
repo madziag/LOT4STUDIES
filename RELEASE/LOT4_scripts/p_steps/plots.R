@@ -3,8 +3,8 @@
 #total counts over whole study period
 
 #plot groups of variables on one plot
-# can't use count list because doesn't have variable names
 
+# count files already masked to_run_study_population
 
 # find correct folders
 
@@ -24,7 +24,9 @@ setwd(projectFolder)
 
 denominator<-readRDS(paste0(output_dir,"denominator.rds"))
 
-monthly_counts_folders <- list.files(path = output_dir, pattern= "monthly_counts")
+pattern1 = c("monthly_counts", "pregnancy_counts")
+# monthly_counts_folders <- list.files(path = output_dir, pattern= "monthly_counts")
+monthly_counts_folders <- list.files(path = output_dir, pattern=paste0(pattern1, collapse="|"))
 
 count_names_all <- list()
 count_files_all <- list()
@@ -49,9 +51,9 @@ for (i in 1:length(count_files_all)){
   
   for (j  in 1: length(count_files_all[[i]])){
     
-    var_counts<-denominator$Freq
-    if(mask==T){var_counts[(0<var_counts)&(var_counts<=5)]<-5}
-    count_files_all[[i]][[j]]$rate<-(count_files_all[[i]][[j]]$N)/var_counts
+    fu_months<-denominator$Freq
+    
+    count_files_all[[i]][[j]]$rate<-(count_files_all[[i]][[j]]$N)/fu_months
     count_files_all[[i]][[j]]$ratep1000<-round((count_files_all[[i]][[j]]$rate*1000),2)
   }
 }
@@ -67,13 +69,17 @@ for (i in 1:length(count_files_all)){
     pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
     
     var_counts<-count_files_all[[i]][[j]]$N
-    if(mask==T){var_counts[(0<var_counts)&(var_counts<=5)]<-5}
+    
+    #indicate masked values with stars
+    my_pch<-count_files_all[[i]][[j]]$masked
+    my_pch[my_pch==0]<-16
+    my_pch[my_pch==1]<-8
     
     mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
     mydates<-paste0(15,"-",count_files_all[[i]][[j]]$month, "-", count_files_all[[i]][[j]]$year)
     count_files_all[[i]][[j]]$date<-as.Date(mydates, "%d-%m-%y")
     
-    plot(mycounts, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, lwd=2, cex.main=1.5)
+    plot(mycounts, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
     tsp = attributes(mycounts)$tsp
     dates = seq(as.Date("2009-01-01"), by = "month", along = mycounts)
     axis(1, at = seq(tsp[1], tsp[2], along = mycounts),las=2, labels = format(dates, "%Y-%m"))
@@ -96,11 +102,16 @@ for (i in 1:length(count_files_all)){
     
     var_counts<-count_files_all[[i]][[j]]$ratep1000
     
+    #indicate masked values with stars
+    my_pch<-count_files_all[[i]][[j]]$masked
+    my_pch[my_pch==0]<-16
+    my_pch[my_pch==1]<-8
+    
     mycounts<-ts(var_counts, frequency = 12, start = 2009,end = 2021)
     mydates<-paste0(15,"-",count_files_all[[i]][[j]]$month, "-", count_files_all[[i]][[j]]$year)
     count_files_all[[i]][[j]]$date<-as.Date(mydates, "%d-%m-%y")
     
-    plot(mycounts, xaxt="n", xlab="", ylab="rate per 1000 persons", main=main_name, lwd=2, cex.main=1.5)
+    plot(mycounts, xaxt="n", xlab="", ylab="rate per 1000 persons", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
     tsp = attributes(mycounts)$tsp
     dates = seq(as.Date("2009-01-01"), by = "month", along = mycounts)
     axis(1, at = seq(tsp[1], tsp[2], along = mycounts),las=2, labels = format(dates, "%Y-%m"))
@@ -109,3 +120,4 @@ for (i in 1:length(count_files_all)){
   }
   
 }
+

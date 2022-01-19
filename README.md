@@ -1,6 +1,6 @@
  
  <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.3</h3>
- <p align="center"> RELEASE NOTE: V2.3 
+ <p align="center"> RELEASE NOTE: V2.4 
  <p align="center"> i) resolves prior procedures/sterility code bug, resolves problems with not having sterility information, correction to baseline tables and creates speedier entry/exit dates. 
  <p align="center"> ii) provides new counts per month of valproate/retinoid prescriptions/dispensings that occurred during an identified (possible) pregnancy (objective 3.2).
  <p align="center"> Next major release (V3.0) will provide final study counts for objectives 1-4

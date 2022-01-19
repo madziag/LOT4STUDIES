@@ -99,11 +99,16 @@ if(length(med_files)>0){
       counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fill in missing values with 0
       counts[is.na(counts[,N]), N:=0]
+      # Masking values less than 5
+      # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      # Changed values less than 5 and more than 0 to 5
+      if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
       # Calculate rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,c("YM", "N", "Freq")]
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Save files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){
         if (SUBP == TRUE){
@@ -135,11 +140,16 @@ if(length(med_files)>0){
         counts_ind<- sub_ind[,.N, by = .(year,month(event_date))]
         counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
         counts_ind[is.na(counts_ind[,N]), N:=0]
+        # Masking values less than 5
+        # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        counts_ind$masked <- ifelse(counts_ind$N<5 & counts_ind$N>0, 1, 0)
+        # Changed values less than 5 and more than 0 to 5
+        counts_ind[counts_ind$masked == 1,]$N <- 5
         # Calculate rates
         counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-        counts_ind <-counts_ind[,c("YM", "N", "Freq")]
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
+        counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked")]
         
         if(comb_meds[[i]][,.N]>0){
           if(SUBP == TRUE){

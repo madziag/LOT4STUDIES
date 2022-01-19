@@ -9,7 +9,7 @@ study_pop_all[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date var
 # fu duration 
 study_pop_all[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
-study_pop_all[, age_at_entry_date := floor((entry_date - birth_date)/365)]
+study_pop_all[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
 study_pop_all[,age_groups:= ifelse(study_pop_all[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
                                    ifelse(study_pop_all[,age_at_entry_date < 26], "19-25.9",
                                           ifelse(study_pop_all[,age_at_entry_date < 36],  "26-35.9",
@@ -23,7 +23,7 @@ study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date va
 # fu duration 
 study_pop_meds[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
-study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365)]
+study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
 study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
                                     ifelse(study_pop_meds[,age_at_entry_date < 26], "19-25.9",
                                            ifelse(study_pop_meds[,age_at_entry_date < 36],  "26-35.9",
@@ -76,8 +76,8 @@ for (i in 1:length(all_dfs_meds)){
   if(nrow(df > 0)){
     ################## BASELINE ALL POPULATION ########################
     # Calculate median of followup in years 
-    fu_median <-  median(df$fu_dur_days)/365
-    fu_IQR <- IQR(df$fu_dur_days)/365
+    fu_median <-  median(df$fu_dur_days)/365.25
+    fu_IQR <- IQR(df$fu_dur_days)/365.25
     # fu_SD <- 
     age_at_ID_mean <-mean(df$age_at_entry_date)
     age_at_ID_SD   <-sd(df$age_at_entry_date)
@@ -159,12 +159,12 @@ for (i in 1:length(all_dfs_meds)){
         pop_names <- gsub(".rds", "", populations[pop])
         print(paste("Saving baseline table: ", pop_names, names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_dir,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
         
       } else {
         print(paste("Saving baseline table: ", names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_dir,"/", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
       }
       
     }else{
@@ -173,12 +173,12 @@ for (i in 1:length(all_dfs_meds)){
         pop_names <- gsub(".rds", "", populations[pop])
         print(paste("Saving baseline table: ", pop_names, names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_tables_dir,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_tables_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_tables_dir ,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.csv"))
         
       } else {
         print(paste("Saving baseline table: ", names(all_dfs_meds[i])))
         saveRDS(baseline, paste0(baseline_tables_dir,"/", names(all_dfs_meds[i]),"_baseline.rds"))
-        write.csv(baseline, paste0(baseline_tables_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
+        # write.csv(baseline, paste0(baseline_tables_dir ,"/",  names(all_dfs_meds[i]),"_baseline.csv"))
       }
     }
     
