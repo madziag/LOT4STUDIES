@@ -15,7 +15,11 @@ study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 
                                       ifelse(study_population[,age_at_entry_date >= 21 & age_at_entry_date < 31], "21-30.99",
                                              ifelse(study_population[,age_at_entry_date >= 31 & age_at_entry_date < 41],  "31-40.99",
                                                            ifelse(study_population[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
+
 # Creates new column in Population with Retinoid and/or Valproate use: fu_dur_days 
+study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
+study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables
+# fu duration 
 study_pop_meds[, fu_dur_days := exit_date - entry_date]
 # Creates age variable in Population with Retinoid and/or Valproate use = entry_date - birth date  (# Rounds down)
 study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
@@ -79,7 +83,9 @@ for (i in 1:length(all_dfs_meds)){
     if(sum(df$age_groups == "21-30.99")>5) {age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")} else {age_at_ID_21_30.99_count<-"count=<5"}
     if(sum(df$age_groups == "31-40.99")>5) {age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")} else {age_at_ID_31_40.99_count<-"count=<5"}
     if(sum(df$age_groups == "41-55.99")>5) {age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")} else {age_at_ID_41_55.99_count<-"count=<5"}
+
     # Masking
+    # print("NAs will be generated for masked counts- ignore error")
     if (age_at_ID_12_20.99_count == "count=<5" | age_at_ID_21_30.99_count== "count=<5" |  age_at_ID_31_40.99_count == "count=<5" | age_at_ID_41_55.99_count == "count=<5") {
       print("Masked values. Percentages cannot be calculated!")
       
@@ -149,8 +155,4 @@ for (i in 1:length(all_dfs_meds)){
     print(paste("There are no records for: ", names(all_dfs_meds[i])))
   }
 }
-
-
-
-
 
