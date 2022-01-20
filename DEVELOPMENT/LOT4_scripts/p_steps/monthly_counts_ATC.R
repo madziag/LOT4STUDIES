@@ -1,79 +1,88 @@
-# Load Create Concept Sets file
+# 1. Looks for ATC codes from the ATC codelist (concept set created via CreateConceptSets_ATC.R) in MEDICINES TABLES 
+# 2. Results in list of records with matching ATC
+# 3. Counts records saved in the previous step by month/year for each code group 
+# 4. Counts records saved in the previous step by month/year for each ATC of Retinoids and/or Valproates 
+
+# Loads Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
-# Create empty table for counts 
-# Get min and max year from denominator file
+# Creates empty table for counts 
+# Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_counts_df) <- c("year", "month")
-# Create List of Retinoid and Valproates for individual counts
+# Creates List of Retinoid and Valproates for individual counts
 codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
 codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
 
-if(study_type == "Retinoids"){
-  # Create List of Retinoid and Valproates for individual counts
+if(study_type == "Retinoid"){
+  # Removes Valproate codes
+  codelist_all <- codelist_all[!grepl("valp", names(codelist_all), ignore.case = TRUE)]
+  # Removes Valproate codes for individual counts
   codelist_ind <- Filter(function(x) names(codelist_all) == "Retinoid", codelist_all)
   codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
-} else if (study_type == "Valproates") {
-  # Create List of Retinoid and Valproates for individual counts
+} else if (study_type == "Valproate") {
+  # Removes Retinoid codes
+  codelist_all <- codelist_all[!grepl("retin", names(codelist_all), ignore.case = TRUE)]
+  # Removes Retinoid codes for individual counts
   codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate", codelist_all)
   codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
 } else if (study_type == "Both") {
-  # Create List of Retinoid and Valproates for individual counts
+  # Creates List of Retinoid and Valproates for individual counts
   codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
   codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
 } else {
   print("Please indicate study type")
-  }
-# Create other lists
+}
+
+# Creates other lists
 comb_meds <- list()
 
-# Load Medicines files
+# Loads Medicines files
 med_files <- list.files(path=path_dir, pattern = "MEDICINES", ignore.case = TRUE) 
-
-# Check for MEDICINES Tables present
+# Checks for MEDICINES Tables present
 if(length(med_files)>0){
-  # Process each EVENTS table
+  # Processes each EVENTS table
   for (y in 1:length(med_files)){
-    # Load table
+    # Loads table
     df<-fread(paste(path_dir, med_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
     df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record")] # Keep necessary columns
-    df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Make sure missing data is read appropriately
-    setnames(df,"medicinal_product_atc_code", "Code") # Rename column names
-    # Create new column event_date. It takes the date from date_dispensing. If value from date_dispensing is missing, it takes the date value from date_prescription
+    df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
+    setnames(df,"medicinal_product_atc_code", "Code") # Renames column names
+    # Creates new column event_date. It takes the date from date_dispensing. If value from date_dispensing is missing, it takes the date value from date_prescription
     df<-df[,event_date:= ifelse(!is.na(date_dispensing), date_dispensing, date_prescription)]
     colnames_events<-names(df)
     std_names_events<-names(study_population)
     colnames_events<-colnames_events[!colnames_events %in% "person_id"]
-    # Merge medicine table with study population table (there is no missing data in this table)
+    # Merges medicine table with study population table (there is no missing data in this table)
     df[,person_id:=as.character(person_id)]
     study_population[,person_id:=as.character(person_id)]
     df<-df[study_population,on=.(person_id)] # Left join, keeps all people in the study population even if they didn't have an event
-    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transform to numeric variables  
-    # Remove records with missing values in the medicine table 
+    df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transforms to numeric variables  
+    # Removes records with missing values in the medicine table 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
-    df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transform to date variables
-    df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
-    # Create year variable 
+    df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transforms to date variables
+    df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transforms to date variables
+    # Creates year variable 
     df[,year:=year(event_date)] 
-    df<-df[!is.na(year)] # Remove records with both dates missing
+    df<-df[!is.na(year)] # Removes records with both dates missing
     df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=entry_date-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identify persons that have an event before start_of_follow_up
+    df[,date_dif:=entry_date-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
-    df[(event_date<entry_date | event_date>exit_date), obs_out:=1] # Remove records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Remove records outside study period
+    df[(event_date<entry_date | event_date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
+    df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    # remove records with ATC code missing 
+    # Removes records with ATC code missing 
     df<-df[!is.na(Code)]
-    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Remove unspecified sex
-    # Print Message
+    df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
+    # Prints Message
     print(paste0("Finding matching records in ", med_files[y]))
-    # Check if df is NOT empty
+    # Checks if df is NOT empty
     if(nrow(df)>0){
-      # Look for matches in df using event vocabulary type specific code list
+      # Looks for matches in df using event vocabulary type specific code list
       for (i in 1:length(codelist_all)){
         df_subset <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
         if(SUBP == TRUE){
@@ -87,29 +96,29 @@ if(length(med_files)>0){
   print("Counting records")
   # Monthly Counts 
   for(i in 1:length(codelist_all)){
-    # Get list of files in each code group folder
+    # Gets list of files in each code group folder
     files <- list.files(path=events_tmp_ATC, pattern=names(codelist_all[i]))
-    # Perform counts per month/year
+    # Performs counts per month/year
     if (length(files)>0){
       # Loads files 
       comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
-      # Count by month-year
+      # Counts by month-year
       counts<- comb_meds[[i]][,.N, by = .(year,month(event_date))]
-      # Merge with empty_counts_df
+      # Merges with empty_counts_df
       counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
-      # Fill in missing values with 0
+      # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Masking values less than 5
-      # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
       counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
-      # Changed values less than 5 and more than 0 to 5
+      # Changes values less than 5 and more than 0 to 5
       if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
-      # Calculate rates
+      # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
-      # Save files in g_output monthly counts 
+      # Saves files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){
         if (SUBP == TRUE){
           pop_names <- gsub(".rds", "", populations[pop])
@@ -141,11 +150,11 @@ if(length(med_files)>0){
         counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
         counts_ind[is.na(counts_ind[,N]), N:=0]
         # Masking values less than 5
-        # Create column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
         counts_ind$masked <- ifelse(counts_ind$N<5 & counts_ind$N>0, 1, 0)
-        # Changed values less than 5 and more than 0 to 5
+        # Changes values less than 5 and more than 0 to 5
         counts_ind[counts_ind$masked == 1,]$N <- 5
-        # Calculate rates
+        # Calculates rates
         counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
