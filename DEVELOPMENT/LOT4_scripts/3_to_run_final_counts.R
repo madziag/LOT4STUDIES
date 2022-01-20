@@ -22,9 +22,9 @@ study_type <- "Both"
 
 #user input parameter
 ## Turn statement to T if multiple regions #BIFAP
-# multiple_regions <- F
-multiple_regions <- T # BIFAP
-multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+multiple_regions <- F
+# multiple_regions <- T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 #user input parameter
 ## Turn the statement to T instead of = F if data has sub populations #BIFAP
 SUBP <- F
