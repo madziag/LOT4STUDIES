@@ -21,9 +21,9 @@ if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all 
 dir.create(paste0(output_dir,"treatment_episodes"))
 
 contra_data<-readRDS(paste0(tmp, "all_contraception/all_contra.rds"))
-
-contra_data$assumed_duration<-as.numeric(contra_data$assumed_duration)
-
+str(contra_data$assumed_duration)
+contra_data$assumed_duration<-as.numeric(paste(contra_data$assumed_duration))
+str(contra_data$assumed_duration)
 
   my_treat_episode<-compute.treatment.episodes(data= contra_data,
   ID.colname = "person_id",
