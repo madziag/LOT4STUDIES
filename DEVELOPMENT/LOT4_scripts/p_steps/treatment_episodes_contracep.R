@@ -36,12 +36,12 @@ str(contra_data$assumed_duration)
   consider.dosage.change = TRUE,
   medication.change.means.new.treatment.episode = TRUE,
   dosage.change.means.new.treatment.episode = FALSE,
-  maximum.permissible.gap = 0,
+  maximum.permissible.gap = 30,
   maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
   maximum.permissible.gap.append.to.episode = FALSE,
   followup.window.start = 0,
   followup.window.start.unit = c("days", "weeks", "months", "years")[1],
-  followup.window.duration = 365 * 2,
+  followup.window.duration = 365 * 11,
   followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
   event.interval.colname = "event.interval",
   gap.days.colname = "gap.days",
@@ -56,3 +56,15 @@ str(contra_data$assumed_duration)
 
 
 summary(my_treat_episode)
+hist(my_treat_episode$episode.duration, breaks=200)
+hist(my_treat_episode$episode.ID)
+
+#plot treatment episodes to check for consistency
+#logical checks 
+#start date before end date
+#nobody lost
+#duration= end-start
+
+
+
+
