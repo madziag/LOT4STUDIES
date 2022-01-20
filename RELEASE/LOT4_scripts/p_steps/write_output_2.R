@@ -46,6 +46,8 @@ if (multiple_regions == T){
 
   # exclude already completed folders 
   all_rds_outputs<- all_rds_outputs[ !grepl("preliminary_counts", all_rds_outputs) ]
+  all_rds_outputs<- all_rds_outputs[ !grepl("denominator", all_rds_outputs) ]
+  all_rds_outputs<- all_rds_outputs[ !grepl("FlowChart", all_rds_outputs) ]
   
   invisible(ifelse(!dir.exists(paste0(output_dir,my_format, "_files")),  dir.create(paste0(output_dir,my_format, "_files")), FALSE))
   my_output_folder<-paste0(output_dir,my_format, "_files/")
