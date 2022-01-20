@@ -10,12 +10,10 @@ study_pop_all[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date var
 study_pop_all[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
 study_pop_all[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
-study_pop_all[,age_groups:= ifelse(study_pop_all[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
-                                   ifelse(study_pop_all[,age_at_entry_date < 26], "19-25.9",
-                                          ifelse(study_pop_all[,age_at_entry_date < 36],  "26-35.9",
-                                                 ifelse(study_pop_all[,age_at_entry_date < 46], "36-45.9",
-                                                        ifelse(study_pop_all[,age_at_entry_date < 56], "46-55.9", "Not in range" )))))]
-
+study_pop_all[,age_groups:= ifelse(study_pop_all[,age_at_entry_date >= 12 & age_at_entry_date < 21], "12-20.99", 
+                                      ifelse(study_pop_all[,age_at_entry_date >= 21 & age_at_entry_date < 31], "21-30.99",
+                                             ifelse(study_pop_all[,age_at_entry_date >= 31 & age_at_entry_date < 41],  "31-40.99",
+                                                    ifelse(study_pop_all[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
 
 # Create Columns for RETINOID/VALPROATE/BOTH populations
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
@@ -24,11 +22,10 @@ study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date va
 study_pop_meds[, fu_dur_days := exit_date - entry_date]
 # Create age variable = entry_date - birth date  (# Round down)
 study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
-study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & age_at_entry_date < 19], "12-18.9", 
-                                    ifelse(study_pop_meds[,age_at_entry_date < 26], "19-25.9",
-                                           ifelse(study_pop_meds[,age_at_entry_date < 36],  "26-35.9",
-                                                  ifelse(study_pop_meds[,age_at_entry_date < 46], "36-45.9",
-                                                         ifelse(study_pop_meds[,age_at_entry_date < 56], "46-55.9", "Not in range" )))))]
+study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & age_at_entry_date < 21], "12-20.99", 
+                                    ifelse(study_pop_meds[,age_at_entry_date >= 21 & age_at_entry_date < 31], "21-30.99",
+                                           ifelse(study_pop_meds[,age_at_entry_date >= 31 & age_at_entry_date < 41],  "31-40.99",
+                                                  ifelse(study_pop_meds[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
 
 # Create column that describes if ATC is Retinoid, Valproate or Unknowns
 study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
@@ -82,74 +79,65 @@ for (i in 1:length(all_dfs_meds)){
     age_at_ID_mean <-mean(df$age_at_entry_date)
     age_at_ID_SD   <-sd(df$age_at_entry_date)
     # age_at_ID_SD <- do we calculate SD if we are calculating mean
-    if(sum(df$age_groups == "12-18.9")>5) {age_at_ID_12_18.9_count <- sum(df$age_groups == "12-18.9")} else {age_at_ID_12_18.9_count<-"count=<5"}
-    if(sum(df$age_groups == "19-25.9")>5) {age_at_ID_19_25.9_count <- sum(df$age_groups == "19-25.9")} else {age_at_ID_19_25.9_count<-"count=<5"}
-    if(sum(df$age_groups == "26-35.9")>5) {age_at_ID_26_35.9_count <- sum(df$age_groups == "26-35.9")} else {age_at_ID_26_35.9_count<-"count=<5"}
-    if(sum(df$age_groups == "36-45.9")>5) {age_at_ID_36_45.9_count <- sum(df$age_groups == "36-45.9")} else {age_at_ID_36_45.9_count<-"count=<5"}    
-    if(sum(df$age_groups == "46-55.9")>5) {age_at_ID_46_55.9_count <- sum(df$age_groups == "46-55.9")} else {age_at_ID_46_55.9_count<-"count=<5"}
-    
+    if(sum(df$age_groups == "12-20.99")>5) {age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99")} else {age_at_ID_12_20.99_count<-"count=<5"}
+    if(sum(df$age_groups == "21-30.99")>5) {age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")} else {age_at_ID_21_30.99_count<-"count=<5"}
+    if(sum(df$age_groups == "31-40.99")>5) {age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")} else {age_at_ID_31_40.99_count<-"count=<5"}
+    if(sum(df$age_groups == "41-55.99")>5) {age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")} else {age_at_ID_41_55.99_count<-"count=<5"}
     # print("NAs will be generated for masked counts- ignore error")
     
-    if (age_at_ID_12_18.9_count == "count=<5" | age_at_ID_19_25.9_count == "count=<5" |  age_at_ID_26_35.9_count == "count=<5" | age_at_ID_36_45.9_count == "count=<5" | age_at_ID_46_55.9_count == "count=<5") {
+    if (age_at_ID_12_20.99_count == "count=<5" | age_at_ID_21_30.99_count== "count=<5" |  age_at_ID_31_40.99_count == "count=<5" | age_at_ID_41_55.99_count == "count=<5") {
       print("Masked values. Percentages cannot be calculated!")
       
-      # Create dataframe
+      # Creates dataframe
       names <- c("Follow-up, years - median",
                  "Follow-up, years - IQR",
                  "Age at index date (study entry) - mean", 
                  "Age at index date (study entry) - sd",
-                 "12.0-18.9 years_count",
-                 "19.0-25.9 years_count",  
-                 "26.0-35.9 years_count",     
-                 "36.0-45.9 years_count",      
-                 "46.0-55.9 years_count")
+                 "12.0-20.99 years_count",
+                 "21.0-30.99 years_count",  
+                 "31.0-40.99 years_count",     
+                 "41.0-55.99 years_count")
       
       values <- c(as.character(round(fu_median,1)), 
                   as.character(round(fu_IQR,1)), 
                   as.character(round(age_at_ID_mean,1)), 
                   as.character(round(age_at_ID_SD,1)), 
-                  as.character(age_at_ID_12_18.9_count), 
-                  as.character(age_at_ID_19_25.9_count),  
-                  as.character(age_at_ID_26_35.9_count),     
-                  as.character(age_at_ID_36_45.9_count),      
-                  as.character(age_at_ID_46_55.9_count))
+                  as.character(age_at_ID_12_20.99_count), 
+                  as.character(age_at_ID_21_30.99_count),  
+                  as.character(age_at_ID_31_40.99_count),     
+                  as.character(age_at_ID_41_55.99_count))
     }else {
-      age_at_ID_12_18.9_prec  <- (age_at_ID_12_18.9_count/nrow(df)) * 100
-      age_at_ID_19_25.9_prec  <- (age_at_ID_19_25.9_count/nrow(df)) * 100
-      age_at_ID_26_35.9_prec  <- (age_at_ID_26_35.9_count/nrow(df)) * 100
-      age_at_ID_36_45.9_prec  <- (age_at_ID_36_45.9_count/nrow(df)) * 100
-      age_at_ID_46_55.9_prec  <- (age_at_ID_46_55.9_count/nrow(df)) * 100
+      age_at_ID_12_20.99_prec  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
+      age_at_ID_21_30.99_prec  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
+      age_at_ID_31_40.99_prec  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
+      age_at_ID_41_55.99_prec  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
       
       # Create dataframe
       names <- c("Follow-up, years - median",
                  "Follow-up, years - IQR",
                  "Age at index date (study entry) - mean", 
                  "Age at index date (study entry) - sd",
-                 "12.0-18.9 years_count",
-                 "12.0-18.9 years_prec",
-                 "19.0-25.9 years_count",  
-                 "19.0-25.9 years_prec", 
-                 "26.0-35.9 years_count",     
-                 "26.0-35.9 years_prec", 
-                 "36-45.9 years_count",      
-                 "36-45.9 years_prec", 
-                 "46.0-55.9 years_count",     
-                 "46.0-55.9 years_prec")
+                 "12.0-20.99 years_count",
+                 "12.0-20.99 years_prec",
+                 "21.0-30.99 years_count",  
+                 "21.0-30.99 years_prec", 
+                 "31.0-40.99 years_count",     
+                 "31.0-40.99 years_prec", 
+                 "41.0-55.99 years_count",     
+                 "41.0-55.99 years_prec")
       
       values <- c(as.character(round(fu_median,1)), 
                   as.character(round(fu_IQR,1)), 
                   as.character(round(age_at_ID_mean,1)), 
                   as.character(round(age_at_ID_SD,1)), 
-                  as.character(age_at_ID_12_18.9_count), 
-                  as.character(round(age_at_ID_12_18.9_prec,1)), 
-                  as.character(age_at_ID_19_25.9_count),  
-                  as.character(round(age_at_ID_19_25.9_prec,1)), 
-                  as.character(age_at_ID_26_35.9_count),     
-                  as.character(round(age_at_ID_26_35.9_prec,1)), 
-                  as.character(age_at_ID_36_45.9_count),      
-                  as.character(round(age_at_ID_36_45.9_prec,1)), 
-                  as.character(age_at_ID_46_55.9_count),     
-                  as.character(round(age_at_ID_46_55.9_prec),1))
+                  as.character(age_at_ID_12_20.99_count), 
+                  as.character(round(age_at_ID_12_20.99_prec,1)), 
+                  as.character(age_at_ID_21_30.99_count),  
+                  as.character(round(age_at_ID_21_30.99_prec,1)), 
+                  as.character(age_at_ID_31_40.99_count),     
+                  as.character(round(age_at_ID_31_40.99_prec,1)), 
+                  as.character(age_at_ID_41_55.99_count),     
+                  as.character(round(age_at_ID_41_55.99_prec),1))
     }
     
     baseline <- data.table(names, values)
@@ -186,8 +174,4 @@ for (i in 1:length(all_dfs_meds)){
     print(paste("There are no records for: ", names(all_dfs_meds[i])))
   }
 }
-
-
-
-
 

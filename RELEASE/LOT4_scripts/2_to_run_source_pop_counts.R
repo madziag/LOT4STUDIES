@@ -33,7 +33,7 @@ study_type <- "Both"
 #user input parameter
 # Chose format to save files 
 my_format<- "csv"
-#my_format<-"xlsx"
+# my_format<-"xlsx"
 
 ################################################
 #Study_source_population + counts + plots
