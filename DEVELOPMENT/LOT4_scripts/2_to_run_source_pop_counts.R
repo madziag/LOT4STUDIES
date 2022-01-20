@@ -14,37 +14,37 @@ source(paste0(pre_dir,"packages.R"))
 source(paste0(pre_dir,"info.R"))
 source(paste0(pre_dir,"study_parameters.R"))
 
-#user input parameter
-mask<-T
-# mask <- F
-
-#user input parameter
-# Analysis for multiple regions # BIFAP
-multiple_regions = F
-# multiple_regions = T # BIFAP
-# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
-
-#user input parameter
-## STUDY TYPE 
-# study_type <- "Retinoids"
-# study_type <- "Valproates"
+## Choose study type
+# study_type <- "Retinoid"
+# study_type <- "Valproate"
 study_type <- "Both"
-
 #user input parameter
+
+## Turn statement to T if multiple regions #BIFAP
+multiple_regions <- F
+# multiple_regions <- T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+#user input parameter
+
+## MASKING 
+mask <- T
+# mask <- F
+#user input parameter
+
 # Chose format to save files 
-my_format<- "csv"
-# my_format<-"xlsx"
+my_format <- "csv"
+# my_format <- "xlsx"
+#user input parameter
 
 ################################################
 #Study_source_population + counts + plots
 #################################################
-# source(paste0(pre_dir,"run_analysis.R"))
 source(paste0(pre_dir,"run_counts_prelim.R"))
 
-# # ############################################
-# # #clear g_intermediate 
-# # #set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"
-clear_int_files<-F
+###########################################
+# clear g_intermediate 
+#set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"
+clear_int_files <- F
 #user input parameter
 
 if(clear_int_files==T){
