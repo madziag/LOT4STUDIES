@@ -14,7 +14,7 @@
 # Checks for multiple regions 
 if(multiple_regions == T){
   # Gets a list of region names from the CDMInstances folder 
-  regions <- list.files(multiple_regions_dir)
+  regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
   # Loops over each region
   for(reg in 1:length(regions)){
     # Prints region loop is currently working on
@@ -25,6 +25,9 @@ if(multiple_regions == T){
     print("##################################################")
     # Sets paths to data folder for each region
     path_dir<- paste0(multiple_regions_dir, regions[reg], "/")
+    # Sources folders for each region 
+    source(paste0(pre_dir,"info.R"))
+    source(paste0(pre_dir,"study_parameters.R"))
     # Creates folder for each region 
     invisible(ifelse(!dir.exists(paste0(projectFolder, "/", regions[reg])), dir.create(paste0(projectFolder, "/", regions[reg])), FALSE))
     reg_dir <-paste0(projectFolder, "/", regions[reg], "/")
@@ -117,6 +120,9 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
 }else{
+  # Sources folders for each region 
+  source(paste0(pre_dir,"info.R"))
+  source(paste0(pre_dir,"study_parameters.R"))
   # Sources study_source_population_script.R
   source(paste0(pre_dir,"study_source_population_script.R"))
   # Sources run_counts_prelim_each_pop.R 

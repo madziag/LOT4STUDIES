@@ -7,7 +7,7 @@
 # Checks for multiple regions 
 if(multiple_regions == T){
   # Gets a list of region names from the CDMInstances folder 
-  regions <- list.files(multiple_regions_dir)
+  regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
   # Loops over each region
   for(reg in 1:length(regions)){
     # Prints region loop is currently working on
@@ -16,9 +16,14 @@ if(multiple_regions == T){
     print(paste("############ RUNNING ANALYSIS FOR ", regions[reg], "############"))
     print("##################################################")
     print("##################################################")
+    # Sets paths to data folder for each region
+    path_dir <- paste0(multiple_regions_dir, regions[reg], "/")
+    # Sources folders for each region 
+    source(paste0(pre_dir,"info.R"))
+    source(paste0(pre_dir,"study_parameters.R"))
     ## First removes g_intermediate/g_output
     if("g_intermediate" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_intermediate"), recursive = T)}
-    if("g_output" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output"), recursive = T)}
+    if("g_output"       %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output")      , recursive = T)}
     # Moves g_intermediate and g_output folders from corresponding region folder into LOT4_scripts folder
     file.move(paste0(projectFolder, "/", regions[reg], "/g_intermediate"), paste0(projectFolder,"/g_intermediate"))
     file.move(paste0(projectFolder, "/", regions[reg], "/g_output"), paste0(projectFolder,"/g_output"))
@@ -43,11 +48,17 @@ if(multiple_regions == T){
     plot_folder <- paste0(output_dir, "plots")
     # Sources run_counts_final_each_pop.R 
     source(paste0(pre_dir,"run_counts_final_each_pop.R"))
+    # Delete g_intermediate/g_output folders before moving the modified ones back 
+    if("g_intermediate" %in% list.files(paste0(projectFolder,"/", regions[reg]))){unlink(paste0(projectFolder,"/", regions[reg],"/g_intermediate"), recursive = T)}
+    if("g_output"       %in% list.files(paste0(projectFolder,"/", regions[reg]))){unlink(paste0(projectFolder,"/", regions[reg],"/g_output")      , recursive = T)}
     # Moves g_intermediate, g_output folders from LOT4_script folder to respective regional folders
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
 } else {
+  # Sources files 
+  source(paste0(pre_dir,"info.R"))
+  source(paste0(pre_dir,"study_parameters.R"))
   # Remove empty files (monthly_counts folders that are created again when to_run_final_counts.R is run)
   for (file in list.files(path=paste0(output_dir), pattern= "monthly_counts", ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
   # Sources run_counts_final_each_pop.R 
