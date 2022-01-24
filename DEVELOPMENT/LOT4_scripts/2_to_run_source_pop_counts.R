@@ -11,8 +11,6 @@ setwd(projectFolder)
 ### Below you must set
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
-source(paste0(pre_dir,"info.R"))
-source(paste0(pre_dir,"study_parameters.R"))
 
 ## Choose study type
 # study_type <- "Retinoid"
