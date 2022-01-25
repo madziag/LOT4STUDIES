@@ -20,6 +20,7 @@ study_type <- "Both"
 
 # Chose customized denominator
 # is_Denmark <- TRUE
+is_Denmark <- F
 #user input parameter
 
 ## Turn statement to T if multiple regions #BIFAP
