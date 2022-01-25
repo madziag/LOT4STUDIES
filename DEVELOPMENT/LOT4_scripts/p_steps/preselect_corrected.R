@@ -9,14 +9,13 @@ if(!require(data.table)){install.packages("data.table")}
 library(data.table)
 
 #set up folders
-base_folder<-getwd()
 
 # Deletes CDMInstances_preselect folder if it exists
-if ("CDMInstances_preselect" %in% list.files(base_folder)){unlink(paste0(base_folder,"/CDMInstances_preselect"), recursive = TRUE)}
+if ("CDMInstances_preselect" %in% list.files(dir_base)){unlink(paste0(dir_base,"/CDMInstances_preselect"), recursive = TRUE)}
 # Creates CDMInstances_preselect folder and sets paths
-dir.create(paste0(base_folder,"/CDMInstances_preselect"))
-preselect_folder<-(paste0(base_folder,"/CDMInstances_preselect/"))
-data_folder<-(paste0(base_folder,"/CDMInstances/LOT4"))
+dir.create(paste0(dir_base,"/CDMInstances_preselect"))
+preselect_folder<-(paste0(dir_base,"/CDMInstances_preselect/"))
+data_folder<-(paste0(dir_base,"/CDMInstances/LOT4"))
 
 # READ.ME
 #LOT 4 preselection application onto multiple table subsets (especially MEDICINES)
