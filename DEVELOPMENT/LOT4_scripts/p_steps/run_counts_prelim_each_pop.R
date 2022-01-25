@@ -28,9 +28,9 @@ for(pop in 1:length(populations)){
   source(paste0(pre_dir,"write_output.R"))
 }
 
-# Moves all counts, plots, formatted files to preliminary_counts folder 
+# Moves all counts, plots, formatted files to preliminary_counts folder
 pattern1 = c("monthly_counts", "plots", paste0(my_format,"_files"), "FlowChart")
 # files_to_move <- list.files(path=output_dir, pattern=paste0(pattern1, collapse="|"))
 for(file in list.files(path=output_dir, pattern=paste0(pattern1, collapse="|"), ignore.case = T)){file.move(paste0(output_dir,file), paste0(paste0(preliminary_counts_dir, "/") ,file))}
-# Deletes temp files 
+# Deletes temp files
 for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
