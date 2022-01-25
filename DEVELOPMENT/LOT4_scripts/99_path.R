@@ -25,7 +25,8 @@ invisible(ifelse(!dir.exists(paste0(g_intermediate, "/populations")), dir.create
 populations_dir<-paste0(g_intermediate,"populations/")
 invisible(ifelse(!dir.exists(paste0(g_intermediate, "/tmp", sep="")), dir.create(paste0(g_intermediate, "/tmp")), FALSE))
 tmp<-paste0(g_intermediate,"tmp/")
-
+invisible(ifelse(!dir.exists(paste0(g_intermediate, "/counts_dfs", sep="")), dir.create(paste0(g_intermediate, "/counts_dfs")), FALSE))
+counts_dfs_dir <-paste0(g_intermediate,"counts_dfs/")
 # Folders in g_intermediate -> tmp
 # CONCEPT SET FOLDERS
 invisible(ifelse(!dir.exists(paste0(tmp, "conceptsets_dx")), dir.create(paste0(tmp, "conceptsets_dx")), FALSE))

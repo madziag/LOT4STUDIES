@@ -27,6 +27,8 @@ study_preg_meds[,event_date:=as.IDate(event_date,"%Y%m%d")]
 study_preg_meds <- D3_pregnancy_reconciled[study_preg_meds, on="person_id", nomatch=0]
 # Removes records where medication was prescribed/dispensed outside of the pregnancy period
 study_preg_meds <- study_preg_meds[study_preg_meds$event_date >= study_preg_meds$pregnancy_start_date & study_preg_meds$event_date <= study_preg_meds$pregnancy_end_date,]
+# Save records 
+saveRDS(study_preg_meds, paste0(counts_dfs_dir, prefix_pop, "med_use_during_pregnancy.rds"))
 
 if(nrow(study_preg_meds) > 0) {
   # Gets unique values of med_type column 

@@ -19,7 +19,7 @@ study_type <- "Both"
 #user input parameter
 
 # Chose customized denominator
-# is_Denmark <- TRUE
+# is_Denmark <- T
 is_Denmark <- F
 #user input parameter
 
