@@ -9,8 +9,6 @@ if(!require(data.table)){install.packages("data.table")}
 library(data.table)
 
 #set up folders
-getwd()
-setwd('..')
 base_folder<-getwd()
 
 # Deletes CDMInstances_preselect folder if it exists
@@ -37,8 +35,9 @@ actual_tables_preselect$PERSONS<-list.files(paste0(data_folder,"/"), pattern="^P
 
 all_actual_tables<-list.files(paste0(data_folder,"/"), pattern = "\\.csv$")
 
-########################################################################
+##############
 #get functions
+##############
 
 #firstflter function selects females within age range from the persons table and stores the selected IDs to use for subsequent filtering
 personsfilter<-function(personstable=PERSONS, caseid="person_id", sex="sex_at_instance_creation", female="F", dob= "year_of_birth", dobmin=1954, dobmax=2008) {
@@ -60,12 +59,6 @@ personsfilter<-function(personstable=PERSONS, caseid="person_id", sex="sex_at_in
 #ATC filter
 #match on the first 4 cijfers in the code
 
-#need to 
-#define ATC codes vector
-#manually extract ATC codes from SAP --> ATClib
-#select first 4 cijfers
-# select first 4 cijfers with substr()
-#use %in% to select rows 
 
 #establish ATC library
 
@@ -84,18 +77,8 @@ ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_a
 }          
 
 
-
-#last step, combine
-
-# combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= med_ID[[3]])
-# {final_med_data<- med_filter_data[(med_filter_data[["person_id"]]%in%person_filter_ID==T),]
-# final_med_ID<-unique(final_med_data[["person_id"]])
-# final_flowchart<-c(nrow(med_filter_data), nrow(final_med_data))
-# final_output<-list(final_med_ID, final_flowchart, final_med_data)
-# return(final_output)}
-
 ##############################################################
-#run personsfilter on PERSONS table (PERSONS USUALLY one table)
+#run personsfilter on PERSONS table (PERSONS USUALLY* one table)
 
 if(length(actual_tables_preselect$PERSONS)>1){
   PERSONS<-lapply(paste0(data_folder,"/",actual_tables_preselect$PERSONS), fread)
@@ -108,36 +91,24 @@ if(length(actual_tables_preselect$PERSONS)>1){
 }
 
 
-personsfilter_ID<-as.vector((personsfilter(personstable=PERSONS, caseid="person_id", sex="sex_at_instance_creation", female="F", dob= "year_of_birth", dobmin=1954, dobmax=2008))[[1]])
+personsfilter_output<-as.vector((personsfilter(personstable=PERSONS, caseid="person_id", sex="sex_at_instance_creation", female="F", dob= "year_of_birth", dobmin=1954, dobmax=2008)))
+personsfilter_ID<-personsfilter_output[[1]]
 
-  
-ATCfilter_ID<- list()
-for(i in 1:length(actual_tables_preselect$MEDICINES)) {
-  MEDS<-fread(paste0(data_folder,"/",actual_tables_preselect$MEDICINES[[i]]))
-  output<- ATCfilter(medtable = MEDS)
-  ATCfilter_ID[[i]]<-unique(output[[1]])
-}
-
-ATCfilter_ID_unique<-as.vector(unique(unlist(ATCfilter_ID)))
-
-# #combine filters for final preselction IDs
-# 
-# final_ID<-ATCfilter_ID_unique[(ATCfilter_ID_unique%in%personsfilter_ID)==T]
-# 
 # #write preselected files into new folder
 # 
-# tables_df<-as.data.frame(unlist(actual_tables_preselect))
-# colnames(tables_df)<-"CDMtableName"
-# tables_vec_all<-unique(as.vector(tables_df$CDMtableName))
-# 
-# #subset data using presection IDs and write new files
-# #need to name each new table the same as the old table, then write in the new folder
-# for(i in 1:length(tables_vec_all)){
-#   tablename<-(tables_vec_all[i])
-#     mytable<-fread(paste0(data_folder,"/",tablename))
-#     preselect_table<-mytable[mytable$person_id%in%final_ID,]
-#     fwrite(preselect_table, paste0(preselect_folder, tablename), row.names = F)
-# }
+person_preselect_tables<-actual_tables_preselect[names(actual_tables_preselect) %in% "MEDICINES" == FALSE]
+tables_df<-as.data.frame(unlist(person_preselect_tables))
+colnames(tables_df)<-"CDMtableName"
+tables_vec_all<-unique(as.vector(tables_df$CDMtableName))
+
+#subset data using preselection IDs and write new files
+#need to name each new table the same as the old table, then write in the new folder
+for(i in 1:length(tables_vec_all)){
+  tablename<-(tables_vec_all[i])
+  mytable<-fread(paste0(data_folder,"/",tablename))
+  preselect_table<-mytable[mytable$person_id%in%personsfilter_ID,]
+  fwrite(preselect_table, paste0(preselect_folder, tablename), row.names = F)
+}
 
 actual_tables_preselect_changed<-list.files(preselect_folder, pattern = "\\.csv$")
 to_be_copied<-setdiff(all_actual_tables,actual_tables_preselect_changed)
@@ -147,4 +118,18 @@ for(fil_ind in 1:length(to_be_copied)){
   mytable<-fread(paste0(data_folder,"/",tablename))
   fwrite(mytable, paste0(preselect_folder, tablename), row.names = F)
 }
+
+##########################################################################
+  
+#filter MEDICINES tables to include only ATCs of interest and write new files into preselect folder
+
+##########################################################################
+
+for(i in 1:length(actual_tables_preselect$MEDICINES)) {
+  MEDS<-fread(paste0(data_folder,"/",actual_tables_preselect$MEDICINES[[i]]))
+  output<- ATCfilter(medtable = MEDS)
+  fwrite(output[[3]], paste0(preselect_folder, actual_tables_preselect$MEDICINES[[i]]), row.names = F)
+}
+
+
 
