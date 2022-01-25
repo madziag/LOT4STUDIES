@@ -127,7 +127,8 @@ for(fil_ind in 1:length(to_be_copied)){
 
 for(i in 1:length(actual_tables_preselect$MEDICINES)) {
   MEDS<-fread(paste0(data_folder,"/",actual_tables_preselect$MEDICINES[[i]]))
-  output<- ATCfilter(medtable = MEDS)
+  MEDS_select<-MEDS[MEDS$person_id%in%personsfilter_ID,]
+  output<- ATCfilter(medtable = MEDS_select)
   fwrite(output[[3]], paste0(preselect_folder, actual_tables_preselect$MEDICINES[[i]]), row.names = F)
 }
 

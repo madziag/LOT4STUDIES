@@ -11,8 +11,7 @@
 #p_param\DOT
 
 
-
-# install.packages("AdhereR")
+if(!require(AdhereR)){install.packages("AdhereR")}
 library(AdhereR)
 
 if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all <- study_population}
@@ -60,11 +59,20 @@ hist(my_treat_episode$episode.duration, breaks=200)
 hist(my_treat_episode$episode.ID)
 
 #plot treatment episodes to check for consistency
-#logical checks 
-#start date before end date
-#nobody lost
-#duration= end-start
+
+#LOGICAL CHECKS
+#duration is positive
+if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
+#person id merged, but no one lost
+
+original_ids<-unique(contra_data$person_id)
+treat_epi_ids<-unique(my_treat_episode$person_id)
+if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
 
 
+#HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
+all(my_treat_episode$episode.duration>=28)
+table(contra_data$assumed_duration)
 
-
+weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28]
+my_treat_episode[my_treat_episode$person_id%in%weird_ID,]
