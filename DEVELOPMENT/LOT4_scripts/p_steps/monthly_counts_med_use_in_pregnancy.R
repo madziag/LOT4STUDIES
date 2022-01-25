@@ -8,29 +8,35 @@ D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 # Creates empty data frame for counts 
 # Loads denominator file to get min and max dates for empty file 
-FUmonths_df <- readRDS(paste0(output_dir, "denominator.rds"))
-FUmonths_df <- as.data.table(FUmonths_df)
+denominator <- list.files(output_dir, pattern = populations[pop])
+prefix_pop <- gsub("study_population.rds", "",populations[pop])
+FUmonths_df <- as.data.table(readRDS(paste0(output_dir, prefix_pop, "denominator.rds")))
+# Splits Y-M column 
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_counts <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-names(empty_counts) <- c("year", "month")      
-# Creates column that describes if ATC is Retinoid, Valproate or Unknowns (file read in run_all_counts_final.R)
-study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
-                                   ifelse(study_pop_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
-# Data cleaning 
-study_pop_meds[,person_id:=as.character(person_id)]
-study_pop_meds[,event_date:=as.IDate(event_date,"%Y%m%d")]
-# Merges with pregnancy list to get list of patients who were pregnant and used Retinoids/Valproates
-study_pop_meds <- D3_pregnancy_reconciled[study_pop_meds, on="person_id", nomatch=0]
-# Removes records where medication was prescribed/dispensed outside of the pregnancy period
-study_pop_meds <- study_pop_meds[study_pop_meds$event_date >= study_pop_meds$pregnancy_start_date & study_pop_meds$event_date <= study_pop_meds$pregnancy_end_date,]
+names(empty_counts) <- c("year", "month")    
 
-if(nrow(study_pop_meds) > 0) {
+study_preg_meds <- study_pop_meds 
+# Creates column that describes if ATC is Retinoid, Valproate or Unknowns (file read in run_all_counts_final.R)
+study_preg_meds[,med_type := ifelse(study_preg_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
+                                   ifelse(study_preg_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
+# Data cleaning 
+study_preg_meds[,person_id:=as.character(person_id)]
+study_preg_meds[,event_date:=as.IDate(event_date,"%Y%m%d")]
+# Merges with pregnancy list to get list of patients who were pregnant and used Retinoids/Valproates
+study_preg_meds <- D3_pregnancy_reconciled[study_preg_meds, on="person_id", nomatch=0]
+# Removes records where medication was prescribed/dispensed outside of the pregnancy period
+study_preg_meds <- study_preg_meds[study_preg_meds$event_date >= study_preg_meds$pregnancy_start_date & study_preg_meds$event_date <= study_preg_meds$pregnancy_end_date,]
+# Save records 
+saveRDS(study_preg_meds, paste0(counts_dfs_dir, prefix_pop, "med_use_during_pregnancy.rds"))
+
+if(nrow(study_preg_meds) > 0) {
   # Gets unique values of med_type column 
-  med_type_unique <- unique(study_pop_meds$med_type)
+  med_type_unique <- unique(study_preg_meds$med_type)
   # Monthly Counts
   if (length(med_type_unique > 0)){
     for (mt in 1:length(med_type_unique)){
-      med_df1 <- study_pop_meds[study_pop_meds$med_type == med_type_unique[mt],]
+      med_df1 <- study_preg_meds[study_preg_meds$med_type == med_type_unique[mt],]
       # # Performs counts per month/year for every available highest_quality level
       # # Gets unique values of column "highest_quality"
       hq_unique <- unique(med_df1$highest_quality)
@@ -65,7 +71,7 @@ if(nrow(study_pop_meds) > 0) {
     }
   }
 } else {
-  print(paste("There are", nrow(study_pop_meds), "patient(s) who used Retinoids/Valproates during their pregnancy" ))
+  print(paste("There are", nrow(study_preg_meds), "patient(s) who used Retinoids/Valproates during their pregnancy" ))
 }
 
 

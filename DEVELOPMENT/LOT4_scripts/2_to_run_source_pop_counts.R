@@ -18,6 +18,11 @@ source(paste0(pre_dir,"packages.R"))
 study_type <- "Both"
 #user input parameter
 
+# Chose customized denominator
+# is_Denmark <- T
+is_Denmark <- F
+#user input parameter
+
 ## Turn statement to T if multiple regions #BIFAP
 multiple_regions <- F
 # multiple_regions <- T # BIFAP

@@ -85,7 +85,6 @@ for (i in 1:length(all_dfs_meds)){
     if(sum(df$age_groups == "41-55.99")>5) {age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")} else {age_at_ID_41_55.99_count<-"count=<5"}
 
     # Masking
-    # print("NAs will be generated for masked counts- ignore error")
     if (age_at_ID_12_20.99_count == "count=<5" | age_at_ID_21_30.99_count== "count=<5" |  age_at_ID_31_40.99_count == "count=<5" | age_at_ID_41_55.99_count == "count=<5") {
       print("Masked values. Percentages cannot be calculated!")
       
@@ -142,6 +141,7 @@ for (i in 1:length(all_dfs_meds)){
     }
     # Creates baseline table
     baseline <- data.table(names, values)
+
     # Saves files 
     if (SUBP == TRUE){
       pop_names <- gsub(".rds", "", populations[pop])

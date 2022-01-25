@@ -27,7 +27,7 @@ for(pop in 1:length(populations)){
   study_population <- readRDS(paste0(populations_dir, populations[pop]))
   # Creates baseline tables 
   source(paste0(pre_dir,"CreateBaselineTables.R"))
-  # Looks for medication use during pregnacies
+  # Looks for medication use during pregnancies
   source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
   # Makes plots of all counts files
   source(paste0(pre_dir,"plots_mask.R"))

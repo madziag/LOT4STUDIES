@@ -45,6 +45,8 @@ if(multiple_regions == T){
     populations_dir<-paste0(g_intermediate,"populations/")
     dir.create(paste0(g_intermediate, "/tmp")) 
     tmp<-paste0(g_intermediate,"tmp/")
+    dir.create(paste0(g_intermediate, "/counts_dfs")) 
+    counts_dfs_dir <-paste0(g_intermediate,"counts_dfs/")
     # Creates g_output subfolders
     ## for Concept sets 
     dir.create(paste0(tmp, "conceptsets_dx"))
