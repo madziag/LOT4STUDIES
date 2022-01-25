@@ -59,7 +59,7 @@ hist(my_treat_episode$episode.duration, breaks=200)
 hist(my_treat_episode$episode.ID)
 
 #plot treatment episodes to check for consistency
-
+plot.CMA
 #LOGICAL CHECKS
 #duration is positive
 if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
