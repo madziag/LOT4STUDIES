@@ -204,7 +204,7 @@ if(length(proc_files)>0){
             }
           }
         } else { 
-          print(paste0(unique(df$vocabulary), " is not part of code list vocabulary"))
+          print(paste0(unique(df$vocabulary), " is not part of the diagnostic code list vocabulary"))
         }
         
       } else {
