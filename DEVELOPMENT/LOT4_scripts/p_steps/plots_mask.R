@@ -56,17 +56,21 @@ if (length(count_files_all)>0){
       
       main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
       
-      pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
-      
-      my_data<-count_files_all[[i]][[j]]
-      #indicate masked values with stars
-      my_pch<-my_data$masked
-      my_pch[my_pch==0]<-16
-      my_pch[my_pch==1]<-8
-      
-      plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n",type="b", xlab="", ylab="rate per 1000 persons", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
-      axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
-      dev.off()
+      if(main_name == "Pregnancy_ALL"){
+        print(paste0("There are no rates plots for: ", main_name))
+      } else {
+        pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
+        
+        my_data<-count_files_all[[i]][[j]]
+        #indicate masked values with stars
+        my_pch<-my_data$masked
+        my_pch[my_pch==0]<-16
+        my_pch[my_pch==1]<-8
+        
+        plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n",type="b", xlab="", ylab="rate per 1000 persons", main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
+        axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
+        dev.off()
+      }
     }
   }
 } else {

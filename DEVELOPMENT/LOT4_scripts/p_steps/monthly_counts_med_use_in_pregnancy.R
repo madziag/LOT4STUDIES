@@ -75,3 +75,33 @@ if(nrow(study_preg_meds) > 0) {
 }
 
 
+#### Monthly Pregnancy counts overall###
+### D3_pregnancy_reconciled
+D3_pregnancy_reconciled <- D3_pregnancy_reconciled[, nrow := .I]
+D3_pregnancy_reconciled_expanded <- setDT(D3_pregnancy_reconciled)[ , list(idnum = person_id, pregnancy.day = seq(pregnancy_start_date, pregnancy_end_date, by = "day")), by = 1:nrow(D3_pregnancy_reconciled)]
+# Merge back with original df
+D3_pregnancy_reconciled_expanded<-  merge(D3_pregnancy_reconciled, D3_pregnancy_reconciled_expanded, by = "nrow")
+# Create year-months columns episode.day
+# df_expanded$episode.day.YM <-  format(as.Date(df_expanded$episode.day), "%Y-%m")
+D3_pregnancy_reconciled_expanded$year <- year(D3_pregnancy_reconciled_expanded$pregnancy.day)
+D3_pregnancy_reconciled_expanded$month <- month(D3_pregnancy_reconciled_expanded$pregnancy.day)
+# Remove duplicate records
+df_deduplicated <- unique(D3_pregnancy_reconciled_expanded, by=c("person_id", "year", "month"))
+counts_preg <- df_deduplicated[,.N, by = .(year(df_deduplicated$pregnancy.day),month(df_deduplicated$pregnancy.day))]
+counts_preg <- as.data.table(merge(x = empty_counts, y = counts_preg, by = c("year", "month"), all.x = TRUE))
+counts_preg[is.na(counts_preg[,N]), N:=0]
+# Masking values less than 5
+# Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+counts_preg$masked <- ifelse(counts_preg$N<5 & counts_preg$N>0, 1, 0)
+# Changes values less than 5 and more than 0 to 5
+if (mask == T){counts_preg[counts_preg$masked == 1,]$N <- 5} else {counts_preg[counts_preg$masked == 1,]$N <- counts_preg[counts_preg$masked == 1,]$N }
+counts_preg <- within(counts_preg, YM<- sprintf("%d-%02d", year, month))
+counts_preg <-counts_preg[,c("YM", "N", "masked")]
+
+# Saves file
+if(SUBP == TRUE){
+  saveRDS(counts_preg, paste0(preg_med_counts,"/", pop_names, "Pregnancy_ALL_counts.rds"))
+}else{
+  saveRDS(counts_preg, paste0(preg_med_counts,"/", "Pregnancy_ALL_counts.rds"))
+}
+

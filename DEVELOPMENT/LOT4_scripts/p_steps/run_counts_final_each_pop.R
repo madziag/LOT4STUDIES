@@ -47,9 +47,9 @@ preg_med_counts_plots <- paste0(preg_med_counts,"/","plots")
 
 # Moves csv/xslx files with matching pattern to corresponding folders
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("Retinoid_preg", "Valproate_preg"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
 # Moves plot files with matching pattern to corresponding folders
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("Retinoid_preg", "Valproate_preg"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
 for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files")), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
 # Deletes temp files 
