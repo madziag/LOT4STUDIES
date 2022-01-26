@@ -22,11 +22,13 @@ study_preg_meds[,med_type := ifelse(study_preg_meds[,Code %chin% c("D05BB02", "D
                                    ifelse(study_preg_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
 # Data cleaning 
 study_preg_meds[,person_id:=as.character(person_id)]
-study_preg_meds[,event_date:=as.IDate(event_date,"%Y%m%d")]
+study_preg_meds[,Date:=as.IDate(Date,"%Y%m%d")]
 # Merges with pregnancy list to get list of patients who were pregnant and used Retinoids/Valproates
 study_preg_meds <- D3_pregnancy_reconciled[study_preg_meds, on="person_id", nomatch=0]
 # Removes records where medication was prescribed/dispensed outside of the pregnancy period
-study_preg_meds <- study_preg_meds[study_preg_meds$event_date >= study_preg_meds$pregnancy_start_date & study_preg_meds$event_date <= study_preg_meds$pregnancy_end_date,]
+study_preg_meds <- study_preg_meds[study_preg_meds$Date >= study_preg_meds$pregnancy_start_date & study_preg_meds$Date <= study_preg_meds$pregnancy_end_date,]
+# deduplicate records 
+study_preg_meds <- study_preg_meds[!duplicated(study_preg_meds),]
 # Save records 
 saveRDS(study_preg_meds, paste0(counts_dfs_dir, prefix_pop, "med_use_during_pregnancy.rds"))
 
@@ -44,7 +46,7 @@ if(nrow(study_preg_meds) > 0) {
         for (hq in 1:length(hq_unique)){
           med_df <- med_df1[med_df1$highest_quality == hq_unique[hq],]
           if (nrow(med_df) >0){
-            counts <- med_df[,.N, by = .(year(med_df$event_date),month(med_df$event_date))]
+            counts <- med_df[,.N, by = .(year(med_df$Date),month(med_df$Date))]
             counts <- as.data.table(merge(x = empty_counts, y = counts, by = c("year", "month"), all.x = TRUE))
             counts[is.na(counts[,N]), N:=0]
             # Masking values less than 5
@@ -100,7 +102,7 @@ counts_preg <-counts_preg[,c("YM", "N", "masked")]
 
 # Saves file
 if(SUBP == TRUE){
-  saveRDS(counts_preg, paste0(preg_med_counts,"/", pop_names, "Pregnancy_ALL_counts.rds"))
+  saveRDS(counts_preg, paste0(preg_med_counts,"/", pop_names, "_Pregnancy_ALL_counts.rds"))
 }else{
   saveRDS(counts_preg, paste0(preg_med_counts,"/", "Pregnancy_ALL_counts.rds"))
 }

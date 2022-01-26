@@ -25,9 +25,9 @@ if(length(events_files)>0){
     # Data Cleaning
     df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")] # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
-    setnames(df,"meaning_of_event","meaning") # Renames column names
-    setnames(df,"start_date_record","event_date") # Renames column names
-    setnames(df,"event_record_vocabulary","event_vocabulary") # Renames column names
+    setnames(df,"meaning_of_event","Meaning") # Renames column names
+    setnames(df,"start_date_record","Date") # Renames column names
+    setnames(df,"event_record_vocabulary","Vocabulary") # Renames column names
     setnames(df,"event_code","Code") # Renames column names
     colnames_events<-names(df)
     std_names_events<-names(study_population)
@@ -38,26 +38,26 @@ if(length(events_files)>0){
     df<-df[study_population,on=.(person_id)] # Left join, keeps all people in the study population even if they didn't have an event
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transforms to numeric variables 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
-    df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transforms to date variables
+    df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
     df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transforms to date variables
     df[,exit_date:=as.IDate(exit_date,"%Y%m%d")] # Transforms to date variables
     # Creates year variable
-    df[,year:=year(event_date)]
+    df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=entry_date-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
+    df[,date_dif:=entry_date-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
-    df[(event_date<entry_date | event_date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
+    df[(Date<entry_date | Date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(event_vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(event_vocabulary)] # Removes empty vocabularies
+    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
+    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    # Adds column with event_vocabulary main type i.e. start, READ, SNOMED
-    df[,vocab:= ifelse(df[,event_vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
-                       ifelse(df[,event_vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
-                              ifelse(df[,event_vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
+    # Adds column with Vocabulary main type i.e. start, READ, SNOMED
+    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
+                       ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
+                              ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
     
     # Prints Message
     print(paste0("Finding matching records in ", events_files[y]))
@@ -77,6 +77,7 @@ if(length(events_files)>0){
             for (i in 1:length(codelist_start_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[!duplicated(df_subset),]
               
               if(nrow(df_subset)>0){
                 
@@ -97,6 +98,7 @@ if(length(events_files)>0){
             for (i in 1:length(codelist_read_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[!duplicated(df_subset),]
               
               if(nrow(df_subset)>0){
                 if(SUBP == TRUE){
@@ -117,6 +119,7 @@ if(length(events_files)>0){
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[!duplicated(df_subset),]
               
               if(nrow(df_subset)>0){
                 if(SUBP == TRUE){
@@ -132,7 +135,7 @@ if(length(events_files)>0){
               }
             }
           } else { 
-            print(paste0(unique(df_subset_vocab$event_vocabulary), " is not part of code list vocabulary"))
+            print(paste0(unique(df_subset_vocab$Vocabulary), " is not part of code list vocabulary"))
           }
           
         } else {
@@ -153,6 +156,7 @@ if(length(events_files)>0){
           for (i in 1:length(codelist_start_all)){
             df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
               
@@ -173,6 +177,7 @@ if(length(events_files)>0){
           for (i in 1:length(codelist_read_all)){
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
               if(SUBP == TRUE){
@@ -193,6 +198,7 @@ if(length(events_files)>0){
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
               if(SUBP == TRUE){
@@ -208,7 +214,7 @@ if(length(events_files)>0){
             }
           }
         } else { 
-          print(paste0(unique(df$event_vocabulary), " is not part of code list vocabulary"))
+          print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))
         }
         
       } else {
@@ -229,7 +235,7 @@ if(length(events_files)>0){
       files <- list.files(path=paste0(events_tmp_DX, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
       # Counts by month-year
-      counts <- comb_meds[,.N, by = .(year,month(event_date))]
+      counts <- comb_meds[,.N, by = .(year,month(Date))]
       # Merges with empty_counts_df
       counts <- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0

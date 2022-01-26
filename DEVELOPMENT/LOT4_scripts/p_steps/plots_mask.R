@@ -56,7 +56,7 @@ if (length(count_files_all)>0){
       
       main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
       
-      if(main_name == "Pregnancy_ALL"){
+      if(main_name == "Pregnancy_ALL" | main_name == "ALL_study_population_Pregnancy_ALL"){
         print(paste0("There are no rates plots for: ", main_name))
       } else {
         pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)

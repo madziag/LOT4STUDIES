@@ -32,7 +32,7 @@ study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & ag
 study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
                                    ifelse(study_pop_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
 # Chooses first use of medication per ATC code & patid -> ALL unique person_id/ATC codes records 
-study_pop_first_occurrence  <- setDT(study_pop_meds)[order(event_date), head(.SD, 1L), by = c("person_id", "Code")]
+study_pop_first_occurrence  <- setDT(study_pop_meds)[order(Date), head(.SD, 1L), by = c("person_id", "Code")]
 # Creates Subsets 
 if (study_type == "Retinoid"){
   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]

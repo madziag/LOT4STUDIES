@@ -62,7 +62,9 @@ if(length(proc_files)>0){
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
         for (i in 1:length(codelist_CPRD_all)){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
-          df_subset <- data.table(df_subset[,-c("vocab")]) 
+          df_subset <- df_subset[,-c("vocab")]
+          df_subset <- df_subset[!duplicated(df_subset),]
+          
           if(nrow(df_subset)>0){
             if (SUBP == TRUE){
               saveRDS(df_subset, paste0(events_tmp_PROC, populations[pop], "_", names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
@@ -79,7 +81,8 @@ if(length(proc_files)>0){
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
         for (i in 1:length(codelist_PHARM0_all)){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
-          df_subset <- data.table(df_subset[,-c("vocab")])
+          df_subset <- df_subset[,-c("vocab")]
+          df_subset <- df_subset[!duplicated(df_subset),]
           
           if(nrow(df_subset)>0){
             if(SUBP == TRUE) {

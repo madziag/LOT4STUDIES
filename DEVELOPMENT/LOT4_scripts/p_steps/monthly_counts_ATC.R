@@ -50,9 +50,10 @@ if(length(med_files)>0){
     # Data Cleaning
     df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record")] # Keep necessary columns
     df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
+    setnames(df,"meaning_of_drug_record","Meaning") # Renames column names
     setnames(df,"medicinal_product_atc_code", "Code") # Renames column names
-    # Creates new column event_date. It takes the date from date_dispensing. If value from date_dispensing is missing, it takes the date value from date_prescription
-    df<-df[,event_date:= ifelse(!is.na(date_dispensing), date_dispensing, date_prescription)]
+    # Creates new column Date. It takes the date from date_dispensing. If value from date_dispensing is missing, it takes the date value from date_prescription
+    df<-df[,Date:= ifelse(!is.na(date_dispensing), date_dispensing, date_prescription)]
     colnames_events<-names(df)
     std_names_events<-names(study_population)
     colnames_events<-colnames_events[!colnames_events %in% "person_id"]
@@ -63,16 +64,16 @@ if(length(med_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transforms to numeric variables  
     # Removes records with missing values in the medicine table 
     df<-df[!rowSums(is.na(df[,..colnames_events]))==length(colnames_events)]
-    df[,event_date:=as.IDate(event_date,"%Y%m%d")] # Transforms to date variables
+    df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
     df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transforms to date variables
     # Creates year variable 
-    df[,year:=year(event_date)] 
+    df[,year:=year(Date)] 
     df<-df[!is.na(year)] # Removes records with both dates missing
     df<-df[year>2008 & year<2021] # Years used in study
-    df[,date_dif:=entry_date-event_date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
+    df[,date_dif:=entry_date-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
-    df[(event_date<entry_date | event_date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
+    df[(Date<entry_date | Date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
     # Removes records with ATC code missing 
@@ -85,6 +86,8 @@ if(length(med_files)>0){
       # Looks for matches in df using event vocabulary type specific code list
       for (i in 1:length(codelist_all)){
         df_subset <- setDT(df)[Code %chin% codelist_all[[i]][,Code]]
+        df_subset <- df_subset[!duplicated(df_subset),]
+        
         if(SUBP == TRUE){
           saveRDS(data.table(df_subset), paste0(events_tmp_ATC, populations[pop], names(codelist_all[i]), "_",med_files[y], ".rds"))
         }else{
@@ -103,7 +106,7 @@ if(length(med_files)>0){
       # Loads files 
       comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
       # Counts by month-year
-      counts<- comb_meds[[i]][,.N, by = .(year,month(event_date))]
+      counts <- comb_meds[[i]][,.N, by = .(year,month(Date))]
       # Merges with empty_counts_df
       counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
@@ -142,11 +145,11 @@ if(length(med_files)>0){
     ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
     
     for(x in 1:length(ind_files)){
-      df_ind<- readRDS(paste0(medications_pop, ind_files[x]))
-      
+      df_ind <- readRDS(paste0(medications_pop, ind_files[x]))
+
       for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
-        counts_ind<- sub_ind[,.N, by = .(year,month(event_date))]
+        counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
         counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
         counts_ind[is.na(counts_ind[,N]), N:=0]
         # Masking values less than 5
