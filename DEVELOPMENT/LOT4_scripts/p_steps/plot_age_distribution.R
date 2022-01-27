@@ -18,9 +18,9 @@ myexit<-lubridate::year(mydata$exit_date)
 
 for(i in 1:ncol(myplotdata)){
   for(j in 1:nrow(mydata)){
-    if(between(x=myyears[i], left=myentry[j], right=myexit[j])==T){myplotdata[j,i]<-(2020-mydata$year_of_birth[j])}else{myplotdata[j,i]<-NA}
+    if(between(x=myyears[i], left=myentry[j], right=myexit[j])==T){myplotdata[j,i]<-(myyears[i]-mydata$year_of_birth[j])}else{myplotdata[j,i]<-NA}
   }
 }
 
 summary(myplotdata)
-boxplot(myplotdata, main="age distribution of participants by year")
+boxplot(myplotdata, main="Entry Age Distribution of Participants by Year")
