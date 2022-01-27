@@ -107,10 +107,10 @@ for (i in 1:length(all_dfs_meds)){
                   as.character(age_at_ID_31_40.99_count),     
                   as.character(age_at_ID_41_55.99_count))
     }else {
-      age_at_ID_12_20.99_prec  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
-      age_at_ID_21_30.99_prec  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
-      age_at_ID_31_40.99_prec  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
-      age_at_ID_41_55.99_prec  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
+      age_at_ID_12_20.99_perc  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
+      age_at_ID_21_30.99_perc  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
+      age_at_ID_31_40.99_perc  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
+      age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
       
       # Create dataframe
       names <- c("Follow-up, years - median",
@@ -118,26 +118,26 @@ for (i in 1:length(all_dfs_meds)){
                  "Age at index date (study entry) - mean", 
                  "Age at index date (study entry) - sd",
                  "12.0-20.99 years_count",
-                 "12.0-20.99 years_prec",
+                 "12.0-20.99 years_perc",
                  "21.0-30.99 years_count",  
-                 "21.0-30.99 years_prec", 
+                 "21.0-30.99 years_perc", 
                  "31.0-40.99 years_count",     
-                 "31.0-40.99 years_prec", 
+                 "31.0-40.99 years_perc", 
                  "41.0-55.99 years_count",     
-                 "41.0-55.99 years_prec")
+                 "41.0-55.99 years_perc")
       
       values <- c(as.character(round(fu_median,1)), 
                   as.character(round(fu_IQR,1)), 
                   as.character(round(age_at_ID_mean,1)), 
                   as.character(round(age_at_ID_SD,1)), 
                   as.character(age_at_ID_12_20.99_count), 
-                  as.character(round(age_at_ID_12_20.99_prec,1)), 
+                  as.character(round(age_at_ID_12_20.99_perc,1)), 
                   as.character(age_at_ID_21_30.99_count),  
-                  as.character(round(age_at_ID_21_30.99_prec,1)), 
+                  as.character(round(age_at_ID_21_30.99_perc,1)), 
                   as.character(age_at_ID_31_40.99_count),     
-                  as.character(round(age_at_ID_31_40.99_prec,1)), 
+                  as.character(round(age_at_ID_31_40.99_perc,1)), 
                   as.character(age_at_ID_41_55.99_count),     
-                  as.character(round(age_at_ID_41_55.99_prec),1))
+                  as.character(round(age_at_ID_41_55.99_perc),1))
     }
     # Creates baseline table
     baseline <- data.table(names, values)

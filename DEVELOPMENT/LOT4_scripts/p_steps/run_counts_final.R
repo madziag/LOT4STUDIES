@@ -27,7 +27,6 @@ if(multiple_regions == T){
     # Moves g_intermediate and g_output folders from corresponding region folder into LOT4_scripts folder
     file.move(paste0(projectFolder, "/", regions[reg], "/g_intermediate"), paste0(projectFolder,"/g_intermediate"))
     file.move(paste0(projectFolder, "/", regions[reg], "/g_output"), paste0(projectFolder,"/g_output"))
-    # Creates folders for final storage
     # Baseline tables folders
     invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(paste0(output_dir, "baseline_tables")), FALSE))
     baseline_tables_dir <- paste0(output_dir, "baseline_tables")
