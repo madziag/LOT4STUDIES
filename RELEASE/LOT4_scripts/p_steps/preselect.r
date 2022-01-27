@@ -87,12 +87,12 @@ ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_a
 
 #last step, combine
 
-combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= med_ID[[3]])
-{final_med_data<- med_filter_data[(med_filter_data[["person_id"]]%in%person_filter_ID==T),]
-final_med_ID<-unique(final_med_data[["person_id"]])
-final_flowchart<-c(nrow(med_filter_data), nrow(final_med_data))
-final_output<-list(final_med_ID, final_flowchart, final_med_data)
-return(final_output)}
+# combine_filter<-function(person_filter_ID= filtered_data[[1]], med_filter_data= med_ID[[3]])
+# {final_med_data<- med_filter_data[(med_filter_data[["person_id"]]%in%person_filter_ID==T),]
+# final_med_ID<-unique(final_med_data[["person_id"]])
+# final_flowchart<-c(nrow(med_filter_data), nrow(final_med_data))
+# final_output<-list(final_med_ID, final_flowchart, final_med_data)
+# return(final_output)}
 
 ##############################################################
 #run personsfilter on PERSONS table (PERSONS USUALLY one table)
@@ -120,24 +120,24 @@ for(i in 1:length(actual_tables_preselect$MEDICINES)) {
 
 ATCfilter_ID_unique<-as.vector(unique(unlist(ATCfilter_ID)))
 
-#combine filters for final preselction IDs
-
-final_ID<-ATCfilter_ID_unique[(ATCfilter_ID_unique%in%personsfilter_ID)==T]
-
-#write preselected files into new folder
-
-tables_df<-as.data.frame(unlist(actual_tables_preselect))
-colnames(tables_df)<-"CDMtableName"
-tables_vec_all<-unique(as.vector(tables_df$CDMtableName))
-
-#subset data using presection IDs and write new files
-#need to name each new table the same as the old table, then write in the new folder
-for(i in 1:length(tables_vec_all)){
-  tablename<-(tables_vec_all[i])
-    mytable<-fread(paste0(data_folder,"/",tablename))
-    preselect_table<-mytable[mytable$person_id%in%final_ID,]
-    fwrite(preselect_table, paste0(preselect_folder, tablename), row.names = F)
-}
+# #combine filters for final preselction IDs
+# 
+# final_ID<-ATCfilter_ID_unique[(ATCfilter_ID_unique%in%personsfilter_ID)==T]
+# 
+# #write preselected files into new folder
+# 
+# tables_df<-as.data.frame(unlist(actual_tables_preselect))
+# colnames(tables_df)<-"CDMtableName"
+# tables_vec_all<-unique(as.vector(tables_df$CDMtableName))
+# 
+# #subset data using presection IDs and write new files
+# #need to name each new table the same as the old table, then write in the new folder
+# for(i in 1:length(tables_vec_all)){
+#   tablename<-(tables_vec_all[i])
+#     mytable<-fread(paste0(data_folder,"/",tablename))
+#     preselect_table<-mytable[mytable$person_id%in%final_ID,]
+#     fwrite(preselect_table, paste0(preselect_folder, tablename), row.names = F)
+# }
 
 actual_tables_preselect_changed<-list.files(preselect_folder, pattern = "\\.csv$")
 to_be_copied<-setdiff(all_actual_tables,actual_tables_preselect_changed)
