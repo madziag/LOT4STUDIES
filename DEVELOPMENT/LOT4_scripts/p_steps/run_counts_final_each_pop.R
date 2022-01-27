@@ -21,6 +21,16 @@ med_files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse=
 # Reads in records of population with indicated study type
 study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
 
+if (is_Denmark == T){
+  # Loads study population
+  study_population <- readRDS(paste0(populations_dir, populations))
+  # Creates baseline tables 
+  source(paste0(pre_dir,"CreateBaselineTables.R"))
+  # Converts all .rds files into .csv or .xlsx (indicated by user)
+  source(paste0(pre_dir,"write_output.R"))
+  
+} else {
+
 # Loops over each subpopulation
 for(pop in 1:length(populations)){
   # Loads study population
@@ -33,6 +43,7 @@ for(pop in 1:length(populations)){
   source(paste0(pre_dir,"plots_mask.R"))
   # Converts all .rds files into .csv or .xlsx (indicated by user)
   source(paste0(pre_dir,"write_output.R"))
+}
 }
 
 # Creates csv/xslx folder inside baseline tables and pregnancy counts folders
