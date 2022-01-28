@@ -18,23 +18,23 @@ source(paste0(pre_dir,"packages.R"))
 # study_type <- "Valproate"
 study_type <- "Both"
 
- is_Denmark <- T
-#is_Denmark <- F
+# is_Denmark <- T
+is_Denmark <- F
 
 #user input parameter
 ## Turn statement to T if multiple regions #BIFAP
-# multiple_regions <- F
-multiple_regions <- T # BIFAP
-multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+multiple_regions <- F
+# multiple_regions <- T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 #user input parameter
 ## Turn the statement to T instead of = F if data has sub populations #BIFAP
-# SUBP <- F
-SUBP <- T
+SUBP <- F
+# SUBP <- T
 
 #user input parameter
 ## MASKING 
-# mask <- T
-mask <- F
+mask <- T
+# mask <- F
 
 #user input parameter
 # Chose format to save files 
