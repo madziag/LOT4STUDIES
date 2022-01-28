@@ -1,11 +1,12 @@
+multiple_regions <- T # BIFAP
+multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 ### BIFAP POOLING ###
 ###########################################################################################################################################################################
 ########### COUNTS ########################################################################################################################################################
 ###########################################################################################################################################################################
 # 1. Creates ALL_regions folder 
-invisible(ifelse(!dir.exists(paste0(output_dir,      "ALL_regions")), dir.create(paste0(projectFolder,  "/ALL_regions")), FALSE))
+invisible(ifelse(!dir.exists(paste0(projectFolder, "/ALL_regions")), dir.create(paste0(projectFolder, "/ALL_regions")), FALSE))
 All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
-
 # 2. Copies all counts, baseline tables, denominator csv files from each region, prefixing each file with the name of the region
 ## Gets a list of region names from the CDMInstances folder 
 regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
