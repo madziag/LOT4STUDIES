@@ -66,3 +66,6 @@ for(i in 1:length(my_folders)){
   dev.off()
 }
 
+#jitterred lines so that overlapping regions are distinguishable
+
+#don't know origin of x y lengths differ error (they are the same) and the plots are made fine anyway, so it's OK I think
