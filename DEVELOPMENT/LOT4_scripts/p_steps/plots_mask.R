@@ -5,7 +5,7 @@
 # count files already masked to_run_study_population
 
 # Loads denominator file
-denominator<-FUmonths_df
+denominator<-readRDS(paste0(output_dir,"denominator.rds"))
 # Gets lists of files for plotting 
 pattern1 = c("monthly_counts", "pregnancy_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
