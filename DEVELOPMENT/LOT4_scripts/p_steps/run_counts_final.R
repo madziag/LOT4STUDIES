@@ -21,16 +21,19 @@ if(multiple_regions == T){
     # Sources folders for each region 
     source(paste0(pre_dir,"info.R"))
     source(paste0(pre_dir,"study_parameters.R"))
+    SUBP <- TRUE
     ## First removes g_intermediate/g_output
     if("g_intermediate" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_intermediate"), recursive = T)}
     if("g_output"       %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output")      , recursive = T)}
     # Moves g_intermediate and g_output folders from corresponding region folder into LOT4_scripts folder
     file.move(paste0(projectFolder, "/", regions[reg], "/g_intermediate"), paste0(projectFolder,"/g_intermediate"))
     file.move(paste0(projectFolder, "/", regions[reg], "/g_output"), paste0(projectFolder,"/g_output"))
-    # Creates folders for final storage
     # Baseline tables folders
     invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(paste0(output_dir, "baseline_tables")), FALSE))
     baseline_tables_dir <- paste0(output_dir, "baseline_tables")
+    # Inside baseline tables folders - for storing records to be pulled for pooling
+    invisible(ifelse(!dir.exists(paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")), dir.create(paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")), FALSE))
+    baseline_pooling_dir <- paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")
     # Pregnancy Counts 
     invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
     preg_med_counts <- paste0(output_dir, "pregnancy_counts")
@@ -55,6 +58,7 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
+  # source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
 } else {
   # Sources files 
   source(paste0(pre_dir,"info.R"))

@@ -116,7 +116,6 @@ if(multiple_regions == T){
     source(paste0(pre_dir,"study_source_population_script.R"))
     # Sources run_counts_prelim_each_pop.R 
     source(paste0(pre_dir,"run_counts_prelim_each_pop.R"))
-
     # Moves g_intermediate, g_output folders from LOT4_script folder to respective regional folders
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))

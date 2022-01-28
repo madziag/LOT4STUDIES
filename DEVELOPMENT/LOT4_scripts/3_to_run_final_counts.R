@@ -18,7 +18,8 @@ source(paste0(pre_dir,"packages.R"))
 # study_type <- "Valproate"
 study_type <- "Both"
 
-#is_Denmark <- T
+
+# is_Denmark <- T
 is_Denmark <- F
 
 #user input parameter
