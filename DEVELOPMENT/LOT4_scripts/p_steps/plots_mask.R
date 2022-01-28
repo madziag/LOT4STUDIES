@@ -42,7 +42,7 @@ if (length(count_files_all)>0){
       my_pch[my_pch==0]<-16
       my_pch[my_pch==1]<-8
       
-      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
       axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
       dev.off()
     }

@@ -1,3 +1,10 @@
+#Author: Ema Alsina, MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 26/1/2022
+
+
+
 # Create treatment episodes script
 # R.Pajouheshnia; 17 DEC 2021
 # This script does two things:
@@ -20,6 +27,7 @@ if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all 
 dir.create(paste0(output_dir,"treatment_episodes"))
 
 contra_data<-readRDS(paste0(tmp, "all_contraception/all_contra.rds"))
+names(contra_data)
 str(contra_data$assumed_duration)
 contra_data$assumed_duration<-as.numeric(paste(contra_data$assumed_duration))
 str(contra_data$assumed_duration)
@@ -31,9 +39,9 @@ str(contra_data$assumed_duration)
   event.daily.dose.colname = NA,
   medication.class.colname = "Code",
   carryover.within.obs.window = TRUE,
-  carry.only.for.same.medication = TRUE,
-  consider.dosage.change = TRUE,
-  medication.change.means.new.treatment.episode = TRUE,
+  carry.only.for.same.medication = FALSE,
+  consider.dosage.change = FALSE,
+  medication.change.means.new.treatment.episode = FALSE,
   dosage.change.means.new.treatment.episode = FALSE,
   maximum.permissible.gap = 30,
   maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
@@ -73,6 +81,6 @@ if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contracepti
 #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
 all(my_treat_episode$episode.duration>=28)
 table(contra_data$assumed_duration)
+table(my_treat_episode$episode.duration)
 
-weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28]
-my_treat_episode[my_treat_episode$person_id%in%weird_ID,]
+if(length(weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28])>0){print(my_treat_episode[my_treat_episode$person_id%in%weird_ID,])}else{print("durations> minimum assumed duration")}
