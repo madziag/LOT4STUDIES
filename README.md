@@ -1,8 +1,9 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.3</h3>
- <p align="center"> RELEASE NOTE: V2.4 
- <p align="center"> i) resolves prior procedures/sterility code bug, resolves problems with not having sterility information, correction to baseline tables and creates speedier entry/exit dates. 
- <p align="center"> ii) provides new counts per month of valproate/retinoid prescriptions/dispensings that occurred during an identified (possible) pregnancy (objective 3.2).
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V2.4.1</h3>
+ <p align="center"> RELEASE NOTE: V2.4.1 
+ <p align="center"> i) DAP-specific issues resolved (BIFAP, Danish registers) 
+ <p align="center"> ii) error in pre-select filtering corrected (DAPs requested to re-run pre-select in next major script update V3.0
+ <p align="center"> iii) pregnancy counts per month added; datasets of disp/presc during pregnancy now saved in g_intermediate
  <p align="center"> Next major release (V3.0) will provide final study counts for objectives 1-4
  
 <!-- TABLE OF CONTENTS -->
