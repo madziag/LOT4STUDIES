@@ -4,8 +4,9 @@
 # plot groups of variables on one plot
 # count files already masked to_run_study_population
 
-# Loads denominator file
-denominator<-readRDS(paste0(output_dir,"denominator.rds"))
+# Loads denominator file  ### THIS NEEDS TO BE GENERALIZED OTHERWISE IT WILL NOT WORK WITH THE 2 BIFAP SUBPOPULATION DENOMINATORS
+pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+denominator<-readRDS(paste0(output_dir, pop_prefix, "_denominator.rds"))
 # Gets lists of files for plotting 
 pattern1 = c("monthly_counts", "pregnancy_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
