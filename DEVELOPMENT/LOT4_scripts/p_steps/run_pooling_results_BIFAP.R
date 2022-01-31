@@ -1,5 +1,3 @@
-multiple_regions <- T # BIFAP
-multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 ### BIFAP POOLING ###
 ###########################################################################################################################################################################
 ########### COUNTS ########################################################################################################################################################
@@ -14,11 +12,11 @@ regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive 
 for(reg in 1:length(regions)){
   ## Find counts, baseline tables and denominator csv files in each regional folder 
   pattern1 = c("counts.csv", "denominator.csv", "pooling_baseline_tables.rds")
-  csv_files <- list.files(paste0(projectFolder, "/", regions[reg]), pattern = paste0(pattern1, collapse="|"), recursive = TRUE, full.names =  TRUE, ignore.case =  TRUE)
+  files_to_move <- list.files(paste0(projectFolder, "/", regions[reg]), pattern = paste0(pattern1, collapse="|"), recursive = TRUE, full.names =  TRUE, ignore.case =  TRUE)
   ## Copy these files to ALL_regions folder 
-  f1 <- as.data.frame(csv_files, header = FALSE)
+  f1 <- as.data.frame(files_to_move, header = FALSE)
   colnames(f1)  <- 'files.old'
-  f1$files.new <- gsub(paste0(regions[reg],  "/g_output/baseline_tables/recs_for_baseline_table_pooling/")   , paste0("ALL_regions/", regions[reg], "_"), f1$files.old)
+  f1$files.new <- gsub(paste0(regions[reg],  "/g_intermediate/recs_for_baseline_table_pooling/")   , paste0("ALL_regions/", regions[reg], "_"), f1$files.old)
   f1$files.new1 <- gsub(paste0(regions[reg], "/g_output/pregnancy_counts/csv_files/")  , paste0("ALL_regions/", regions[reg], "_"), f1$files.new)
   f1$files.new2 <- gsub(paste0(regions[reg], "/g_output/preliminary_counts/csv_files/"), paste0("ALL_regions/", regions[reg], "_"), f1$files.new1)
   file.copy(as.vector(f1$files.old), as.vector(f1$files.new2))
@@ -74,8 +72,8 @@ for (i in 1:length(all_counts_folders)){
 
 
 # 6. Move subpop denominator to each file with corresponding subpopulation
-denom_files  <- list.files(All_regions_dir, pattern = "denominator")
-count_files <- list.files(All_regions_dir, pattern = "count")
+denom_files <- list.files(All_regions_dir, pattern = "denominator")
+count_files <- list.files(All_regions_dir, pattern = "counts")
 
 for (i in 1:length(count_files)){
   count_subpop <- strsplit(count_files[i], "_study_population")[[1]][1]
@@ -206,6 +204,9 @@ for (i in 1:length(baseline_subpop)){
       # Calculates median of followup in years 
       fu_median <-  median(df$fu_dur_days)/365.25
       fu_IQR <- IQR(df$fu_dur_days)/365.25
+      fu_max        <- max(df$fu_dur_days)/365.25
+      fu_min        <- min(df$fu_dur_days)/365.25
+      max_exit_date <- max(df$exit_date)
       # fu_SD
       age_at_ID_mean <-mean(df$age_at_entry_date)
       age_at_ID_SD   <-sd(df$age_at_entry_date)
@@ -224,6 +225,9 @@ for (i in 1:length(baseline_subpop)){
           # Creates dataframe
           names <- c("Follow-up, years - median",
                      "Follow-up, years - IQR",
+                     "Follow-up, years - max",
+                     "Follow-up, years - min",
+                     "Max exit date",
                      "Age at index date (study entry) - mean",
                      "Age at index date (study entry) - sd",
                      "12.0-20.99 years_count",
@@ -233,6 +237,9 @@ for (i in 1:length(baseline_subpop)){
           
           values <- c(as.character(round(fu_median,1)),
                       as.character(round(fu_IQR,1)),
+                      as.character(round(fu_max,1)),
+                      as.character(round(fu_min,1)),
+                      as.character(max_exit_date),
                       as.character(round(age_at_ID_mean,1)),
                       as.character(round(age_at_ID_SD,1)),
                       as.character(age_at_ID_12_20.99_count),
@@ -253,6 +260,9 @@ for (i in 1:length(baseline_subpop)){
           # Create dataframe
           names <- c("Follow-up, years - median",
                      "Follow-up, years - IQR",
+                     "Follow-up, years - max",
+                     "Follow-up, years - min",
+                     "Max exit date",
                      "Age at index date (study entry) - mean",
                      "Age at index date (study entry) - sd",
                      "12.0-20.99 years_count",
@@ -266,6 +276,9 @@ for (i in 1:length(baseline_subpop)){
           
           values <- c(as.character(round(fu_median,1)),
                       as.character(round(fu_IQR,1)),
+                      as.character(round(fu_max,1)),
+                      as.character(round(fu_min,1)),
+                      as.character(max_exit_date),
                       as.character(round(age_at_ID_mean,1)),
                       as.character(round(age_at_ID_SD,1)),
                       as.character(age_at_ID_12_20.99_count),
@@ -291,6 +304,9 @@ for (i in 1:length(baseline_subpop)){
         # Create dataframe
         names <- c("Follow-up, years - median",
                    "Follow-up, years - IQR",
+                   "Follow-up, years - max",
+                   "Follow-up, years - min",
+                   "Max exit date",
                    "Age at index date (study entry) - mean",
                    "Age at index date (study entry) - sd",
                    "12.0-20.99 years_count",
@@ -304,6 +320,9 @@ for (i in 1:length(baseline_subpop)){
         
         values <- c(as.character(round(fu_median,1)),
                     as.character(round(fu_IQR,1)),
+                    as.character(round(fu_max,1)),
+                    as.character(round(fu_min,1)),
+                    as.character(max_exit_date),
                     as.character(round(age_at_ID_mean,1)),
                     as.character(round(age_at_ID_SD,1)),
                     as.character(age_at_ID_12_20.99_count),

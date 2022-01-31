@@ -32,8 +32,8 @@ if(multiple_regions == T){
     invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(paste0(output_dir, "baseline_tables")), FALSE))
     baseline_tables_dir <- paste0(output_dir, "baseline_tables")
     # Inside baseline tables folders - for storing records to be pulled for pooling
-    invisible(ifelse(!dir.exists(paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")), dir.create(paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")), FALSE))
-    baseline_pooling_dir <- paste0(baseline_tables_dir, "/recs_for_baseline_table_pooling")
+    invisible(ifelse(!dir.exists(paste0(g_intermediate, "recs_for_baseline_table_pooling")), dir.create(paste0(g_intermediate, "recs_for_baseline_table_pooling")), FALSE))
+    baseline_pooling_dir <- paste0(g_intermediate, "recs_for_baseline_table_pooling")
     # Pregnancy Counts 
     invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
     preg_med_counts <- paste0(output_dir, "pregnancy_counts")
@@ -58,13 +58,11 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
-  # source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
+  source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
 } else {
   # Sources files 
   source(paste0(pre_dir,"info.R"))
   source(paste0(pre_dir,"study_parameters.R"))
-  # Remove empty files (monthly_counts folders that are created again when to_run_final_counts.R is run)
-  for (file in list.files(path=paste0(output_dir), pattern= "monthly_counts", ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
   # Sources run_counts_final_each_pop.R 
   source(paste0(pre_dir,"run_counts_final_each_pop.R"))
 }

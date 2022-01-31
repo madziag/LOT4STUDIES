@@ -114,6 +114,7 @@ if(multiple_regions == T){
     preliminary_counts_dir <- paste0(output_dir, "preliminary_counts")
     # Sources study_source_population_script.R
     source(paste0(pre_dir,"study_source_population_script.R"))
+    SUBP = T
     # Sources run_counts_prelim_each_pop.R 
     source(paste0(pre_dir,"run_counts_prelim_each_pop.R"))
     # Moves g_intermediate, g_output folders from LOT4_script folder to respective regional folders

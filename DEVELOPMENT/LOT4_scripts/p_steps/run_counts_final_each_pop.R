@@ -35,6 +35,8 @@ if (is_Denmark == T){
 for(pop in 1:length(populations)){
   # Loads study population
   study_population <- readRDS(paste0(populations_dir, populations[pop]))
+  # Make sure last exit data is 2019 if DAP == "PHARMO"
+  if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
   # Creates baseline tables 
   source(paste0(pre_dir,"CreateBaselineTables.R"))
   # Looks for medication use during pregnancies
@@ -65,7 +67,9 @@ for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("Retin
 for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files")), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
 # Deletes temp files 
 for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
-
-
+# Delete denominator files
+for(file in list.files(path = output_dir, pattern ="denominator")){unlink(paste0(output_dir, file), recursive = TRUE)}
+# Remove empty files (monthly_counts folders that are created again when to_run_final_counts.R is run)
+for (file in list.files(path=paste0(output_dir), pattern= "monthly_counts", ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
 
 

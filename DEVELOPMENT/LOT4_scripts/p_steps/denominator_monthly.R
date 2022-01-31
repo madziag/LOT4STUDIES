@@ -26,7 +26,7 @@ if (is_Denmark == TRUE){
     }
   
   FUmonths<-unlist(FUmonths)
-  studyFUmonths<-FUmonths[(FUmonths>=200901)&(FUmonths<=202012)]
+  if(is_PHARMO) {studyFUmonths<-FUmonths[(FUmonths>=200901)&(FUmonths<=201912)]} else {studyFUmonths<-FUmonths[(FUmonths>=200901)&(FUmonths<=202012)]}
   
   FUmonths_df<-as.data.frame(table(studyFUmonths))
   FUmonths_df$YM<-as.Date(paste0(as.character(FUmonths_df$studyFUmonths),"01"), format="%Y%m%d")

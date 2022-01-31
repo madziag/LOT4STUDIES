@@ -44,7 +44,8 @@ if(length(events_files)>0){
     # Creates year variable
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
+     # Years used in study
+    if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df[,date_dif:=entry_date-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
     persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
