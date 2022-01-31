@@ -12,8 +12,11 @@
 
 
 
-install.packages("AdhereR")
+if(!require(AdhereR)){install.packages("AdhereR")}
 library(AdhereR)
+
+if(!require(dplyr)){install.packages("dplyr")}
+library(dplyr)
 
 if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all <- study_population}
 
@@ -25,30 +28,32 @@ if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all 
 
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
 
-all_MED<-list.files(path_dir, pattern="^MEDICINES")
+my_retinoid<-list.files(paste0(tmp,"medications/"), pattern="Retinoid")
+my_valproate<-list.files(paste0(tmp,"medications/"), pattern="Valproate")
 
+if(study_type=="Retinoid"){my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))}
+if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))}
+if(study_type=="Both")
+  {my_data<-list()
+my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
+my_data[[2]]<-readRDS(paste0(tmp, "medications/",my_valproate))
+my_data<-rbind(my_data[[1]],my_data[[2]])}
 
-MED_tables<-lapply((paste0(path_dir, all_MED)), read.csv)
+my_data$assumed_duration<-rep(30, nrow(my_data)) 
+colnames(my_data)
 
-for (i in 1:length(MED_tables)){
-MED_tables[[i]]$disp_date<-as.Date(as.character(MED_tables[[i]]$date_dispensing), format="%Y%m%d")
-MED_tables[[i]]$duration<-30
-  # sample(c(10, 30, 60), nrow(MED_tables[[i]]))
-MED_tables[[i]]$end_date<-((MED_tables[[i]]$disp_date)+(MED_tables[[i]]$duration))
-}
+my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
 
 dir.create(paste0(output_dir,"treatment_episodes"))
 
 
 
-for (i in 1:length(MED_tables)){
-
-  my_treat_episode<-compute.treatment.episodes(data= MED_tables[[i]],
+  my_treat_episode<-compute.treatment.episodes(data= my_data,
   ID.colname = "person_id",
-  event.date.colname = "disp_date",
-  event.duration.colname = "duration",
+  event.date.colname = "date_dispensing",
+  event.duration.colname = "assumed_duration",
   event.daily.dose.colname = NA,
-  medication.class.colname = "medicinal_product_atc_code",
+  medication.class.colname = "Code",
   carryover.within.obs.window = TRUE,
   carry.only.for.same.medication = TRUE,
   consider.dosage.change = TRUE,
@@ -70,48 +75,63 @@ for (i in 1:length(MED_tables)){
   suppress.warnings = FALSE,
   return.data.table = FALSE
   ) 
-  table_name<-substr(all_MED[[i]], 1,nchar(all_MED[[i]])-8)
-  myname<-paste0("treatment_episode_",table_name,".rds")
-  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/")), myname)
-}
+ 
+
 
 summary(my_treat_episode)
-#does write work for you?
 
+hist(my_treat_episode$episode.duration, breaks=100)
+
+#LOGICAL CHECKS
+#duration is positive
+if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
+#person id merged, but no one lost
+
+original_ids<-unique(my_data$person_id)
+treat_epi_ids<-unique(my_treat_episode$person_id)
+if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
+
+
+#HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
+if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
+
+#write data
+
+saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/", study_type,".rds")))
 
 ### Run separate depending on study
 
-if (study_type == "Retinoids"){
-  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-  # Retinoids - subgroups
-  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-  
-  all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-  
-} else if (study_type == "Valproates"){
-  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-  
-  all_dfs_meds <- list(study_pop_all, study_pop_val_unique)
-  names(all_dfs_meds) <- c("All Users", "Valproates Only")
-  
-} else if (study_type == "Both"){
-  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-  
-  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-  
-  all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-  
-}
-
-
+# if (study_type == "Retinoids"){
+#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+#   # Retinoids - subgroups
+#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+#   
+#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+#   
+# } else if (study_type == "Valproates"){
+#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+#   
+#   all_dfs_meds <- list(study_pop_all, study_pop_val_unique)
+#   names(all_dfs_meds) <- c("All Users", "Valproates Only")
+#   
+# } else if (study_type == "Both"){
+#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+#   
+#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+#   
+#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+#   
+# }
+# 
+# 
