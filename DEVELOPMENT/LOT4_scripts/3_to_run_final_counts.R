@@ -12,10 +12,10 @@ setwd(projectFolder)
 # DAP_name <- "ARS"
 # DAP_name <- "BIFAP"
 # DAP_name <- "CASERTA"
-DAP_name <- "CPRD"
+# DAP_name <- "CPRD"
 # DAP_name <- "DNR"
 # DAP_name <- "FISABIO"
-# DAP_name <- "PHARMO"
+DAP_name <- "PHARMO"
 #user input parameter
 
 ### Below you must set
@@ -26,8 +26,8 @@ source(paste0(pre_dir,"set_DAP_params.R"))
 #user input parameter
 ## Choose study type
 # study_type <- "Retinoid"
-study_type <- "Valproate"
-# study_type <- "Both"
+# study_type <- "Valproate"
+study_type <- "Both"
 
 #user input parameter
 ## Turn statement to T if multiple regions #BIFAP
@@ -41,8 +41,8 @@ SUBP <- F
 
 #user input parameter
 ## MASKING 
-# mask <- T
-mask <- F
+mask <- T
+# mask <- F
 
 #user input parameter
 # Chose format to save files 

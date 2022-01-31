@@ -15,8 +15,7 @@
 
 #g_int/medications/valproate/rds
 # Creates treatment episodes directory
-invisible(ifelse(!dir.exists(paste0(output_dir,"treatment_episodes")), dir.create(paste0(output_dir,"treatment_episodes")), FALSE))
-
+invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.create(paste0(g_intermediate,"treatment_episodes")), FALSE))
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
 # my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="Retinoid")
 # my_valproate<-list.files(paste0(tmp,"medications/"), pattern="Valproate")
@@ -86,8 +85,8 @@ if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contracepti
 if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
 
 #write data
-
-saveRDS(my_treat_episode, (paste0(output_dir, "treatment_episodes/", pop_prefix,"_", study_type,".rds")))
+pop_prefix <- gsub(".rds", "", populations[pop])
+saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix,"_", study_type,".rds")))
 
 ### Run separate depending on study
 

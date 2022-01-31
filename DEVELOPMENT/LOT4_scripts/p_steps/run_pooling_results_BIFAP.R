@@ -17,11 +17,13 @@ for(reg in 1:length(regions)){
   ## Copy these files to ALL_regions folder 
   f1 <- as.data.frame(files_to_move, header = FALSE)
   colnames(f1)  <- 'files.old'
-  f1$files.new <- gsub(paste0(regions[reg],  "/g_intermediate/recs_for_baseline_table_pooling/")   , paste0("ALL_regions/", regions[reg], "_"), f1$files.old)
-  f1$files.new1 <- gsub(paste0(regions[reg], "/g_output/pregnancy_counts/csv_files/")  , paste0("ALL_regions/", regions[reg], "_"), f1$files.new)
-  f1$files.new2 <- gsub(paste0(regions[reg], "/g_output/preliminary_counts/csv_files/"), paste0("ALL_regions/", regions[reg], "_"), f1$files.new1)
-  file.copy(as.vector(f1$files.old), as.vector(f1$files.new2))
+  f1$files.new <- gsub(paste0(regions[reg],  "/g_intermediate/recs_for_baseline_table_pooling/"), paste0("ALL_regions/", regions[reg], "_"), f1$files.old)
+  f1$files.new1 <- gsub(paste0(regions[reg], "/g_output/pregnancy_counts/csv_files/")  ,          paste0("ALL_regions/", regions[reg], "_"), f1$files.new)
+  f1$files.new2 <- gsub(paste0(regions[reg], "/g_output/preliminary_counts/csv_files/"),          paste0("ALL_regions/", regions[reg], "_"), f1$files.new1)
+  f1$files.new3 <- gsub(paste0(regions[reg], "/g_output/medicines_counts/csv_files/"),            paste0("ALL_regions/", regions[reg], "_"), f1$files.new2)
+  file.copy(as.vector(f1$files.old), as.vector(f1$files.new3))
 }
+
 
 # 3. Moves files within ALL_regions folder to subfolders named after the specific counts that have been performed e.g. Valproate.csv files from every region will be moved into  Valproate folder 
 ## Gets a list of files in ALL_regions folder (for subfolder creation, the region prefix is removed)

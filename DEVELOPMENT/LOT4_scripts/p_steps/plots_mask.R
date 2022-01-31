@@ -8,7 +8,7 @@
 pop_prefix <- gsub("_study_population.rds", "", populations[pop])
 denominator<-readRDS(paste0(output_dir, pop_prefix, "_denominator.rds"))
 # Gets lists of files for plotting 
-pattern1 = c("monthly_counts", "pregnancy_counts")
+pattern1 = c("monthly_counts", "pregnancy_counts", "medicines_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
 # Creates lists 
 count_names_all <- list()

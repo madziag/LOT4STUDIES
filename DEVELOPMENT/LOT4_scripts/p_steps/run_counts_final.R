@@ -40,9 +40,9 @@ if(multiple_regions == T){
     # Contraceptive counts (not yet in use)
     # invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
     # contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
-    # Medicines Counts (not yet in use)
-    # invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
-    # medicines_counts_dir <- paste0(output_dir, "medicines_counts")
+    # Medicines Counts
+    invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
+    medicines_counts_dir <- paste0(output_dir, "medicines_counts")
     # Pregnancy Test Counts(not yet in use)
     # invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
     # pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
