@@ -83,8 +83,8 @@ for (i in 1:length(all_dfs_meds)){
     # Calculates median of followup in years 
     fu_median     <- median(df$fu_dur_days)/365.25
     fu_IQR        <- IQR(df$fu_dur_days)/365.25
-    fu_max        <- max(df$fu_dur_days)/365.25
     fu_min        <- min(df$fu_dur_days)/365.25
+    fu_max        <- max(df$fu_dur_days)/365.25
     max_exit_date <- max(df$exit_date)
     # fu_SD
     age_at_ID_mean <-mean(df$age_at_entry_date)
@@ -104,8 +104,8 @@ for (i in 1:length(all_dfs_meds)){
         # Creates dataframe
         names <- c("Follow-up, years - median",
                    "Follow-up, years - IQR",
-                   "Follow-up, years - max",
                    "Follow-up, years - min",
+                   "Follow-up, years - max",
                    "Max exit date",
                    "Age at index date (study entry) - mean",
                    "Age at index date (study entry) - sd",
@@ -116,8 +116,8 @@ for (i in 1:length(all_dfs_meds)){
         
         values <- c(as.character(round(fu_median,1)),
                     as.character(round(fu_IQR,1)),
-                    as.character(round(fu_max,1)),
-                    as.character(round(fu_min,1)),
+                    as.character(round(fu_min,2)),
+                    as.character(round(fu_max,2)),
                     as.character(max_exit_date),
                     as.character(round(age_at_ID_mean,1)),
                     as.character(round(age_at_ID_SD,1)),
@@ -139,8 +139,8 @@ for (i in 1:length(all_dfs_meds)){
         # Create dataframe
         names <- c("Follow-up, years - median",
                    "Follow-up, years - IQR",
-                   "Follow-up, years - max",
                    "Follow-up, years - min",
+                   "Follow-up, years - max",
                    "Max exit date",
                    "Age at index date (study entry) - mean",
                    "Age at index date (study entry) - sd",
@@ -155,8 +155,8 @@ for (i in 1:length(all_dfs_meds)){
         
         values <- c(as.character(round(fu_median,1)),
                     as.character(round(fu_IQR,1)),
-                    as.character(round(fu_max,1)),
-                    as.character(round(fu_min,1)),
+                    as.character(round(fu_min,2)),
+                    as.character(round(fu_max,2)),
                     as.character(max_exit_date),
                     as.character(round(age_at_ID_mean,1)),
                     as.character(round(age_at_ID_SD,1)),
@@ -183,8 +183,8 @@ for (i in 1:length(all_dfs_meds)){
       # Create dataframe
       names <- c("Follow-up, years - median",
                  "Follow-up, years - IQR",
-                 "Follow-up, years - max",
                  "Follow-up, years - min",
+                 "Follow-up, years - max",
                  "Max exit date",
                  "Age at index date (study entry) - mean",
                  "Age at index date (study entry) - sd",
@@ -199,8 +199,8 @@ for (i in 1:length(all_dfs_meds)){
       
       values <- c(as.character(round(fu_median,1)),
                   as.character(round(fu_IQR,1)),
-                  as.character(round(fu_max,1)),
-                  as.character(round(fu_min,1)),
+                  as.character(round(fu_min,2)),
+                  as.character(round(fu_max,2)),
                   as.character(max_exit_date),
                   as.character(round(age_at_ID_mean,1)),
                   as.character(round(age_at_ID_SD,1)),
