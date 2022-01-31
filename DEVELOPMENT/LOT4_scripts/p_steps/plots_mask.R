@@ -5,7 +5,7 @@
 # count files already masked to_run_study_population
 
 # Loads denominator file
-denominator<-FUmonths_df
+denominator<-readRDS(paste0(output_dir,"denominator.rds"))
 # Gets lists of files for plotting 
 pattern1 = c("monthly_counts", "pregnancy_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
@@ -42,7 +42,7 @@ if (length(count_files_all)>0){
       my_pch[my_pch==0]<-16
       my_pch[my_pch==1]<-8
       
-      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
       axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
       dev.off()
     }

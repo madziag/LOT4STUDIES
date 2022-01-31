@@ -20,7 +20,13 @@ if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all 
 
 # what does the data need to look like?
 #fetch medicines data from CDMInstances
+
+#g_int/medications/valproate/rds
+
+#four treatment episode datasets for retinoids (each separate, and one for any retinoid)
+
 all_MED<-list.files(path_dir, pattern="^MEDICINES")
+
 
 MED_tables<-lapply((paste0(path_dir, all_MED)), read.csv)
 
@@ -53,7 +59,7 @@ for (i in 1:length(MED_tables)){
   maximum.permissible.gap.append.to.episode = FALSE,
   followup.window.start = 0,
   followup.window.start.unit = c("days", "weeks", "months", "years")[1],
-  followup.window.duration = 365 * 2,
+  followup.window.duration = 365 * 11,
   followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
   event.interval.colname = "event.interval",
   gap.days.colname = "gap.days",
