@@ -10,72 +10,62 @@
 #Retinoid.rds or Valproate.rds or both
 #p_param\DOT
 
-
-
-if(!require(AdhereR)){install.packages("AdhereR")}
-library(AdhereR)
-
-if(!require(dplyr)){install.packages("dplyr")}
-library(dplyr)
-
-if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all <- study_population}
-
-
 # what does the data need to look like?
 #fetch medicines data from CDMInstances
 
 #g_int/medications/valproate/rds
+# Creates treatment episodes directory
+invisible(ifelse(!dir.exists(paste0(output_dir,"treatment_episodes")), dir.create(paste0(output_dir,"treatment_episodes")), FALSE))
 
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
-
-my_retinoid<-list.files(paste0(tmp,"medications/"), pattern="Retinoid")
-my_valproate<-list.files(paste0(tmp,"medications/"), pattern="Valproate")
-
-if(study_type=="Retinoid"){my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))}
-if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))}
-if(study_type=="Both")
-  {my_data<-list()
-my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
-my_data[[2]]<-readRDS(paste0(tmp, "medications/",my_valproate))
-my_data<-rbind(my_data[[1]],my_data[[2]])}
-
+# my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="Retinoid")
+# my_valproate<-list.files(paste0(tmp,"medications/"), pattern="Valproate")
+# 
+# if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))}
+# if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))}
+# if(study_type=="Both")     {
+#   my_data<-list()
+#   my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
+#   my_data[[2]]<-readRDS(paste0(tmp, "medications/",my_valproate))
+#   my_data<-rbind(my_data[[1]],my_data[[2]])
+#   }
+# Load medication data (all the above code is done in run_counts_final_each_pop)
+my_data <- study_pop_meds 
 my_data$assumed_duration<-rep(30, nrow(my_data)) 
 colnames(my_data)
+# Date should be used instead of dispensing date as some DAP's do not use dispensing date but prescribing date. The variable date is created to account for this
+# my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
+my_data$Date <-as.Date(my_data$Date, format="%Y%m%d")
 
-my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
+# Creates treatment episodes
+my_treat_episode<-compute.treatment.episodes(data= my_data,
+                                             ID.colname = "person_id",
+                                             event.date.colname = "Date",
+                                             event.duration.colname = "assumed_duration",
+                                             event.daily.dose.colname = NA,
+                                             medication.class.colname = "Code",
+                                             carryover.within.obs.window = TRUE,
+                                             carry.only.for.same.medication = TRUE,
+                                             consider.dosage.change = TRUE,
+                                             medication.change.means.new.treatment.episode = TRUE,
+                                             dosage.change.means.new.treatment.episode = FALSE,
+                                             maximum.permissible.gap = 0,
+                                             maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
+                                             maximum.permissible.gap.append.to.episode = FALSE,
+                                             followup.window.start = 0,
+                                             followup.window.start.unit = c("days", "weeks", "months", "years")[1],
+                                             followup.window.duration = 365 * 11,
+                                             followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
+                                             event.interval.colname = "event.interval",
+                                             gap.days.colname = "gap.days",
+                                             date.format = "%Y-%m-%d",
+                                             parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
+                                                                  "snow(NWS)")[1],
+                                             parallel.threads = "auto",
+                                             suppress.warnings = FALSE,
+                                             return.data.table = FALSE
+) 
 
-dir.create(paste0(output_dir,"treatment_episodes"))
-
-
-
-  my_treat_episode<-compute.treatment.episodes(data= my_data,
-  ID.colname = "person_id",
-  event.date.colname = "date_dispensing",
-  event.duration.colname = "assumed_duration",
-  event.daily.dose.colname = NA,
-  medication.class.colname = "Code",
-  carryover.within.obs.window = TRUE,
-  carry.only.for.same.medication = TRUE,
-  consider.dosage.change = TRUE,
-  medication.change.means.new.treatment.episode = TRUE,
-  dosage.change.means.new.treatment.episode = FALSE,
-  maximum.permissible.gap = 0,
-  maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
-  maximum.permissible.gap.append.to.episode = FALSE,
-  followup.window.start = 0,
-  followup.window.start.unit = c("days", "weeks", "months", "years")[1],
-  followup.window.duration = 365 * 11,
-  followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
-  event.interval.colname = "event.interval",
-  gap.days.colname = "gap.days",
-  date.format = "%Y-%m-%d",
-  parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
-                       "snow(NWS)")[1],
-  parallel.threads = "auto",
-  suppress.warnings = FALSE,
-  return.data.table = FALSE
-  ) 
- 
 
 
 summary(my_treat_episode)
@@ -97,7 +87,7 @@ if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment e
 
 #write data
 
-saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/", study_type,".rds")))
+saveRDS(my_treat_episode, (paste0(output_dir, "treatment_episodes/", pop_prefix,"_", study_type,".rds")))
 
 ### Run separate depending on study
 

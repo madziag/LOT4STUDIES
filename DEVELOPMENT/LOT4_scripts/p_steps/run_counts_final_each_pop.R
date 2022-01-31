@@ -43,6 +43,8 @@ for(pop in 1:length(populations)){
   source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
   # Makes plots of all counts files
   source(paste0(pre_dir,"plots_mask.R"))
+  # Creates treatment episodes 
+  source(paste0(pre_dir, "treatment_episodes.r"))
   # Converts all .rds files into .csv or .xlsx (indicated by user)
   source(paste0(pre_dir,"write_output.R"))
 }
