@@ -45,8 +45,7 @@ if(length(events_files)>0){
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
@@ -67,8 +66,11 @@ if(length(events_files)>0){
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             
             for (i in 1:length(codelist_start_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              # df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='EVENTS']
               
               if(nrow(df_subset)>0){
@@ -134,8 +136,12 @@ if(length(events_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           
           for (i in 1:length(codelist_start_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset_vocab <- df
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='EVENTS']
             
             if(nrow(df_subset)>0){
@@ -239,8 +245,7 @@ if(length(proc_files)>0){
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
@@ -261,8 +266,11 @@ if(length(proc_files)>0){
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             
             for (i in 1:length(codelist_start_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              # df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='PROCEDURES']
               
               if(nrow(df_subset)>0){
@@ -330,8 +338,12 @@ if(length(proc_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           
           for (i in 1:length(codelist_start_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset_vocab <- df
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='PROCEDURES']
             
             if(nrow(df_subset)>0){
@@ -435,8 +447,7 @@ if(length(proc_files)>0){
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     
     # Adds column for origin of code i.e. CPRD, PHARMO
@@ -507,4 +518,5 @@ if (length(list.files(events_tmp_sterility))> 0){
   }  
 } else {
   print("There are no Sterility records")
-  }
+}
+

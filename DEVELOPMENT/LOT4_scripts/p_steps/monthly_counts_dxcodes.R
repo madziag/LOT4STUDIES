@@ -41,7 +41,7 @@ if(length(events_files)>0){
     df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
     df[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transforms to date variables
     df[,exit_date:=as.IDate(exit_date,"%Y%m%d")] # Transforms to date variables
-    # Creates year variable
+    # Creates year variable - year of the event
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
      # Years used in study
@@ -52,8 +52,7 @@ if(length(events_files)>0){
     df[(Date<entry_date | Date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column with Vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
@@ -68,18 +67,18 @@ if(length(events_files)>0){
       for (voc in 1:length(unique(df$vocab))){
         # Creates subsets for each vocab type
         df_subset_vocab <- setDT(df)[vocab == unique(df$vocab)[voc]]
-        
         # Checks if df is NOT empty
         if(nrow(df_subset_vocab)>0){
           # Looks for matches in df using event vocabulary type specific code list
           # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
-            
             for (i in 1:length(codelist_start_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset <- df_subset[!duplicated(df_subset),]
-              
+
               if(nrow(df_subset)>0){
                 
                 if(SUBP == TRUE){
@@ -100,7 +99,7 @@ if(length(events_files)>0){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
               df_subset <- df_subset[!duplicated(df_subset),]
-              
+
               if(nrow(df_subset)>0){
                 if(SUBP == TRUE){
                   saveRDS(data.table(df_subset), paste0(events_tmp_DX, names(codelist_read_all[i]), "_", populations[pop], "_",events_files[y], "_READ.rds"))
@@ -155,8 +154,11 @@ if(length(events_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           
           for (i in 1:length(codelist_start_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset_vocab <- df
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset <- df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
