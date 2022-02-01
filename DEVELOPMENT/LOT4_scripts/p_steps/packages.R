@@ -34,3 +34,8 @@ if(!require(writexl)){install.packages("writexl")}
 suppressPackageStartupMessages(library(writexl))
 if(!require(ff)){install.packages("ff")}
 suppressPackageStartupMessages(library(ff))
+if(!require(dplyr)){install.packages("dplyr")}
+suppressPackageStartupMessages(library(dplyr))
+if(!require(AdhereR)){install.packages("AdhereR")}
+suppressPackageStartupMessages(library(AdhereR))
+

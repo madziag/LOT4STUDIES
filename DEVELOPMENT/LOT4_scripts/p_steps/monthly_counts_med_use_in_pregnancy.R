@@ -63,9 +63,9 @@ if(nrow(study_preg_meds) > 0) {
             # Saves file
             if(SUBP == TRUE){
               pop_names <- gsub(".rds", "", populations[pop])
-              saveRDS(counts, paste0(preg_med_counts,"/",pop_names, "_", med_type_unique[mt], "_preg_", hq_unique[hq], "_counts.rds"))
+              saveRDS(counts, paste0(preg_med_counts_dir,"/",pop_names, "_", med_type_unique[mt], "_preg_", hq_unique[hq], "_counts.rds"))
             }else{
-              saveRDS(counts, paste0(preg_med_counts,"/", med_type_unique[mt], "_preg_",hq_unique[hq] , "_counts.rds"))
+              saveRDS(counts, paste0(preg_med_counts_dir,"/", med_type_unique[mt], "_preg_",hq_unique[hq] , "_counts.rds"))
             }
           }
         }
@@ -102,8 +102,8 @@ counts_preg <-counts_preg[,c("YM", "N", "masked")]
 
 # Saves file
 if(SUBP == TRUE){
-  saveRDS(counts_preg, paste0(preg_med_counts,"/", pop_names, "_Pregnancy_ALL_counts.rds"))
+  saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", pop_names, "_Pregnancy_ALL_counts.rds"))
 }else{
-  saveRDS(counts_preg, paste0(preg_med_counts,"/", "Pregnancy_ALL_counts.rds"))
+  saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", "Pregnancy_ALL_counts.rds"))
 }
 
