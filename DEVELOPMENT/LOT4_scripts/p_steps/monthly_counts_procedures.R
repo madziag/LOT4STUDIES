@@ -48,8 +48,7 @@ if(length(proc_files)>0){
     df[(Date<entry_date | Date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]	
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     #Prints Message
     print(paste0("Finding matching records in ", proc_files[y]))

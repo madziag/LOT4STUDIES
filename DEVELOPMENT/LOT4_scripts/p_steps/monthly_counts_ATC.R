@@ -77,7 +77,7 @@ if(length(med_files)>0){
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
     # Removes records with ATC code missing 
-    df<-df[!is.na(Code)]
+    df<-df[!(is.na(Code))]
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Prints Message
     print(paste0("Finding matching records in ", med_files[y]))
