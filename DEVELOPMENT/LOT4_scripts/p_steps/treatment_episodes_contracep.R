@@ -18,15 +18,13 @@
 #p_param\DOT
 
 
-if(!require(AdhereR)){install.packages("AdhereR")}
-library(AdhereR)
+# if(!require(AdhereR)){install.packages("AdhereR")}
+# library(AdhereR)
 
-if (multiple_regions == T ){study_pop_all <- study_pop_reg} else {study_pop_all <- study_population}
-
-
-dir.create(paste0(output_dir,"treatment_episodes"))
-
-contra_data<-readRDS(paste0(tmp, "all_contraception/all_contra.rds"))
+# dir.create(paste0(output_dir,"treatment_episodes"))
+pop_prefix <- gsub(".rds", "", populations[pop])
+# contra_data<-readRDS(paste0(tmp, "all_contraception/all_contra.rds"))
+contra_data <- readRDS(paste0(contra_folder, pop_prefix, "_all_contra.rds" ))
 names(contra_data)
 str(contra_data$assumed_duration)
 contra_data$assumed_duration<-as.numeric(paste(contra_data$assumed_duration))
@@ -59,7 +57,7 @@ str(contra_data$assumed_duration)
   suppress.warnings = FALSE,
   return.data.table = FALSE)
 
-  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/contra_treat_episode.rds")))
+  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/",pop_prefix ,"_contra_treat_episode.rds")))
 
 
 summary(my_treat_episode)

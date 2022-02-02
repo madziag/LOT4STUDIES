@@ -9,8 +9,7 @@ D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%
 # Creates empty data frame for counts 
 # Loads denominator file to get min and max dates for empty file 
 denominator <- list.files(output_dir, pattern = populations[pop])
-prefix_pop <- gsub("study_population.rds", "",populations[pop])
-FUmonths_df <- as.data.table(readRDS(paste0(output_dir, prefix_pop, "denominator.rds")))
+FUmonths_df <- as.data.table(readRDS(paste0(output_dir, pop_prefix, "_denominator.rds")))
 # Splits Y-M column 
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_counts <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
@@ -30,7 +29,7 @@ study_preg_meds <- study_preg_meds[study_preg_meds$Date >= study_preg_meds$pregn
 # deduplicate records 
 study_preg_meds <- study_preg_meds[!duplicated(study_preg_meds),]
 # Save records 
-saveRDS(study_preg_meds, paste0(counts_dfs_dir, prefix_pop, "med_use_during_pregnancy.rds"))
+saveRDS(study_preg_meds, paste0(counts_dfs_dir, pop_prefix, "_med_use_during_pregnancy.rds"))
 
 if(nrow(study_preg_meds) > 0) {
   # Gets unique values of med_type column 
@@ -61,12 +60,7 @@ if(nrow(study_preg_meds) > 0) {
             counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
             print(paste("Saving monthly counts: Use of", med_type_unique[mt], "during pregnancy, data quality level:", hq_unique[hq]))
             # Saves file
-            if(SUBP == TRUE){
-              pop_names <- gsub(".rds", "", populations[pop])
-              saveRDS(counts, paste0(preg_med_counts_dir,"/",pop_names, "_", med_type_unique[mt], "_preg_", hq_unique[hq], "_counts.rds"))
-            }else{
-              saveRDS(counts, paste0(preg_med_counts_dir,"/", med_type_unique[mt], "_preg_",hq_unique[hq] , "_counts.rds"))
-            }
+            saveRDS(counts, paste0(preg_med_counts_dir,"/",pop_prefix, "_", med_type_unique[mt], "_preg_", hq_unique[hq], "_counts.rds"))
           }
         }
       }
@@ -101,9 +95,6 @@ counts_preg <- within(counts_preg, YM<- sprintf("%d-%02d", year, month))
 counts_preg <-counts_preg[,c("YM", "N", "masked")]
 
 # Saves file
-if(SUBP == TRUE){
-  saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", pop_names, "_Pregnancy_ALL_counts.rds"))
-}else{
-  saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", "Pregnancy_ALL_counts.rds"))
-}
+saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", pop_prefix, "_Pregnancy_ALL_counts.rds"))
+
 

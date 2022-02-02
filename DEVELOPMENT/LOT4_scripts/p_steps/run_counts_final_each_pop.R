@@ -21,41 +21,49 @@ med_files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse=
 # Reads in records of population with indicated study type
 study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
 
-if (is_Denmark == T){
-  # Loads study population
-  study_population <- readRDS(paste0(populations_dir, populations))
-  # Creates baseline tables 
-  source(paste0(pre_dir,"CreateBaselineTables.R"))
-  # Creates treatment episodes 
-  source(paste0(pre_dir, "treatment_episodes.r"))
-  # Counts of prevalence, incidence, discontinuation - medicines use 
-  source(paste0(pre_dir, "tx_episodes_counts.R"))
-  # Makes plots of all counts files
-  source(paste0(pre_dir, "plots_mask.R"))
-  # Converts all .rds files into .csv or .xlsx (indicated by user)
-  source(paste0(pre_dir,"write_output.R"))
-  
-} else {
-
 # Loops over each subpopulation
 for(pop in 1:length(populations)){
-  # Loads study population
-  study_population <- readRDS(paste0(populations_dir, populations[pop]))
-  # Make sure last exit data is 2019 if DAP == "PHARMO"
-  if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
-  # Creates baseline tables 
-  source(paste0(pre_dir,"CreateBaselineTables.R"))
-  # Looks for medication use during pregnancies
-  source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
-  # Creates treatment episodes 
-  source(paste0(pre_dir, "treatment_episodes.r"))
-  # Counts of prevalence, incidence, discontinuation - medicines use 
-  source(paste0(pre_dir, "tx_episodes_counts.R"))
-  # Makes plots of all counts files
-  source(paste0(pre_dir, "plots_mask.R"))
-  # Converts all .rds files into .csv or .xlsx (indicated by user)
-  source(paste0(pre_dir, "write_output.R"))
-}
+  
+  if (is_Denmark == T){
+    # Loads study population
+    study_population <- readRDS(paste0(populations_dir, populations))
+    # Assign study population prefix name
+    pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+    # Creates baseline tables 
+    source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # Creates treatment episodes 
+    source(paste0(pre_dir, "treatment_episodes.r"))
+    # Counts of prevalence, incidence, discontinuation - medicines use 
+    source(paste0(pre_dir, "tx_episodes_counts.R"))
+    # Creates Contraceptive records
+    source(paste0(pre_dir, "contraception_duration.R"))
+    # Makes plots of all counts files
+    source(paste0(pre_dir, "plots_mask.R"))
+    # Converts all .rds files into .csv or .xlsx (indicated by user)
+    source(paste0(pre_dir,"write_output.R"))
+    
+  } else {
+    # Loads study population
+    study_population <- readRDS(paste0(populations_dir, populations[pop]))
+    # Assign study population prefix name
+    pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+    # Make sure last exit data is 2019 if DAP == "PHARMO"
+    if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
+    # Creates baseline tables 
+    source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # Looks for medication use during pregnancies
+    source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
+    # Creates treatment episodes 
+    source(paste0(pre_dir, "treatment_episodes.r"))
+    # Counts of prevalence, incidence, discontinuation - medicines use 
+    source(paste0(pre_dir, "tx_episodes_counts.R"))
+    # Counts of prevalence, incidence, discontinuation - medicines use 
+    source(paste0(pre_dir, "contraception_duration.R"))
+    # Makes plots of all counts files
+    source(paste0(pre_dir, "plots_mask.R"))
+    # Converts all .rds files into .csv or .xlsx (indicated by user)
+    source(paste0(pre_dir, "write_output.R"))
+  }
 }
 
 # Creates csv/xslx folder inside baseline tables, pregnancy counts and medicines counts folders

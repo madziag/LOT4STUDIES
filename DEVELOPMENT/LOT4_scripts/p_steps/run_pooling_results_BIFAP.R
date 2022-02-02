@@ -79,7 +79,7 @@ denom_files <- list.files(All_regions_dir, pattern = "denominator")
 count_files <- list.files(All_regions_dir, pattern = "counts")
 
 for (i in 1:length(count_files)){
-  count_subpop <- strsplit(count_files[i], "_study_population")[[1]][1]
+  count_subpop <- strsplit(count_files[i], "_")[[1]][1]
   for (j in 1:length(denom_files)){
     denom_subpop <- strsplit(denom_files[j], "_denominator")[[1]][1]
     if (count_subpop == denom_subpop){
@@ -120,35 +120,35 @@ for (i in 1:length(count_files)){
 ###########################################################################################################################################################################
 
 # 1. Pools study population
-study_pop_files  <- list.files(All_regions_dir, pattern = "study_population_for_pooling_baseline_tables")
-## Loops through all the denominator folders 
+study_pop_files  <- list.files(All_regions_dir, pattern = "ALL_for_pooling_baseline_tables")
+## Loops through all the baseline folders 
 for (i in 1:length(study_pop_files)){
   record_dir <- paste0(All_regions_dir, study_pop_files[i], "/")
   tables_study_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
   comb_tables_study_pop <- as.data.table(do.call(rbind , tables_study_pop))
-  saveRDS(comb_tables_study_pop, paste0(record_dir, strsplit(study_pop_files[i], "_study_population")[[1]][1], "_Study_Population_Pooled.rds"))
+  saveRDS(comb_tables_study_pop, paste0(record_dir, strsplit(study_pop_files[i], "_")[[1]][1], "_Study_Population_Pooled.rds"))
   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
 }
 
 # 2. Pools retinoid/valproate populations
-med_pop_files  <- list.files(All_regions_dir, pattern = "med_use_for_pooling_baseline_tables")
+med_pop_files  <- list.files(All_regions_dir, pattern = "ALL_med_use_for_pooling_baseline_tables")
 ## Loops through all the denominator folders 
 for (i in 1:length(med_pop_files)){
   record_dir <- paste0(All_regions_dir, med_pop_files[i], "/")
   tables_med_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
   comb_tables_med_pop <- as.data.table(do.call(rbind , tables_med_pop))
-  saveRDS(comb_tables_med_pop, paste0(record_dir, strsplit(med_pop_files[i], "_study_population")[[1]][1], "_Meds_Population_Pooled.rds"))
+  saveRDS(comb_tables_med_pop, paste0(record_dir, strsplit(med_pop_files[i], "_")[[1]][1], "_Meds_Population_Pooled.rds"))
   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
 }
 
 # 3. Move study population to corresponding med_use_for_pooling_baseline_tables folder 
 for (i in 1:length(med_pop_files)){
-  med_pop_subpop <- strsplit(med_pop_files[i], "_study_population")[[1]][1]
+  med_pop_subpop <- strsplit(med_pop_files[i], "_")[[1]][1]
   for (j in 1:length(study_pop_files)){
-    study_pop_subpop <- strsplit(study_pop_files[j], "_study_population")[[1]][1]
+    study_pop_subpop <- strsplit(study_pop_files[j], "_")[[1]][1]
     if (med_pop_subpop == study_pop_subpop){
-      from <- paste0(All_regions_dir, study_pop_subpop, "_study_population_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
-      to <- paste0(All_regions_dir,study_pop_subpop, "_study_population_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+      from <- paste0(All_regions_dir, study_pop_subpop, "_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+      to <- paste0(All_regions_dir,study_pop_subpop, "_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
       file.move(from, to)
       
     } 
@@ -156,7 +156,7 @@ for (i in 1:length(med_pop_files)){
 }
 
 # Remove empty folders 
-for(file in list.files(path = All_regions_dir, pattern ="study_population_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
+for(file in list.files(path = All_regions_dir, pattern ="ALL_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
 
 # 4. Create baseline tables for each subpop
 baseline_subpop <- list.files(All_regions_dir, pattern = "baseline_tables")

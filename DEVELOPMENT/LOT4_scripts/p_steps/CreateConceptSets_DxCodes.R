@@ -81,4 +81,4 @@ names(codelist_snomed_all) <- names(codelist_list)
 names(codelist_all) <- names(codelist_list)
 # Cleanup 
 rm(list = noquote(names(codelist_list)))
-rm(codelist, codelist_list, codelist_read, codelist_snomed, codelist_start, codelist_start_dot_1, codelist_start_nodot_1, codelist_start_dot_2, codelist_start_nodot_2)
+rm(codelist, codelist_list, codelist_read, codelist_snomed, codelist_start, codelist_start_1, codelist_start_dot_1, codelist_start_nodot_1, codelist_start_dot_2, codelist_start_nodot_2)

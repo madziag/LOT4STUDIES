@@ -35,11 +35,10 @@ study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11
 study_pop_first_occurrence  <- setDT(study_pop_meds)[order(Date), head(.SD, 1L), by = c("person_id", "Code")]
 
 if (multiple_regions == T){
-  pop_names <- gsub(".rds", "", populations[pop])
   # Saves study_population file (with age_group categories)
-  saveRDS(study_population, paste0(baseline_pooling_dir,"/", pop_names, "_for_pooling_baseline_tables.rds"))
+  saveRDS(study_population, paste0(baseline_pooling_dir,"/", pop_prefix, "_for_pooling_baseline_tables.rds"))
   # Saves Retinoid/Valproate file (with age group categories)
-  saveRDS(study_pop_first_occurrence, paste0(baseline_pooling_dir,"/", pop_names, "_med_use_for_pooling_baseline_tables.rds"))
+  saveRDS(study_pop_first_occurrence, paste0(baseline_pooling_dir,"/", pop_prefix, "_med_use_for_pooling_baseline_tables.rds"))
 }
 # Creates Subsets 
 if (study_type == "Retinoid"){
@@ -215,15 +214,9 @@ for (i in 1:length(all_dfs_meds)){
     }
     # Creates baseline table
     baseline <- data.table(names, values)
-    # Saves files 
-    if (SUBP == TRUE){
-      pop_names <- gsub(".rds", "", populations[pop])
-      print(paste("Saving baseline table: ", pop_names, names(all_dfs_meds[i])))
-      saveRDS(baseline, paste0(baseline_tables_dir,"/", pop_names, "_", names(all_dfs_meds[i]),"_baseline.rds"))
-    } else {
-      print(paste("Saving baseline table: ", names(all_dfs_meds[i])))
-      saveRDS(baseline, paste0(baseline_tables_dir,"/", names(all_dfs_meds[i]),"_baseline.rds"))
-    }
+    # Saves files
+    print(paste("Saving baseline table: ", pop_prefix, "_", names(all_dfs_meds[i])))
+    saveRDS(baseline, paste0(baseline_tables_dir,"/", pop_prefix, "_", names(all_dfs_meds[i]),"_baseline.rds"))
   } else {
     print(paste("There are no records for: ", names(all_dfs_meds[i])))
   }

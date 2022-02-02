@@ -85,7 +85,6 @@ if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contracepti
 if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
 
 #write data
-pop_prefix <- gsub(".rds", "", populations[pop])
 saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix,"_", study_type,".rds")))
 
 ### Run separate depending on study

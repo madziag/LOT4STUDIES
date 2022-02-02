@@ -142,7 +142,7 @@ df_discontinued_counts <-df_discontinued_counts[,rates:=as.numeric(N)/as.numeric
 df_discontinued_counts <-df_discontinued_counts[,c("YM", "N", "Freq", "rates", "masked")]
 
 # Save files 
-pop_prefix <- gsub(".rds", "", populations[pop])
 saveRDS(df_prevalence_counts,   (paste0(medicines_counts_dir,"/", pop_prefix,"_","prevalence_counts.rds")))
 saveRDS(df_incidence_counts,    (paste0(medicines_counts_dir,"/", pop_prefix,"_","incidence_counts.rds")))
 saveRDS(df_discontinued_counts, (paste0(medicines_counts_dir,"/", pop_prefix,"_","discontinued_counts.rds")))
+

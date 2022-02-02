@@ -117,5 +117,6 @@ source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
 # source(paste0(pre_dir,"Step_Report_01_13_LifeStyle.R"))
 #source(paste0(pre_dir,"Step_Report_01_Mask.R"))
 
-
-
+rm(actual_tables, Analyse_dates, attrition, CreateSpellsStep, CountPersonTime, CountPersonTime2, CreateBands, CreateSpells, diagnoses, diagnoses_pregnancy_med, diagnoses_pregnancy_med_vacc, diagnoses_pregnancy_vacc, DRE_Treshold, end_study_date2)
+rm(i, intv, IMPORT_PATTERN, INPUTMATRIX, j, Line_plot, Line_plot2, METADATA_subp, max_age_preg, metadata_file, min_age_preg, OBS_number)
+rm(pregnancies, pregnancy_only_med, pregnancy_only_med_vacc, pregnancy_only_vacc, POP_TREE, recommended_end_date, SelectionCriteria, SOURCE, start_study_date2, study_population_dir, subpopulations_present, SeparateRanges)
