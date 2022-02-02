@@ -100,7 +100,7 @@ df_prevalence_counts[is.na(df_prevalence_counts[,N]), N:=0]
 # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
 df_prevalence_counts$masked <- ifelse(df_prevalence_counts$N < 5 & df_prevalence_counts$N > 0, 1, 0)
 # Changes values less than 5 and more than 0 to 5
-if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+if (mask == T){df_prevalence_counts[df_prevalence_counts$masked == 1,]$N <- 5} else {df_prevalence_counts[df_prevalence_counts$masked == 1,]$N <- df_prevalence_counts[df_prevalence_counts$masked == 1,]$N }
 # Calculates rates
 df_prevalence_counts <- within(df_prevalence_counts, YM<- sprintf("%d-%02d", year, month))
 df_prevalence_counts <- merge(x = df_prevalence_counts, y = denominator, by = c("YM"), all.x = TRUE)
@@ -117,7 +117,7 @@ df_incidence_counts[is.na(df_incidence_counts[,N]), N:=0]
 # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
 df_incidence_counts$masked <- ifelse(df_incidence_counts$N < 5 & df_incidence_counts$N > 0, 1, 0)
 # Changes values less than 5 and more than 0 to 5
-if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+if (mask == T){df_incidence_counts[df_incidence_counts$masked == 1,]$N <- 5} else {df_incidence_counts[df_incidence_counts$masked == 1,]$N <- df_incidence_counts[df_incidence_counts$masked == 1,]$N }
 # Calculates rates
 df_incidence_counts <- within(df_incidence_counts, YM<- sprintf("%d-%02d", year, month))
 df_incidence_counts <- merge(x = df_incidence_counts, y = denominator, by = c("YM"), all.x = TRUE)
@@ -134,7 +134,7 @@ df_discontinued_counts[is.na(df_discontinued_counts[,N]), N:=0]
 # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
 df_discontinued_counts$masked <- ifelse(df_discontinued_counts$N < 5 & df_discontinued_counts$N > 0, 1, 0)
 # Changes values less than 5 and more than 0 to 5
-if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+if (mask == T){df_discontinued_counts[df_discontinued_counts$masked == 1,]$N <- 5} else {df_discontinued_counts[df_discontinued_counts$masked == 1,]$N <- df_discontinued_counts[df_discontinued_counts$masked == 1,]$N}
 # Calculates rates
 df_discontinued_counts <- within(df_discontinued_counts, YM<- sprintf("%d-%02d", year, month))
 df_discontinued_counts <- merge(x = df_discontinued_counts, y = denominator, by = c("YM"), all.x = TRUE)

@@ -207,7 +207,7 @@ if(length(proc_files)>0){
     }
   }
 } else {
-  print("There are no PROCEDURE tables to analyse!")
+  print("There are no PROCEDURES tables to analyse!")
 }
 
 

@@ -12,8 +12,8 @@ setwd(projectFolder)
 # DAP_name <- "ARS"
 # DAP_name <- "BIFAP"
 # DAP_name <- "CASERTA"
-DAP_name <- "CPRD"
-# DAP_name <- "DNR"
+# DAP_name <- "CPRD"
+DAP_name <- "DNR"
 # DAP_name <- "FISABIO"
 # DAP_name <- "PHARMO"
 #user input parameter

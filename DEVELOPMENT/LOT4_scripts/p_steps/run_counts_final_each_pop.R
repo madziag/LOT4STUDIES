@@ -21,28 +21,28 @@ med_files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse=
 # Reads in records of population with indicated study type
 study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
 
-# Loops over each subpopulation
-for(pop in 1:length(populations)){
+if (is_Denmark == T){
+  # Loads study population
+  study_population <- readRDS(paste0(populations_dir, populations))
+  # Assign study population prefix name
+  pop_prefix <- gsub("_study_population.rds", "", populations)
+  # Creates baseline tables 
+  source(paste0(pre_dir,"CreateBaselineTables.R"))
+  # Creates treatment episodes 
+  source(paste0(pre_dir, "treatment_episodes.r"))
+  # Counts of prevalence, incidence, discontinuation - medicines use 
+  source(paste0(pre_dir, "tx_episodes_counts.R"))
+  # Creates Contraceptive records
+  source(paste0(pre_dir, "contraception_duration.R"))
+  # Makes plots of all counts files
+  source(paste0(pre_dir, "plots_mask.R"))
+  # Converts all .rds files into .csv or .xlsx (indicated by user)
+  source(paste0(pre_dir,"write_output.R"))
   
-  if (is_Denmark == T){
-    # Loads study population
-    study_population <- readRDS(paste0(populations_dir, populations))
-    # Assign study population prefix name
-    pop_prefix <- gsub("_study_population.rds", "", populations[pop])
-    # Creates baseline tables 
-    source(paste0(pre_dir,"CreateBaselineTables.R"))
-    # Creates treatment episodes 
-    source(paste0(pre_dir, "treatment_episodes.r"))
-    # Counts of prevalence, incidence, discontinuation - medicines use 
-    source(paste0(pre_dir, "tx_episodes_counts.R"))
-    # Creates Contraceptive records
-    source(paste0(pre_dir, "contraception_duration.R"))
-    # Makes plots of all counts files
-    source(paste0(pre_dir, "plots_mask.R"))
-    # Converts all .rds files into .csv or .xlsx (indicated by user)
-    source(paste0(pre_dir,"write_output.R"))
+} else {
+  # Loops over each subpopulation
+  for(pop in 1:length(populations)){
     
-  } else {
     # Loads study population
     study_population <- readRDS(paste0(populations_dir, populations[pop]))
     # Assign study population prefix name

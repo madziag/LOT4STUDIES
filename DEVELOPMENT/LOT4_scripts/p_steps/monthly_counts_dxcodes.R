@@ -206,6 +206,3 @@ if(length(events_files)>0){
   print("There are no EVENTS tables to analyse!")
 }
 
-rm(codelist_all, codelist_read_all, codelist_start_all, codelist_snomed_all, comb_meds, counts)
-
-

@@ -2,7 +2,7 @@ if (is_Denmark == TRUE){
   # Loads customized denominator
   FUmonths_df <- fread(paste0(projectFolder, "/p_param/denominator.csv"), quote = "")
   # Saves file where it will be accessed by following scripts
-  saveRDS(data.table(FUmonths_df), paste0(output_dir, pop_prefix, "denominator.rds"))
+  saveRDS(data.table(FUmonths_df), paste0(output_dir, pop_prefix, "_denominator.rds"))
   # plots denominator 
   pdf((paste0(output_dir, "plots/", pop_prefix ,"denominator.pdf")), width=8, height=4)
   plot(FUmonths_df$studyFUmonths, FUmonths_df$Freq, ylab="Persons Observed per Month", xlab="Year and Month")
@@ -35,4 +35,3 @@ if (is_Denmark == TRUE){
   invisible(dev.off())
 }
 
-rm(end.date, FUmonths, i, s, start.date, std_names_events, ym1, ym2)

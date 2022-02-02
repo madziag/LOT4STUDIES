@@ -389,5 +389,3 @@ if (length(list.files(events_tmp_sterility))> 0){
   print("There are no Sterility records")
 }
 
-rm(codelist_all, codelist_CPRD_all, codelist_CPRD_names, codelist_PHARM0_all, codelist_PHARMO_names, codelist_read_all, codelist_snomed_all, codelist_start_all, colnames_events, df, df_subset, df_subset_vocab)
-rm(events_files, events_prefix, filename, i, matches, proc_files, sterility_all, sterility_all_first_occurrence, sterility_list, var_names, voc, y)
