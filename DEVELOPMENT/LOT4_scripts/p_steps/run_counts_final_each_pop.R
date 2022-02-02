@@ -29,9 +29,9 @@ if (is_Denmark == T){
   # Creates baseline tables 
   source(paste0(pre_dir,"CreateBaselineTables.R"))
   # Creates treatment episodes 
-  source(paste0(pre_dir, "treatment_episodes.r"))
+  source(paste0(pre_dir, "treatment_episodes.R"))
   # Counts of prevalence, incidence, discontinuation - medicines use 
-  source(paste0(pre_dir, "tx_episodes_counts.R"))
+  source(paste0(pre_dir, "treatment_episodes_counts.R"))
   # Creates Contraceptive records
   source(paste0(pre_dir, "contraception_duration.R"))
   # Makes plots of all counts files
@@ -42,7 +42,6 @@ if (is_Denmark == T){
 } else {
   # Loops over each subpopulation
   for(pop in 1:length(populations)){
-    
     # Loads study population
     study_population <- readRDS(paste0(populations_dir, populations[pop]))
     # Assign study population prefix name
@@ -54,9 +53,9 @@ if (is_Denmark == T){
     # Looks for medication use during pregnancies
     source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
     # Creates treatment episodes 
-    source(paste0(pre_dir, "treatment_episodes.r"))
+    source(paste0(pre_dir, "treatment_episodes.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
-    source(paste0(pre_dir, "tx_episodes_counts.R"))
+    source(paste0(pre_dir, "treatment_episodes_counts.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
     source(paste0(pre_dir, "contraception_duration.R"))
     # Makes plots of all counts files

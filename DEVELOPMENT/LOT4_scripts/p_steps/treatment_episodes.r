@@ -29,63 +29,61 @@ invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.c
 #   my_data<-rbind(my_data[[1]],my_data[[2]])
 #   }
 # Load medication data (all the above code is done in run_counts_final_each_pop)
-my_data <- study_pop_meds 
-my_data$assumed_duration<-rep(30, nrow(my_data)) 
-colnames(my_data)
-# Date should be used instead of dispensing date as some DAP's do not use dispensing date but prescribing date. The variable date is created to account for this
-# my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
-my_data$Date <-as.Date(my_data$Date, format="%Y%m%d")
+## med_files in wrapper script contains the list of Retinoid and/or Valproates that need to be read 
+print(med_files)
 
-# Creates treatment episodes
-my_treat_episode<-compute.treatment.episodes(data= my_data,
-                                             ID.colname = "person_id",
-                                             event.date.colname = "Date",
-                                             event.duration.colname = "assumed_duration",
-                                             event.daily.dose.colname = NA,
-                                             medication.class.colname = "Code",
-                                             carryover.within.obs.window = TRUE,
-                                             carry.only.for.same.medication = TRUE,
-                                             consider.dosage.change = TRUE,
-                                             medication.change.means.new.treatment.episode = TRUE,
-                                             dosage.change.means.new.treatment.episode = FALSE,
-                                             maximum.permissible.gap = 0,
-                                             maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
-                                             maximum.permissible.gap.append.to.episode = FALSE,
-                                             followup.window.start = 0,
-                                             followup.window.start.unit = c("days", "weeks", "months", "years")[1],
-                                             followup.window.duration = 365 * 11,
-                                             followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
-                                             event.interval.colname = "event.interval",
-                                             gap.days.colname = "gap.days",
-                                             date.format = "%Y-%m-%d",
-                                             parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
-                                                                  "snow(NWS)")[1],
-                                             parallel.threads = "auto",
-                                             suppress.warnings = FALSE,
-                                             return.data.table = FALSE
-) 
+for (med in 1:length(med_files)){
+  my_data <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files[med]), readRDS))
+  my_data$assumed_duration<-rep(30, nrow(my_data)) 
+  # colnames(my_data)
+  # Date should be used instead of dispensing date as some DAP's do not use dispensing date but prescribing date. The variable date is created to account for this
+  # my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
+  my_data$Date <-as.Date(my_data$Date, format="%Y%m%d")
+  # Creates treatment episodes
+  my_treat_episode<-compute.treatment.episodes(data= my_data,
+                                               ID.colname = "person_id",
+                                               event.date.colname = "Date",
+                                               event.duration.colname = "assumed_duration",
+                                               event.daily.dose.colname = NA,
+                                               medication.class.colname = "Code",
+                                               carryover.within.obs.window = TRUE,
+                                               carry.only.for.same.medication = TRUE,
+                                               consider.dosage.change = TRUE,
+                                               medication.change.means.new.treatment.episode = TRUE,
+                                               dosage.change.means.new.treatment.episode = FALSE,
+                                               maximum.permissible.gap = 0,
+                                               maximum.permissible.gap.unit = c("days", "weeks", "months", "years", "percent")[1],
+                                               maximum.permissible.gap.append.to.episode = FALSE,
+                                               followup.window.start = 0,
+                                               followup.window.start.unit = c("days", "weeks", "months", "years")[1],
+                                               followup.window.duration = 365 * 11,
+                                               followup.window.duration.unit = c("days", "weeks", "months", "years")[1],
+                                               event.interval.colname = "event.interval",
+                                               gap.days.colname = "gap.days",
+                                               date.format = "%Y-%m-%d",
+                                               parallel.backend = c("none", "multicore", "snow", "snow(SOCK)", "snow(MPI)",
+                                                                    "snow(NWS)")[1],
+                                               parallel.threads = "auto",
+                                               suppress.warnings = FALSE,
+                                               return.data.table = FALSE
+  ) 
+  summary(my_treat_episode)
+  hist(my_treat_episode$episode.duration, breaks=100)
+  #LOGICAL CHECKS
+  #duration is positive
+  if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
+  #person id merged, but no one lost
+  original_ids<-unique(my_data$person_id)
+  treat_epi_ids<-unique(my_treat_episode$person_id)
+  if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
+  #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
+  if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
+  #write data
+  med_prefix <- gsub(".rds", "", med_files[med])
+  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", med_prefix, "_treatment_episodes.rds")))
+}
 
 
-
-summary(my_treat_episode)
-
-hist(my_treat_episode$episode.duration, breaks=100)
-
-#LOGICAL CHECKS
-#duration is positive
-if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
-#person id merged, but no one lost
-
-original_ids<-unique(my_data$person_id)
-treat_epi_ids<-unique(my_treat_episode$person_id)
-if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
-
-
-#HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
-if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-
-#write data
-saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix,"_", study_type,".rds")))
 
 ### Run separate depending on study
 

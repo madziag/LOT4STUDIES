@@ -77,6 +77,7 @@ for (i in 1:length(all_counts_folders)){
 # 6. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
 count_files <- list.files(All_regions_dir, pattern = "counts")
+count_files <- count_files[!grepl("discontinued", count_files) ]
 
 for (i in 1:length(count_files)){
   count_subpop <- strsplit(count_files[i], "_")[[1]][1]
@@ -114,7 +115,50 @@ for (i in 1:length(count_files)){
   write.csv(pooled_df, paste0(record_dir, count_files[i],"_Pooled.csv"))
 }
 
+### Discontinued counts use prevalence counts as a denominator
+# 8. Move subpop denominator to each file with corresponding subpopulation
+denom_files <- list.files(All_regions_dir, pattern = "prevalence")
+count_files <- list.files(All_regions_dir, pattern = "discontinued_counts")
 
+for (i in 1:length(count_files)){
+  count_subpop <- gsub("_discontinued_counts", "", count_files[i])
+  for (j in 1:length(denom_files)){
+    denom_subpop <- gsub("_prevalence_counts", "", denom_files[j])
+    if (count_subpop == denom_subpop){
+      from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+      to   <- paste0(All_regions_dir, count_files[i], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+      file.copy(from, to)
+    } 
+  }
+}
+
+# 7. Merge denominator files with count files 
+for (i in 1:length(count_files)){
+  # Set path
+  record_dir <- paste0(All_regions_dir, count_files[i], "/")
+  # Load denominator file
+  preval_file <- list.files(paste0(All_regions_dir, count_files[i]), pattern = "prevalence_counts_Pooled")
+  preval_df <- fread(paste0(All_regions_dir, count_files[i], "/", preval_file))
+  preval_df <- preval_df[,-c("V1", "Freq", "masked", "rates")]
+  setnames(preval_df, "N", "Freq")
+  
+  discont_file <- list.files(paste0(All_regions_dir, count_files[i]), pattern = "discontinued_counts_Pooled")
+  discont_df <-  fread(paste0(All_regions_dir, count_files[i], "/", discont_file))
+  discont_df <- discont_df[,-c("V1")]
+  setnames(discont_df,"Sum", "N")
+  # Masking values less than 5
+  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+  discont_df$masked <- ifelse(discont_df$N<5 & discont_df$N>0, 1, 0)
+  # Changes values less than 5 and more than 0 to 5
+  if (mask == T){discont_df[discont_df$masked == 1,]$N <- 5} else {discont_df[discont_df$masked == 1,]$N <- discont_df[discont_df$masked == 1,]$N}
+  # Calculates rates
+  pooled_df <- merge(x = discont_df, y = preval_df, by = c("YM"), all.x = TRUE)
+  pooled_df <- pooled_df[,rates:=as.numeric(N)/as.numeric(Freq)]
+  pooled_df$rates[is.nan(pooled_df$rates)]<-0
+  pooled_df <- pooled_df[,c("YM", "N", "Freq", "rates", "masked")]
+  # Save file 
+  write.csv(pooled_df, paste0(record_dir, count_files[i],"_Pooled.csv"))
+}
 ###########################################################################################################################################################################
 ########### BASELINE TABLES  ##############################################################################################################################################
 ###########################################################################################################################################################################
