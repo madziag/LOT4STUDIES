@@ -2,6 +2,8 @@
 
 if(!require(rmarkdown)){install.packages("rmarkdown")}
 suppressPackageStartupMessages(library(rmarkdown))
+if(!require(survival)){install.packages("survival")}
+suppressPackageStartupMessages(library(survival))
 if(!require(stringr)){install.packages("stringr")}
 suppressPackageStartupMessages(library(stringr))
 if(!require(data.table)){install.packages("data.table")}
