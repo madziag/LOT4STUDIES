@@ -39,7 +39,8 @@ if(length(proc_files)>0){
     df<-df[,age_start_follow_up:=as.numeric(age_start_follow_up)] # Transforms to numeric variables	
     df<-df[!rowSums(is.na(df[,..colnames_procedures]))==length(colnames_procedures)]
     df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
-    df[,entry_date     :=as.IDate(entry_date ,"%Y%m%d")] # Transforms to date variables
+    df[,entry_date := as.IDate(entry_date ,"%Y%m%d")] # Transforms to date variables
+    df[,exit_date  := as.IDate(exit_date ,"%Y%m%d")] # Transforms to date variables
     # Creates year variable
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
@@ -101,6 +102,7 @@ if(length(proc_files)>0){
       # Loads files
       files <- list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
+      comb_meds <- comb_meds[!duplicated(comb_meds),]
       # Counts by month-year
       counts <- comb_meds[,.N, by = .(year,month(Date))]
       # Merges with empty_counts_df

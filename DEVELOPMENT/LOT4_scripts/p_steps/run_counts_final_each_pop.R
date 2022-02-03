@@ -58,6 +58,8 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "treatment_episodes_counts.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
     source(paste0(pre_dir, "contraception_duration.R"))
+    # Counts of pregnancy tests performed and contraceptive use in Retinoid/Valproate users
+    source(paste0(pre_dir, "monthly_counts_pregtest_contra.R"))
     # Makes plots of all counts files
     source(paste0(pre_dir, "plots_mask.R"))
     # Converts all .rds files into .csv or .xlsx (indicated by user)

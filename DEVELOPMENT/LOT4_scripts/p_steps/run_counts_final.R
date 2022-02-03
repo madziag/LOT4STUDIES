@@ -38,14 +38,14 @@ if(multiple_regions == T){
     invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
     preg_med_counts <- paste0(output_dir, "pregnancy_counts")
     # Contraceptive counts (not yet in use)
-    # invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
-    # contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
+    invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
+    contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
     # Medicines Counts
     invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
     medicines_counts_dir <- paste0(output_dir, "medicines_counts")
     # Pregnancy Test Counts(not yet in use)
-    # invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
-    # pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
+    invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
+    pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
     # Creates new plot folder
     invisible(ifelse(!dir.exists(paste0(output_dir, "plots")), dir.create(paste0(output_dir, "plots")), FALSE))
     plot_folder <- paste0(output_dir, "plots")

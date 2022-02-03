@@ -97,6 +97,7 @@ if(length(med_files)>0){
     if (length(files)>0){
       # Loads files 
       comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
+      comb_meds[[i]] <- comb_meds[[i]][!duplicated(comb_meds[[i]]),]
       # Counts by month-year
       counts <- comb_meds[[i]][,.N, by = .(year,month(Date))]
       # Merges with empty_counts_df
@@ -129,6 +130,7 @@ if(length(med_files)>0){
     ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
     for(x in 1:length(ind_files)){
       df_ind <- readRDS(paste0(medications_pop, ind_files[x]))
+      df_ind <- df_ind[!duplicated(df_ind),]
       for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
         counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
