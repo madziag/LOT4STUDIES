@@ -18,6 +18,8 @@ if(length(proc_files)>0){
   for (z in 1:length(codelist_all)){ifelse(!dir.exists(file.path(events_tmp_PROC, names(codelist_all[z]))), dir.create(paste(events_tmp_PROC, names(codelist_all[z]), sep="")), FALSE)}
   # Processes each PROCEDURES table
   for (y in 1:length(proc_files)){
+    # Gets prefix for procedures tables 
+    procedures_prefix <- gsub(".csv", "", proc_files[y])
     # Loads procedures table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -63,17 +65,10 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           df_subset <- df_subset[!duplicated(df_subset),]
-          
           if(nrow(df_subset)>0){
-            if (SUBP == TRUE){
-              saveRDS(df_subset, paste0(events_tmp_PROC, populations[pop], "_", names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
-              new_file<-c(list.files(events_tmp_PROC, "\\_.rds$"))
-              lapply(new_file, function(x){file.rename(from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
-            }else{
-              saveRDS(df_subset, paste0(events_tmp_PROC, names(codelist_CPRD_all[i]), "_",proc_files[y], "_.rds"))
-              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
-              lapply(new_file, function(x){file.rename(from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
-            }
+            saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_", names(codelist_CPRD_all[i]), "_",procedures_prefix, "_CPRD.rds"))
+            new_file<-c(list.files(events_tmp_PROC, "\\_CPRD.rds$"))
+            lapply(new_file, function(x){file.rename(from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_CPRD_all[i])), x))})
           }
         }
         # Covers PHARMO Codes
@@ -82,17 +77,10 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           df_subset <- df_subset[!duplicated(df_subset),]
-          
           if(nrow(df_subset)>0){
-            if(SUBP == TRUE) {
-              saveRDS(df_subset, paste0(events_tmp_PROC, populations[pop], "_",names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
-              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
-              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
-            }else {
-              saveRDS(df_subset, paste0(events_tmp_PROC, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_.rds"))
-              new_file <-c(list.files(events_tmp_PROC, "\\_.rds$"))
-              lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
-            }
+            saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_",names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
+            new_file <-c(list.files(events_tmp_PROC, "\\_PHARMO.rds$"))
+            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
           }
         }
       } else {
@@ -131,14 +119,8 @@ if(length(proc_files)>0){
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
-        if(SUBP == TRUE){
-          pop_names <- gsub(".rds", "", populations[pop])
-          saveRDS(comb_meds, paste0(procedures_pop,pop_names, "_",names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",pop_names, "_",names(codelist_all[i]),"_PROC_counts.rds"))
-        } else {
-          saveRDS(comb_meds, paste0(procedures_pop,names(codelist_all[i]),".rds"))
-          saveRDS(counts, paste0(monthly_counts_proc,"/",names(codelist_all[i]),"_PROC_counts.rds"))
-        }
+        saveRDS(comb_meds, paste0(procedures_pop,pop_prefix, "_",names(codelist_all[i]),".rds"))
+        saveRDS(counts, paste0(monthly_counts_proc,"/",pop_prefix, "_",names(codelist_all[i]),"_PROC_counts.rds"))
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))
       }

@@ -7,9 +7,6 @@
 ## if(!require(data.table)){install.packages("data.table")} -> already loaded in packages.R
 ## suppressPackageStartupMessages(library(data.table))
 
-if(!require(dplyr)){install.packages("dplyr")}
-suppressPackageStartupMessages(library(dplyr))
-
 if(!require(viridis)){install.packages("viridis")}
 suppressPackageStartupMessages(library(viridis))
 
@@ -28,7 +25,7 @@ display.brewer.all()
 
 my_folders<- list.files(All_regions_dir, pattern="counts")
 # Excludes pregnancy counts (there are no rates here )
-my_folders<- my_folders[!grepl("study_population_Pregnancy_ALL_counts", my_folders) ]
+my_folders<- my_folders[!grepl("_Pregnancy_ALL_counts", my_folders) ]
 
 #plot directory to deposit loop output
 invisible(ifelse(!dir.exists(paste0(All_regions_dir,"/plots/")), dir.create(paste0(All_regions_dir,"/plots/")), FALSE))

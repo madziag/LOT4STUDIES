@@ -4,8 +4,9 @@
 # set directory with input data
 setwd("..")
 dirbase<-getwd() # Lot4
-#@ DAPS to CHANGE this below if you want to set different INPUT DIRECTORY (where your data is stored)
 dirinput <- paste0(dirbase,"/CDMInstances/LOT4/")
+#@ use this below if you want to set different INPUT DIRECTORY
+#dirinput <- c("C:/Users/clabar/Seafile/Mia Libreria/ConcePTIONAlgorithmPregnancies/CDMInstances/") # remember to use / instead of /
 
 # set other directories
 diroutput <- paste0(thisdir,"/g_output/")
@@ -97,6 +98,7 @@ source(paste0(dirmacro,"ApplyComponentStrategy_v13_2.R"))
 source(paste0(dirmacro,"CreateFigureComponentStrategy_v4.R"))
 source(paste0(dirmacro,"DRECountThresholdV3.R"))
 source(paste0(dirmacro,"DescribeThisDataset.R"))
+source(paste0(dirmacro,"RecoverAllRecordsOfAPregnanciesList.R"))
 
 `%notin%` <- Negate(`%in%`)
 

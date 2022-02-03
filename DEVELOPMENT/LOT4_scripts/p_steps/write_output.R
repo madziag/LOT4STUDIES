@@ -19,4 +19,4 @@ for (i in 1:length(all_rds_outputs)){
   
 }
 
-
+rm(all_rds_outputs)

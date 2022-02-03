@@ -77,9 +77,10 @@ for (i in 1:length(all_counts_folders)){
 # 6. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
 count_files <- list.files(All_regions_dir, pattern = "counts")
+count_files <- count_files[!grepl("discontinued", count_files) ]
 
 for (i in 1:length(count_files)){
-  count_subpop <- strsplit(count_files[i], "_study_population")[[1]][1]
+  count_subpop <- strsplit(count_files[i], "_")[[1]][1]
   for (j in 1:length(denom_files)){
     denom_subpop <- strsplit(denom_files[j], "_denominator")[[1]][1]
     if (count_subpop == denom_subpop){
@@ -114,41 +115,84 @@ for (i in 1:length(count_files)){
   write.csv(pooled_df, paste0(record_dir, count_files[i],"_Pooled.csv"))
 }
 
+### Discontinued counts use prevalence counts as a denominator
+# 8. Move subpop denominator to each file with corresponding subpopulation
+denom_files <- list.files(All_regions_dir, pattern = "prevalence")
+count_files <- list.files(All_regions_dir, pattern = "discontinued_counts")
 
+for (i in 1:length(count_files)){
+  count_subpop <- gsub("_discontinued_counts", "", count_files[i])
+  for (j in 1:length(denom_files)){
+    denom_subpop <- gsub("_prevalence_counts", "", denom_files[j])
+    if (count_subpop == denom_subpop){
+      from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+      to   <- paste0(All_regions_dir, count_files[i], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+      file.copy(from, to)
+    } 
+  }
+}
+
+# 7. Merge denominator files with count files 
+for (i in 1:length(count_files)){
+  # Set path
+  record_dir <- paste0(All_regions_dir, count_files[i], "/")
+  # Load denominator file
+  preval_file <- list.files(paste0(All_regions_dir, count_files[i]), pattern = "prevalence_counts_Pooled")
+  preval_df <- fread(paste0(All_regions_dir, count_files[i], "/", preval_file))
+  preval_df <- preval_df[,-c("V1", "Freq", "masked", "rates")]
+  setnames(preval_df, "N", "Freq")
+  
+  discont_file <- list.files(paste0(All_regions_dir, count_files[i]), pattern = "discontinued_counts_Pooled")
+  discont_df <-  fread(paste0(All_regions_dir, count_files[i], "/", discont_file))
+  discont_df <- discont_df[,-c("V1")]
+  setnames(discont_df,"Sum", "N")
+  # Masking values less than 5
+  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+  discont_df$masked <- ifelse(discont_df$N<5 & discont_df$N>0, 1, 0)
+  # Changes values less than 5 and more than 0 to 5
+  if (mask == T){discont_df[discont_df$masked == 1,]$N <- 5} else {discont_df[discont_df$masked == 1,]$N <- discont_df[discont_df$masked == 1,]$N}
+  # Calculates rates
+  pooled_df <- merge(x = discont_df, y = preval_df, by = c("YM"), all.x = TRUE)
+  pooled_df <- pooled_df[,rates:=as.numeric(N)/as.numeric(Freq)]
+  pooled_df$rates[is.nan(pooled_df$rates)]<-0
+  pooled_df <- pooled_df[,c("YM", "N", "Freq", "rates", "masked")]
+  # Save file 
+  write.csv(pooled_df, paste0(record_dir, count_files[i],"_Pooled.csv"))
+}
 ###########################################################################################################################################################################
 ########### BASELINE TABLES  ##############################################################################################################################################
 ###########################################################################################################################################################################
 
 # 1. Pools study population
-study_pop_files  <- list.files(All_regions_dir, pattern = "study_population_for_pooling_baseline_tables")
-## Loops through all the denominator folders 
+study_pop_files  <- list.files(All_regions_dir, pattern = "ALL_for_pooling_baseline_tables")
+## Loops through all the baseline folders 
 for (i in 1:length(study_pop_files)){
   record_dir <- paste0(All_regions_dir, study_pop_files[i], "/")
   tables_study_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
   comb_tables_study_pop <- as.data.table(do.call(rbind , tables_study_pop))
-  saveRDS(comb_tables_study_pop, paste0(record_dir, strsplit(study_pop_files[i], "_study_population")[[1]][1], "_Study_Population_Pooled.rds"))
+  saveRDS(comb_tables_study_pop, paste0(record_dir, strsplit(study_pop_files[i], "_")[[1]][1], "_Study_Population_Pooled.rds"))
   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
 }
 
 # 2. Pools retinoid/valproate populations
-med_pop_files  <- list.files(All_regions_dir, pattern = "med_use_for_pooling_baseline_tables")
+med_pop_files  <- list.files(All_regions_dir, pattern = "ALL_med_use_for_pooling_baseline_tables")
 ## Loops through all the denominator folders 
 for (i in 1:length(med_pop_files)){
   record_dir <- paste0(All_regions_dir, med_pop_files[i], "/")
   tables_med_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
   comb_tables_med_pop <- as.data.table(do.call(rbind , tables_med_pop))
-  saveRDS(comb_tables_med_pop, paste0(record_dir, strsplit(med_pop_files[i], "_study_population")[[1]][1], "_Meds_Population_Pooled.rds"))
+  saveRDS(comb_tables_med_pop, paste0(record_dir, strsplit(med_pop_files[i], "_")[[1]][1], "_Meds_Population_Pooled.rds"))
   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
 }
 
 # 3. Move study population to corresponding med_use_for_pooling_baseline_tables folder 
 for (i in 1:length(med_pop_files)){
-  med_pop_subpop <- strsplit(med_pop_files[i], "_study_population")[[1]][1]
+  med_pop_subpop <- strsplit(med_pop_files[i], "_")[[1]][1]
   for (j in 1:length(study_pop_files)){
-    study_pop_subpop <- strsplit(study_pop_files[j], "_study_population")[[1]][1]
+    study_pop_subpop <- strsplit(study_pop_files[j], "_")[[1]][1]
     if (med_pop_subpop == study_pop_subpop){
-      from <- paste0(All_regions_dir, study_pop_subpop, "_study_population_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
-      to <- paste0(All_regions_dir,study_pop_subpop, "_study_population_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+      from <- paste0(All_regions_dir, study_pop_subpop, "_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+      to <- paste0(All_regions_dir,study_pop_subpop, "_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
       file.move(from, to)
       
     } 
@@ -156,7 +200,7 @@ for (i in 1:length(med_pop_files)){
 }
 
 # Remove empty folders 
-for(file in list.files(path = All_regions_dir, pattern ="study_population_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
+for(file in list.files(path = All_regions_dir, pattern ="ALL_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
 
 # 4. Create baseline tables for each subpop
 baseline_subpop <- list.files(All_regions_dir, pattern = "baseline_tables")
