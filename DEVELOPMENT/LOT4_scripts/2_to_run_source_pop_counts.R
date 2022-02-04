@@ -12,8 +12,8 @@ setwd(projectFolder)
 # DAP_name <- "ARS"
 # DAP_name <- "BIFAP"
 # DAP_name <- "CASERTA"
-DAP_name <- "CPRD"
-# DAP_name <- "DNR"
+# DAP_name <- "CPRD"
+DAP_name <- "DNR"
 # DAP_name <- "FISABIO"
 # DAP_name <- "PHARMO"
 #user input parameter
@@ -36,13 +36,13 @@ multiple_regions <- F
 #user input parameter
 
 ## MASKING 
-# mask <- T
-mask <- F
+mask <- T
+# mask <- F
 #user input parameter
 
 # Chose format to save files 
-my_format <- "csv"
-# my_format <- "xlsx"
+# my_format <- "csv"
+my_format <- "xlsx"
 #user input parameter
 
 ################################################

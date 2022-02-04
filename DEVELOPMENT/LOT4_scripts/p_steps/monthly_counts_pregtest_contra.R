@@ -28,6 +28,14 @@ if(length(contra_files) >0){
   print("There are no Contraceptive records to evaluate")
 }
 
+#### Testing purposes ####
+pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00123"]$person_id <- "ConCDM_SIM_200421_00029"
+pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00079"]$person_id <- "ConCDM_SIM_200421_00331"
+pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00225"]$person_id <- "ConCDM_SIM_200421_00925"
+pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00629"]$person_id <- "ConCDM_SIM_200421_00247"
+pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00945"]$person_id <- "ConCDM_SIM_200421_00627"
+
+  
 if(length(pregtest_files)>0 | length(contra_files)>0){
   ## Retinoid/Valproate records
   # list of medication files assigned to med_files in wrapper script
@@ -64,7 +72,7 @@ if(length(pregtest_files)>0 | length(contra_files)>0){
     if(length(pregtest_files) > 0){
       ## Merge pregtest and contraceptive records with Retinoid/Valproate records
       # Pregtest + Medications
-      pregtest_med_df <- pregtest_df[med_df, on = .(person_id)] # Left join
+      pregtest_med_df <- pregtest_df[med_df, on = .(person_id), allow.cartesian = T] # Left join
       # 1. Number of Valproate/Retinoid records of female subjects who have a pregnancy test record <= 90 days before the Valproate/Retinoid record
       pregtest_med_df[,pregtest_prior:=ifelse(Date - Pregtest_date >= 0 & Date - Pregtest_date <= 90 , 1, 0)] # Creates new column pregtest_prior
       pregtest_med_df$pregtest_prior[is.na(pregtest_med_df$pregtest_prior)] <- 0 # Changes NA vales (id's with no pregtest done) to 0
@@ -85,13 +93,13 @@ if(length(pregtest_files)>0 | length(contra_files)>0){
         pregtest_prior_counts <- merge(x = pregtest_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
         pregtest_prior_counts <- pregtest_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
         pregtest_prior_counts$rates[is.nan(pregtest_prior_counts$rates)]<-0
-        pregtest_prior_counts$masked <- ifelse(pregtest_prior_counts$masked_num == 1 | pregtest_prior_counts$masked_den == 1, 1, 0)
-        pregtest_prior_counts <- pregtest_prior_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        pregtest_prior_counts <- pregtest_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+        setnames(pregtest_prior_counts, "masked_num", "masked")
         ####################################################
         ##### Saves individual level records +  counts #####
         ####################################################  
-        saveRDS(pregtest_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pregtests_prior.rds")) # Saves Pregtest Prior records 
-        saveRDS(pregtest_prior_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pregtests_prior.rds")) # Saves Pregtest Prior counts
+        saveRDS(pregtest_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_prior.rds")) # Saves Pregtest Prior records 
+        saveRDS(pregtest_prior_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pgtests_prior_counts.rds")) # Saves Pregtest Prior counts
         
         # Clean up
         rm(pregtest_prior_df, pregtest_prior_counts)
@@ -119,14 +127,14 @@ if(length(pregtest_files)>0 | length(contra_files)>0){
         pregtest_after_counts <- merge(x = pregtest_after_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
         pregtest_after_counts <- pregtest_after_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
         pregtest_after_counts$rates[is.nan(pregtest_after_counts$rates)]<-0
-        pregtest_after_counts$masked <- ifelse(pregtest_after_counts$masked_num == 1 | pregtest_after_counts$masked_den == 1, 1, 0)
-        pregtest_after_counts <- pregtest_after_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        pregtest_after_counts <- pregtest_after_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+        setnames(pregtest_after_counts, "masked_num", "masked")
         
         ####################################################
         ##### Saves individual level records +  counts #####
         ####################################################  
-        saveRDS(pregtest_after_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pregtests_after.rds")) # Saves Pregtest After records
-        saveRDS(pregtest_after_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pregtests_after.rds")) # Saves Pregtest After counts
+        saveRDS(pregtest_after_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_after.rds")) # Saves Pregtest After records
+        saveRDS(pregtest_after_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pgtests_after_counts.rds")) # Saves Pregtest After counts
         rm(pregtest_after_df, pregtest_after_counts)
       } else {
         print(paste0("No pregnancy tests were recorded within 90 days after ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
@@ -138,7 +146,7 @@ if(length(pregtest_files)>0 | length(contra_files)>0){
       ## Merge pregtest and contraceptive records with Retinoid/Valproate records
       # Contraceptive + Medications
       # Merge with pregnancy test records 
-      contra_med_df   <- contra_df[med_df, on = .(person_id)] # Left join
+      contra_med_df   <- contra_df[med_df, on = .(person_id), allow.cartesian = T] # Left join
       contra_med_df[,contra_prior:=ifelse(Date - contraception_record_date >= 0 & Date - contraception_record_date <= 90 , 1, 0)] # Creates new column contra_prior
       contra_med_df$contra_prior[is.na(contra_med_df$contra_prior)] <- 0 # change NA vales (id's with no pregtest done) to 0
       contra_prior_df <- contra_med_df[contra_med_df$contra_prior == 1] # Creates df of patients with contraceptive record dates within 90 days before medication use
@@ -160,13 +168,13 @@ if(length(pregtest_files)>0 | length(contra_files)>0){
         contra_prior_counts <- contra_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
         contra_prior_counts$rates[is.nan(contra_prior_counts$rates)]<-0
         contra_prior_counts$masked <- ifelse(contra_prior_counts$masked_num == 1 | contra_prior_counts$masked_den == 1, 1, 0)
-        contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked")]
-        
+        contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+        setnames(contra_prior_counts, "masked_num", "masked")
         ###################################################
         ##### Saves individual level records + counts #####
         ###################################################
         saveRDS(contra_prior_df,   paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before records
-        saveRDS(contra_prior_counts,   paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before counts
+        saveRDS(contra_prior_counts,   paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contraception_prior_counts.rds")) # Saves Contraceptive before counts
         # Clean up
         rm(contra_files, contra_med_df,contra_prior_df, contra_prior_counts)
       } else {

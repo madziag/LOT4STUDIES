@@ -67,6 +67,7 @@ if (is_Denmark == T){
   }
 }
 
+### Creates csv/xslx folders inside main folders ###
 # Creates csv/xslx folder inside baseline tables, pregnancy counts and medicines counts folders
 invisible(ifelse(!dir.exists(paste0(baseline_tables_dir,"/",my_format,"_files")), dir.create(paste0(baseline_tables_dir,"/",my_format,"_files")), FALSE))
 baseline_tables_csv_xlsx <- paste0(baseline_tables_dir,"/",my_format,"_files")
@@ -76,29 +77,42 @@ preg_med_counts_csv_xlsx <- paste0(preg_med_counts_dir,"/",my_format,"_files")
 # Create folder inside medicines folder for csv or excel file format
 invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/",my_format,"_files")), dir.create(paste0(medicines_counts_dir,"/",my_format,"_files")), FALSE))
 medicines_counts_csv_xlsx <- paste0(medicines_counts_dir,"/",my_format,"_files")
+# Create folder inside contraceptives folder for csv or excel file format
+invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), dir.create(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), FALSE))
+contraceptive_counts_csv_xlsx <- paste0(contraceptive_counts_dir ,"/",my_format,"_files")
+# Create folder inside pregnancy test folder for csv or excel file format
+invisible(ifelse(!dir.exists(paste0(pregnancy_test_counts_dir,"/",my_format,"_files")), dir.create(paste0(pregnancy_test_counts_dir,"/",my_format,"_files")), FALSE))
+pregnancy_test_counts_csv_xlsx <- paste0(pregnancy_test_counts_dir,"/",my_format,"_files")
+
+### Moves csv/xslx files with matching pattern to corresponding folders
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="contraception", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), contraceptive_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
+
+### Creates plot folders inside main folders 
 # Create plots folder inside pregnancy counts folder
 invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/","plots")), dir.create(paste0(preg_med_counts_dir,"/","plots")), FALSE))
 preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 # Create plots folder inside medicines counts folder
 invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/","plots")), dir.create(paste0(medicines_counts_dir,"/","plots")), FALSE))
 medicines_counts_plots <- paste0(medicines_counts_dir,"/","plots")
-
-# Moves csv/xslx files with matching pattern to corresponding folders
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
+# Create plots folder inside contraceptives counts folder
+invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","plots")), dir.create(paste0(contraceptive_counts_dir,"/","plots")), FALSE))
+contraceptive_counts_plots <- paste0(contraceptive_counts_dir,"/","plots")
+# Create plots folder inside pregnancy test counts folder
+invisible(ifelse(!dir.exists(paste0(pregnancy_test_counts_dir,"/","plots")), dir.create(paste0(pregnancy_test_counts_dir,"/","plots")), FALSE))
+pregnancy_test_counts_plots <- paste0(pregnancy_test_counts_dir,"/","plots")
 
 # Moves plot files with matching pattern to corresponding folders
+for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), pregnancy_test_counts_plots)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern="contraception", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), contraceptive_counts_plots)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
 
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
-for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files")), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
+for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
 # Deletes temp files 
 for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
-# Delete denominator files
-for(file in list.files(path = output_dir, pattern ="denominator")){unlink(paste0(output_dir, file), recursive = TRUE)}
-# Remove empty files (monthly_counts folders that are created again when to_run_final_counts.R is run)
-for (file in list.files(path=paste0(output_dir), pattern= "monthly_counts", ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
-
 

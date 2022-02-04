@@ -38,4 +38,5 @@ if(!require(dplyr)){install.packages("dplyr")}
 suppressPackageStartupMessages(library(dplyr))
 if(!require(AdhereR)){install.packages("AdhereR")}
 suppressPackageStartupMessages(library(AdhereR))
-
+if(!require(stringi)){install.packages("stringi")}
+suppressPackageStartupMessages(library(stringi))
