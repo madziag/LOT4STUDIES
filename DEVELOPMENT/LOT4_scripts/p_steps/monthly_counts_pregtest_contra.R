@@ -13,6 +13,9 @@ if (length(pregtest_files) > 0){
   setnames(pregtest_df, "Date", "Pregtest_date") # Renames column 
   setnames(pregtest_df, "Code", "Pregtest_code") # Renames column 
   setnames(pregtest_df, "Vocabulary", "Pregtest_vocabulary") # Renames column
+  pregtest_df[,month:=month(Pregtest_date)][,year:=year(Pregtest_date)] # Creates month/year cols
+  pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
+  pregtest_df <- pregtest_df[,-c("month", "year")]
 } else {
   print("There are no Pregnancy Test records to evaluate")
 }
@@ -24,18 +27,13 @@ if(length(contra_files) >0){
   contra_df    <- readRDS(contra_files) # Loads file
   contra_df    <- contra_df[,-c("contraception_meaning", "assumed_duration")] # Keeps necessary columns 
   setnames(contra_df, "Code", "Contraception_code") # Renames column 
+  contra_df[,month:=month(contraception_record_date)][,year:=year(contraception_record_date)]
+  contra_df <- contra_df[!duplicated(contra_df[,c("person_id", "month", "year")]),]
+  contra_df <- contra_df[, -c("month", "year")]
 } else {
   print("There are no Contraceptive records to evaluate")
 }
 
-#### Testing purposes ####
-pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00123"]$person_id <- "ConCDM_SIM_200421_00029"
-pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00079"]$person_id <- "ConCDM_SIM_200421_00331"
-pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00225"]$person_id <- "ConCDM_SIM_200421_00925"
-pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00629"]$person_id <- "ConCDM_SIM_200421_00247"
-pregtest_df[pregtest_df$person_id == "ConCDM_SIM_200421_00945"]$person_id <- "ConCDM_SIM_200421_00627"
-
-  
 if(length(pregtest_files)>0 | length(contra_files)>0){
   ## Retinoid/Valproate records
   # list of medication files assigned to med_files in wrapper script
