@@ -17,7 +17,9 @@ study_population<-OBS_SPELLS[study_population,on=.(person_id)] # Left join
 # Creates Entry Date 
 ## entry date <- latest date at which ANY of the following conditions are met: age > 12, observation starts, study starts
 # Looks for max date of all chosen columns
-study_population$start_date <- as.Date(as.character(20100101), "%Y%m%d")
+# study_population$start_date <- as.Date(as.character(20100101), "%Y%m%d")
+study_population$start_date <- as.IDate(as.character(20100101), "%Y%m%d")
+
 study_population$entry_date <- pmax(study_population$date_min, study_population$spell_start_date, study_population$start_date, na.rm = TRUE)
 study_population$entry_date <- as.Date(study_population$entry_date, "%Y%m%d")
 summary(study_population$entry_date)
@@ -39,14 +41,14 @@ if (length(list.files(paste0(g_intermediate,"tmp/sterility/"), pattern = "steril
   sterility[,person_id:=as.character(person_id)]
   study_population<-sterility[study_population,on=.(person_id)] # Left join
   # Looks for min date of all chosen columns
-  if (is_PHARMO){study_population$end_date  <- as.Date(as.character(20191231), "%Y%m%d")} else {study_population$end_date  <- as.Date(as.character(20201231), "%Y%m%d")}
+  if (is_PHARMO){study_population$end_date  <- as.IDate(as.character(20191231), "%Y%m%d")} else {study_population$end_date  <- as.IDate(as.character(20201231), "%Y%m%d")}
   study_population$exit_date <- pmin(study_population$date_max, study_population$spell_end_date, study_population$end_date,study_population$Sterility_Date, na.rm = TRUE)
   study_population$exit_date <- as.Date(study_population$exit_date, "%Y%m%d")
   summary(study_population$exit_date)
   print("exit date OK")
 } else {
   # Determines exit date (excluding sterility records )
-  study_population$end_date  <- as.Date(as.character(20201231), "%Y%m%d")
+  if (is_PHARMO){study_population$end_date  <- as.IDate(as.character(20191231), "%Y%m%d")} else {study_population$end_date  <- as.IDate(as.character(20201231), "%Y%m%d")}
   study_population$exit_date <- pmin(study_population$date_max, study_population$spell_end_date, study_population$end_date, na.rm = TRUE)
   study_population$exit_date <- as.Date(study_population$exit_date, "%Y%m%d")
   summary(study_population$exit_date)

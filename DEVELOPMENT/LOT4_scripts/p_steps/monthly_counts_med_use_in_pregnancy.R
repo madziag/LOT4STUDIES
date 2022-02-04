@@ -8,7 +8,7 @@ D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 # Creates empty data frame for counts 
 # Loads denominator file to get min and max dates for empty file 
-denominator <- list.files(output_dir, pattern = populations[pop])
+denominator <- list.files(output_dir, pattern = pop_prefix)
 FUmonths_df <- as.data.table(readRDS(paste0(output_dir, pop_prefix, "_denominator.rds")))
 # Splits Y-M column 
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]

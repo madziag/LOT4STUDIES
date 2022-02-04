@@ -175,6 +175,7 @@ if(length(events_files)>0){
       # Loads files
       files <- list.files(path=paste0(events_tmp_DX, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
+      comb_meds <- comb_meds[!duplicated(comb_meds),]
       # Counts by month-year
       counts <- comb_meds[,.N, by = .(year,month(Date))]
       # Merges with empty_counts_df

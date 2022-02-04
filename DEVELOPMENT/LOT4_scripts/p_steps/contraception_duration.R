@@ -25,8 +25,11 @@ contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, patter
 contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list))
 
 # In each dataset, create a new column called assumed_duration.
+
+
 # diagnoses\iud_diag.rds: assumed_duration = 1095
 # procedures\iud.rds: assumed_duration = 1095
+
 # medications\contracep_fixedcomb.rds: assumed_duration = 28
 # medications\contracep_implant.rds: assumed_duration = 1095
 # medications\contracep_injection.rds: assumed_duration = 84
