@@ -6,16 +6,26 @@
 
 print('Import and append observation periods files')
 
+FlowChartCreateSpells <- list()
 
 OBSERVATION_PERIODS <- IMPORT_PATTERN(pat = "OBSERVATION_PERIODS", dir = path_dir)
 
+step0<-"original data"
+
+step0_nrow<-nrow(OBSERVATION_PERIODS)
+
+step0_unique<-length(unique(OBSERVATION_PERIODS$person_id))
+
+step1<-'Set start and end date to date format and if end date is empty fill with end study date'
 
 print('Set start and end date to date format and if end date is empty fill with end study date')
 lapply(c("op_start_date","op_end_date"), function (x) OBSERVATION_PERIODS <- OBSERVATION_PERIODS[,eval(x) := as.IDate(as.character(get(x)),"%Y%m%d")])
 
 OBSERVATION_PERIODS <- OBSERVATION_PERIODS[is.na(op_end_date), op_end_date := end_study_date]
 
-FlowChartCreateSpells <- list()
+step1_nrow<-nrow(OBSERVATION_PERIODS)
+
+step1_unique<-length(unique(OBSERVATION_PERIODS$person_id))
 
 if(SUBP){
   print("There are subpopulations, so a column with meaning_set is added as specified in metadata")
@@ -179,7 +189,7 @@ FlowChartCreateSpells<-as.data.frame(cbind(CreateSpellsStep, OBS_number))
 saveRDS(FlowChartCreateSpells, file = paste0(output_dir,"FlowChartCreateSpells.rds"))
 
 if(exists("FlowChartOverlap")){ 
-  saveRDS(FlowChartOverlap, file = paste0(std_pop_tmp,"FlowChartOverlap.rds"))
+  saveRDS(FlowChartOverlap, file = paste0(std_pop_tmp,"SUBPOP_FlowChartOverlap.rds"))
   rm(FlowChartOverlap)
 }
   

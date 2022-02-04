@@ -26,5 +26,6 @@ my_cma<-CMA0(
   suppress.warnings = FALSE,
   arguments.that.should.not.be.defined = NULL
 )
-
+pdf(plot_folder)
 plot(my_cma)
+dev.off
