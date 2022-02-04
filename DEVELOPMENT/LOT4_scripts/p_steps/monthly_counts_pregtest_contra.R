@@ -20,6 +20,13 @@ if (length(pregtest_files) > 0){
   print("There are no Pregnancy Test records to evaluate")
 }
 
+################# TESTING ###################
+pregtest_df[person_id == "ConCDM_SIM_200421_00123"]$person_id  <- "ConCDM_SIM_200421_00841"
+pregtest_df[person_id == "ConCDM_SIM_200421_00079"]$person_id  <- "ConCDM_SIM_200421_00029" 
+pregtest_df[person_id == "ConCDM_SIM_200421_00225"]$person_id  <- "ConCDM_SIM_200421_00440" 
+pregtest_df[person_id == "ConCDM_SIM_200421_00629"]$person_id  <- "ConCDM_SIM_200421_00247"  
+pregtest_df[person_id == "ConCDM_SIM_200421_00945"]$person_id  <- "ConCDM_SIM_200421_00080"
+
 ## Contraceptive records
 contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
 

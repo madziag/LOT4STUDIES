@@ -1,7 +1,27 @@
 # Looks for treatment files in treatment episodes folder 
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "treatment_episodes")
+# Excludes already contraceptive episode files
+tx_episodes_files <- tx_episodes_files[!grepl("contraceptives", tx_episodes_files)]
+
 # Includes only current subop 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files) ]
+# Loads pregnancy file
+# Loads Pregnancy records 
+D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermediate/D3_pregnancy_reconciled.RData"))))
+# Data Cleaning Pregnancy file
+D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
+D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
+D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
+D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "highest_quality")]
+
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
+
+
 # Create empty df for complete counts (based of main denominator min and max years)
 # Loads denominator file to get min and max dates for empty file
 denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))
@@ -132,6 +152,44 @@ for (i in 1:length(tx_episodes_files)){
   df_discontinued_counts <-df_discontinued_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Save files 
   saveRDS(df_discontinued_counts, (paste0(medicines_counts_dir,"/", med_name, "_discontinued_counts.rds")))
+  ##################################################################################################
+  ############################# Calculates Discontinuation Rates ###################################
+  ##################################################################################################
+  ### Rate of pregnancies starting in a Retinoid/Valproate episode 
+  # Numerator -> Number of pregnancies that started (start date) during a Retinoid/Valproate episode (current users)
+  # Denominator -> Number of prevalent Retinoid/Valproate users that month (already calculated above)
+  # Merge pregnancy df with tx episodes file
+  # Contraceptive Episodes + Medications
+  preg_med_df <- df[D3_pregnancy_reconciled, on = .(person_id)] # Left join
+  preg_med_df <-  preg_med_df[!is.na(episode.start),] # Delete records with pregnancy records 
+  preg_med_df[,episode.start:=as.IDate(episode.start,"%Y%m%d")][,episode.end:=as.IDate(episode.end,"%Y%m%d")]# Converts dates to be in the same format
+  preg_med_df[,preg_in_episode:= fifelse(pregnancy_start_date>=episode.start & pregnancy_start_date<=episode.end, 1, 0)] # Creates column that indicates if medicine record date is between episode.start and episode.end dates
+  preg_med_df <- preg_med_df[preg_in_episode == 1,] # Creates preg_med_df  of patients who have a medicine record date between episode.start and episode.end dates
+  # Checks if there are any records that meet the criteria. If so it does the calculations
+  if (nrow(preg_med_df) > 0){
+    # Performs counts 
+    preg_during_epi_counts <- preg_med_df[,.N, by = .(year(pregnancy_start_date),month(pregnancy_start_date))] # Performs counts grouped by year, month of medicine prescription date
+    preg_during_epi_counts <- as.data.table(merge(x = empty_counts, y = preg_during_epi_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with preg_during_epi_counts
+    preg_during_epi_counts[is.na(preg_during_epi_counts[,N]), N:=0] # Fills in missing values with 0
+    # Masking
+    preg_during_epi_counts$masked_num <- ifelse(preg_during_epi_counts$N < 5 & preg_during_epi_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
+    if(mask == T){preg_during_epi_counts[preg_during_epi_counts$masked_num == 1,]$N <- 5} else {preg_during_epi_counts[preg_during_epi_counts$masked_num == 1,]$N <- preg_during_epi_counts[preg_during_epi_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
+    ############################
+    ##### Calculates Rates #####
+    ############################
+    preg_during_epi_counts <- within(preg_during_epi_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
+    preg_during_epi_counts <- merge(x = preg_during_epi_counts, y = df_prevalence_counts_num, by = c("YM"), all.x = TRUE) # Merge with med counts
+    preg_during_epi_counts <- preg_during_epi_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+    preg_during_epi_counts$rates[is.nan(preg_during_epi_counts$rates)]<-0
+    preg_during_epi_counts$rates[is.na(preg_during_epi_counts$rates)]<-0
+    preg_during_epi_counts <- preg_during_epi_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+    setnames(preg_during_epi_counts, "masked_num", "masked")
+    # Save files 
+    saveRDS(preg_med_df, paste0(counts_dfs_dir, pop_prefix, "_preg_start_during_tx_episodes.rds"))
+    saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", pop_prefix, "_preg_start_during_tx_episodes_counts.rds"))
+  } else {
+    print(paste0(gsub("_treatment_episodes.rds", "",tx_episodes_files[i]), " study: There are no patients with pregnancy start dates that fall between episode start and end dates!"))
+  }
 }
 
 # Clean up
