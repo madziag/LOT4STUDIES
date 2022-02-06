@@ -3,8 +3,6 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 26/1/2022
 
-
-
 # Create treatment episodes script
 # R.Pajouheshnia; 17 DEC 2021
 # This script does two things:
@@ -17,13 +15,6 @@
 #Retinoid.rds or Valproate.rds or both
 #p_param\DOT
 
-
-# if(!require(AdhereR)){install.packages("AdhereR")}
-# library(AdhereR)
-
-# dir.create(paste0(output_dir,"treatment_episodes"))
-pop_prefix <- gsub(".rds", "", populations[pop])
-# contra_data<-readRDS(paste0(tmp, "all_contraception/all_contra.rds"))
 contra_data <- readRDS(paste0(contra_folder, pop_prefix, "_all_contra.rds" ))
 names(contra_data)
 str(contra_data$assumed_duration)
@@ -57,15 +48,14 @@ str(contra_data$assumed_duration)
   suppress.warnings = FALSE,
   return.data.table = FALSE)
 
-  saveRDS(my_treat_episode, (paste0(output_dir,"treatment_episodes/",pop_prefix ,"_contra_treat_episode.rds")))
-
-
+  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix ,"_contraceptives_treatment_episodes.rds")))
+  
 summary(my_treat_episode)
 hist(my_treat_episode$episode.duration, breaks=200)
 hist(my_treat_episode$episode.ID)
 
-#plot treatment episodes to check for consistency
-plot.CMA
+#plot treatment episodes to check for consistency  #### THIS NEED TO BE CHECKED AS IT IS NOT WORKING
+# plot.CMA
 #LOGICAL CHECKS
 #duration is positive
 if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
@@ -82,3 +72,4 @@ table(contra_data$assumed_duration)
 table(my_treat_episode$episode.duration)
 
 if(length(weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28])>0){print(my_treat_episode[my_treat_episode$person_id%in%weird_ID,])}else{print("durations> minimum assumed duration")}
+

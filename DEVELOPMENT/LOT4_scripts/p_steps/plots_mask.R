@@ -6,7 +6,7 @@
 # Loads denominator file  ### THIS NEEDS TO BE GENERALIZED OTHERWISE IT WILL NOT WORK WITH THE 2 BIFAP SUBPOPULATION DENOMINATORS
 denominator<-readRDS(paste0(output_dir, pop_prefix, "_denominator.rds"))
 # Gets lists of files for plotting 
-pattern1 = c("monthly_counts", "pregnancy_counts", "medicines_counts")
+pattern1 = c("monthly_counts", "pregnancy_counts", "medicines_counts", "contraceptive_counts", "pregnancy_test_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
 # Creates lists 
 count_names_all <- list()

@@ -103,13 +103,14 @@ baseline_tables_dir <- paste0(output_dir, "baseline_tables")
 # 3. MED USE DURING PREGNANCY 
 invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
 preg_med_counts_dir <- paste0(output_dir, "pregnancy_counts")
-# 4. CONTRACEPTIVE COUNTS (not yet in use)
+
+# 4. CONTRACEPTIVE COUNTS 
 invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
 contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
 # 5. MEDICINES COUNTS 
 invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
 medicines_counts_dir <- paste0(output_dir, "medicines_counts")
-# 6. PREGNANCY TEST COUNTS (not yet in use)
+# 6. PREGNANCY TEST COUNTS 
 invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
 pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
 
