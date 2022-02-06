@@ -135,15 +135,14 @@ if(SUBP){
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$population <- subpopulation_meanings[["subpopulations"]][i]
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$before <- before
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$after <- after
+          saveRDS(FlowChartCreateSpells, file = paste0(output_dir,subpopulation_meanings[["subpopulations"]][i],"_flowchart.rds"))
           rm(TEMP)
           gc()
   }
   
-}
+}else{
 
 
-
-######################################################################################################################  
 print("Create spells and select latest for ALL")
 
 before_CreateSpells <- nrow(OBSERVATION_PERIODS)
@@ -178,11 +177,11 @@ saveRDS(OBSERVATION_PERIODS1, file = paste0(std_pop_tmp,"ALL_OBS_SPELLS.rds"))
 
 ###################################################################################################################### 
 print("store FlowChart data on attrition")
-CreateSpellsStep<-c("original number of OBSERVATION PERIODS", 
+CreateSpellsStep<-c("original number of OBSERVATION PERIODS", "original number of unique personID",
                     "number of OBSERVATION PERIODS after concatenating observations with gaps <= 7 days", 
                     "number of OBSERVATION PERIODS after selecting the most recent observation (one spell per unique ID)")
 
-OBS_number<-c(before_CreateSpells,after_CreateSpells, select_most_recent)
+OBS_number<-c(before_CreateSpells,step0_unique, after_CreateSpells, select_most_recent)
 
 FlowChartCreateSpells<-as.data.frame(cbind(CreateSpellsStep, OBS_number))
 
@@ -195,6 +194,7 @@ if(exists("FlowChartOverlap")){
   
 rm(before_CreateSpells,after_CreateSpells, select_most_recent, OBSERVATION_PERIODS, OBSERVATION_PERIODS1, FlowChartCreateSpells)
 gc()
+}
 
 
 
