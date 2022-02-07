@@ -28,22 +28,18 @@ if (is_Denmark == T){
   pop_prefix <- gsub("_study_population.rds", "", populations)
   # Creates baseline tables 
   source(paste0(pre_dir,"CreateBaselineTables.R"))
-  # Creates treatment episodes 
+  # Creates Retinoid/Valproate treatment episodes 
   source(paste0(pre_dir, "treatment_episodes.R"))
-  # Counts of prevalence, incidence, discontinuation - medicines use 
-  source(paste0(pre_dir, "treatment_episodes_counts.R"))
-  # Counts of prevalence, incidence, discontinuation - medicines use 
+  # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
   source(paste0(pre_dir, "contraception_duration.R"))
   # Creates contraception treatment episodes 
   source(paste0(pre_dir, "treatment_episodes_contracep.R"))
-  # Counts of pregnancy tests performed and contraceptive use in Retinoid/Valproate users
-  source(paste0(pre_dir, "monthly_counts_pregtest_contra.R"))
-  # Counts of patients who received Retinoids/Valproates during a contraceptive episode
-  source(paste0(pre_dir, "med_counts_during_contra_use.R"))
-  # Makes plots of all counts files
-  source(paste0(pre_dir, "plots_mask.R"))
-  # Converts all .rds files into .csv or .xlsx (indicated by user)
-  source(paste0(pre_dir, "write_output.R"))
+  # Counts of prevalence, incidence, discontinuation - medicines use 
+  source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
+  # Counts of contraception records within 90 days before medication record 
+  source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
+  # Counts of medicine records during contraception episodes
+  source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
   
 } else {
   # Loops over each subpopulation
@@ -56,20 +52,24 @@ if (is_Denmark == T){
     if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
     # Creates baseline tables 
     source(paste0(pre_dir,"CreateBaselineTables.R"))
-    # Looks for medication use during pregnancies
-    source(paste0(pre_dir, "monthly_counts_med_use_in_pregnancy.R"))
-    # Creates treatment episodes 
+    # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
-    # Counts of prevalence, incidence, discontinuation - medicines use 
-    source(paste0(pre_dir, "treatment_episodes_counts.R"))
-    # Counts of prevalence, incidence, discontinuation - medicines use 
+    # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))
     # Creates contraception treatment episodes 
     source(paste0(pre_dir, "treatment_episodes_contracep.R"))
-    # Counts of pregnancy tests performed and contraceptive use in Retinoid/Valproate users
-    source(paste0(pre_dir, "monthly_counts_pregtest_contra.R"))
-    # Counts of patients who received Retinoids/Valproates during a contraceptive episode
-    source(paste0(pre_dir, "med_counts_during_contra_use.R"))
+    # Counts of prevalence, incidence, discontinuation - medicines use 
+    source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
+    # Counts of pregnancy tests within 90 days before/after medication record
+    source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
+    # Counts of contraception records within 90 days before medication record 
+    source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
+    # Counts of medicine records during contraception episodes
+    source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
+    # Counts of pregnancies started during a treatment episode 
+    source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
+    # Counts of medicines used during a pregnancy 
+    source(paste0(pre_dir, "medicine_use_during_pregnancy_counts.R"))
     # Makes plots of all counts files
     source(paste0(pre_dir, "plots_mask.R"))
     # Converts all .rds files into .csv or .xlsx (indicated by user)
@@ -81,45 +81,48 @@ if (is_Denmark == T){
 # Creates csv/xslx folder inside baseline tables, pregnancy counts and medicines counts folders
 invisible(ifelse(!dir.exists(paste0(baseline_tables_dir,"/",my_format,"_files")), dir.create(paste0(baseline_tables_dir,"/",my_format,"_files")), FALSE))
 baseline_tables_csv_xlsx <- paste0(baseline_tables_dir,"/",my_format,"_files")
-# Create folder inside pregnancy folder for csv or excel file format
-invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/",my_format,"_files")), dir.create(paste0(preg_med_counts_dir,"/",my_format,"_files")), FALSE))
-preg_med_counts_csv_xlsx <- paste0(preg_med_counts_dir,"/",my_format,"_files")
 # Create folder inside medicines folder for csv or excel file format
 invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/",my_format,"_files")), dir.create(paste0(medicines_counts_dir,"/",my_format,"_files")), FALSE))
 medicines_counts_csv_xlsx <- paste0(medicines_counts_dir,"/",my_format,"_files")
-# Create folder inside contraceptives folder for csv or excel file format
-invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), dir.create(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), FALSE))
-contraceptive_counts_csv_xlsx <- paste0(contraceptive_counts_dir ,"/",my_format,"_files")
 # Create folder inside pregnancy test folder for csv or excel file format
 invisible(ifelse(!dir.exists(paste0(pregnancy_test_counts_dir,"/",my_format,"_files")), dir.create(paste0(pregnancy_test_counts_dir,"/",my_format,"_files")), FALSE))
 pregnancy_test_counts_csv_xlsx <- paste0(pregnancy_test_counts_dir,"/",my_format,"_files")
+# Create folder inside contraceptives folder for csv or excel file format
+invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), dir.create(paste0(contraceptive_counts_dir ,"/",my_format,"_files")), FALSE))
+contraceptive_counts_csv_xlsx <- paste0(contraceptive_counts_dir ,"/",my_format,"_files")
+# Create folder inside pregnancy folder for csv or excel file format
+invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/",my_format,"_files")), dir.create(paste0(preg_med_counts_dir,"/",my_format,"_files")), FALSE))
+preg_med_counts_csv_xlsx <- paste0(preg_med_counts_dir,"/",my_format,"_files")
 
-### Moves csv/xslx files with matching pattern to corresponding folders
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="contraception", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), contraceptive_counts_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL", "preg_start"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
-
-### Creates plot folders inside main folders 
-# Create plots folder inside pregnancy counts folder
-invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/","plots")), dir.create(paste0(preg_med_counts_dir,"/","plots")), FALSE))
-preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
+### Creates plot folders inside main folders
 # Create plots folder inside medicines counts folder
 invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/","plots")), dir.create(paste0(medicines_counts_dir,"/","plots")), FALSE))
 medicines_counts_plots <- paste0(medicines_counts_dir,"/","plots")
-# Create plots folder inside contraceptives counts folder
-invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","plots")), dir.create(paste0(contraceptive_counts_dir,"/","plots")), FALSE))
-contraceptive_counts_plots <- paste0(contraceptive_counts_dir,"/","plots")
 # Create plots folder inside pregnancy test counts folder
 invisible(ifelse(!dir.exists(paste0(pregnancy_test_counts_dir,"/","plots")), dir.create(paste0(pregnancy_test_counts_dir,"/","plots")), FALSE))
 pregnancy_test_counts_plots <- paste0(pregnancy_test_counts_dir,"/","plots")
+# Create plots folder inside contraceptives counts folder
+invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","plots")), dir.create(paste0(contraceptive_counts_dir,"/","plots")), FALSE))
+contraceptive_counts_plots <- paste0(contraceptive_counts_dir,"/","plots")
+# Create plots folder inside pregnancy counts folder
+invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/","plots")), dir.create(paste0(preg_med_counts_dir,"/","plots")), FALSE))
+preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 
-# Moves plot files with matching pattern to corresponding folders
+### Moves csv/xslx/plot files with matching pattern to corresponding folders
+# baseline tables
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
+# medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts/medicine_use_during_pregnancy_counts
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
+# pregnancy_tests_within_90_days_of_medicine_use_counts
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), pregnancy_test_counts_plots)}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern="contraception", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), contraceptive_counts_plots)}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("Retinoid_preg", "Valproate_preg", "Pregnancy_ALL", "preg_start"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
+# contraceptive_use_within_90_days_of_medicine_use_counts
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), contraceptive_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), contraceptive_counts_plots)}
+#pregnancies_started_during_treatment_episode_counts
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="preg_starts_during_tx_episodes", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern="preg_starts_during_tx_episodes", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
 for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}

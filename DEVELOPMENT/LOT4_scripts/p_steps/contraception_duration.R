@@ -98,3 +98,6 @@ for (i in 1:length(contracep_tables)){
 # Check 
 if(nrow(all_contra)==sum(my_rows)){print("all_contra OK")}else{print("all contra incomplete")}
 saveRDS(all_contra,(paste0(contra_folder, pop_prefix, "_all_contra.rds" )))
+
+# Clean up 
+rm(new_df, my_dur, all_contra, my_contra, contra_type_dur, contracep_diag_list, contracep_med_list, contracep_names, contracep_proc_list, contracep_tables, duration_contra, meaning_contra, types_contra)
