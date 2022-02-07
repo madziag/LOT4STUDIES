@@ -55,12 +55,12 @@ if(length(contra_epi_files)>0) {
     # Merges contraception episodes df with medication df 
     contra_epi_med_df <- contra_epi_df[med_df, on = .(person_id), allow.cartesian = T] # Left join
     # # Testing ################# TESTING ###################
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00029" & Date == "2019-09-24"]$episode.start <- as.IDate(as.character(20190830), "%Y%m%d")
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00029" & Date == "2019-09-24"]$episode.end <- as.IDate(as.character(20191030), "%Y%m%d")
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00627" & Date == "2014-09-08"]$episode.start <- as.IDate(as.character(20140821), "%Y%m%d")
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00627" & Date == "2014-09-08"]$episode.end <- as.IDate(as.character(20141021), "%Y%m%d")
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00428" & Date == "2018-03-12"]$episode.start <- as.IDate(as.character(20180228), "%Y%m%d")
-    contra_epi_med_df[person_id == "ConCDM_SIM_200421_00428" & Date == "2018-03-12"]$episode.end <- as.IDate(as.character(20180430), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00029" & Date == "2019-09-24"]$episode.start <- as.IDate(as.character(20190830), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00029" & Date == "2019-09-24"]$episode.end <- as.IDate(as.character(20191030), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00627" & Date == "2014-09-08"]$episode.start <- as.IDate(as.character(20140821), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00627" & Date == "2014-09-08"]$episode.end <- as.IDate(as.character(20141021), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00428" & Date == "2018-03-12"]$episode.start <- as.IDate(as.character(20180228), "%Y%m%d")
+    # contra_epi_med_df[person_id == "ConCDM_SIM_200421_00428" & Date == "2018-03-12"]$episode.end <- as.IDate(as.character(20180430), "%Y%m%d")
     # Testing ################# TESTING ###################
     # Converts all date columns to same date type (Idate vs Date)
     contra_epi_med_df[,episode.start:=as.IDate(episode.start,"%Y%m%d")][,episode.end:=as.IDate(episode.end,"%Y%m%d")]# Converts dates to be in the same format

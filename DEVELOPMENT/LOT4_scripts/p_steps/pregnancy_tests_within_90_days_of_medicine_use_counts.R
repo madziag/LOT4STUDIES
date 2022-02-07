@@ -44,20 +44,20 @@ rm(denominator)
 if(length(pregtest_files)>0) {
   # Loads files + clean up
   pregtest_df <- do.call(rbind,lapply(pregtest_files, readRDS)) # Loads file
-  pregtest_df <- pregtest_df[,c("person_id", "Date", "Code", "Vocabulary")] # Keeps necessary columns 
+  # pregtest_df <- pregtest_df[,c("person_id", "Date", "Code", "Vocabulary")] # Keeps necessary columns 
   setnames(pregtest_df, "Date", "Pregtest_date") # Renames column 
   setnames(pregtest_df, "Code", "Pregtest_code") # Renames column 
   setnames(pregtest_df, "Vocabulary", "Pregtest_vocabulary") # Renames column
   pregtest_df[,month:=month(Pregtest_date)][,year:=year(Pregtest_date)] # Creates month/year cols (for the purposes of deduplicating - only 1 pregnancy test record per person_id per month/year is allowed)
   pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
   pregtest_df <- pregtest_df[,-c("month", "year")]
-  ################# TESTING ###################
-  pregtest_df[person_id == "ConCDM_SIM_200421_00123"]$person_id  <- "ConCDM_SIM_200421_00841"
-  pregtest_df[person_id == "ConCDM_SIM_200421_00079"]$person_id  <- "ConCDM_SIM_200421_00029"
-  pregtest_df[person_id == "ConCDM_SIM_200421_00225"]$person_id  <- "ConCDM_SIM_200421_00440"
-  pregtest_df[person_id == "ConCDM_SIM_200421_00629"]$person_id  <- "ConCDM_SIM_200421_00247"
-  pregtest_df[person_id == "ConCDM_SIM_200421_00945"]$person_id  <- "ConCDM_SIM_200421_00080"
-  ################# TESTING ###################
+  # ################# TESTING ###################
+  # pregtest_df[person_id == "ConCDM_SIM_200421_00123"]$person_id  <- "ConCDM_SIM_200421_00841"
+  # pregtest_df[person_id == "ConCDM_SIM_200421_00079"]$person_id  <- "ConCDM_SIM_200421_00029"
+  # pregtest_df[person_id == "ConCDM_SIM_200421_00225"]$person_id  <- "ConCDM_SIM_200421_00440"
+  # pregtest_df[person_id == "ConCDM_SIM_200421_00629"]$person_id  <- "ConCDM_SIM_200421_00247"
+  # pregtest_df[person_id == "ConCDM_SIM_200421_00945"]$person_id  <- "ConCDM_SIM_200421_00080"
+  # ################# TESTING ###################
   ##### Loops over medication files to create counts per medication type 
   for(i in 1:length(med_files)){
     ## Loads the medication record
