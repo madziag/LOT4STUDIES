@@ -5,9 +5,9 @@ print("merge spell_start spell_end from OBS_SPELLS")
 # pop_prefix <- str_replace(populations[pop], "study_population.rds", "")
 # Reads in OBS_SPELLS  
 OBS_SPELLS <- readRDS(paste0(g_intermediate,"tmp/STUDY_SOURCE_POPULATION/", pop_prefix, "_OBS_SPELLS.rds"))
-# Renames columns
-names(OBS_SPELLS)[names(OBS_SPELLS) == 'op_start_date'] <- 'spell_start_date'
-names(OBS_SPELLS)[names(OBS_SPELLS) == 'op_end_date'] <- 'spell_end_date'
+# copy columns
+OBS_SPELLS$spell_start_date<-OBS_SPELLS$op_start_date
+OBS_SPELLS$spell_end_date<-OBS_SPELLS$op_end_date
 # Drops unnecessary columns
 OBS_SPELLS<-OBS_SPELLS[,c("person_id","spell_start_date", "spell_end_date")]
 # Merges OBS_SPELLS with study population

@@ -44,7 +44,7 @@ if(SUBP){
           TEMP <- OBSERVATION_PERIODS[meaning_set %in% unlist(str_split(subpopulation_meanings[subpopulations==subpopulations[i],meaning_sets], pattern = " "))]
           TEMP <- TEMP[,c("person_id","op_start_date","op_end_date","meaning_set")]
           #TEMP <- TEMP[0]
-          
+          original_unique_ID<-length(unique(TEMP$person_id))
           if(nrow(TEMP) > 0){
           if(length(strsplit(subpopulation_meanings[["subpopulations"]][i],"-")[[1]]) > 1){
             print("Select only overlapping periods")
@@ -132,6 +132,7 @@ if(SUBP){
           
           after <- nrow(TEMP)
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$step <- "01_CreateSpells"
+          FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$original_unique_ID <- original_unique_ID
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$population <- subpopulation_meanings[["subpopulations"]][i]
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$before <- before
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$after <- after
