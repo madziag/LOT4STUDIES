@@ -80,7 +80,7 @@ for (med in 1:length(med_files)){
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
   #write data
   med_prefix <- gsub(".rds", "", med_files[med])
-  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", med_prefix, "_treatment_episodes.rds")))
+  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", med_prefix, "_CMA_treatment_episodes.rds")))
 }
 
 
