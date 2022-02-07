@@ -30,6 +30,6 @@ DatasetPregnancyRecords <- RecoverAllRecordsOfAPregnanciesList(DatasetInput = da
                                                                DatasourceNameConceptionCDM = "ARS",
                                                                SaveOutputInCsv = TRUE,
                                                                SaveOriginalSampleInCsv = FALSE,
-                                                               DirectoryOutputCsv = "g_intermediate",
+                                                               DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs"),
                                                                anonymous = FALSE,
                                                                validation_variable = FALSE)
