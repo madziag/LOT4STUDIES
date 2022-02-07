@@ -63,6 +63,8 @@ if(multiple_regions == T){
   # Sources files 
   source(paste0(pre_dir,"info.R"))
   source(paste0(pre_dir,"study_parameters.R"))
+  # Clean up
+  rm(actual_tables, METADATA_subp)
   # Sources run_counts_final_each_pop.R 
   source(paste0(pre_dir,"run_counts_final_each_pop.R"))
 }

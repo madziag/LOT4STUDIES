@@ -73,3 +73,4 @@ table(my_treat_episode$episode.duration)
 
 if(length(weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28])>0){print(my_treat_episode[my_treat_episode$person_id%in%weird_ID,])}else{print("durations> minimum assumed duration")}
 
+rm(my_treat_episode, contra_data)

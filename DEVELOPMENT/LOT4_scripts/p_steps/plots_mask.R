@@ -73,3 +73,6 @@ if (length(count_files_all)>0){
 } else {
   print("There are no files to plot")
 }
+
+# Clean up
+rm(count_files, count_files_all, count_names_all, denominator, my_data)

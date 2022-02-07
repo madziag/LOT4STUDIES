@@ -9,8 +9,8 @@ source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-names(empty_counts_df) <- c("year", "month")
+empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+names(empty_df) <- c("year", "month")
 # Creates List of Retinoid and Valproates for individual counts
 codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
 codelist_ind <- Filter(function(x) length(x) > 0, codelist_ind)
@@ -100,8 +100,8 @@ if(length(med_files)>0){
       comb_meds[[i]] <- comb_meds[[i]][!duplicated(comb_meds[[i]]),]
       # Counts by month-year
       counts <- comb_meds[[i]][,.N, by = .(year,month(Date))]
-      # Merges with empty_counts_df
-      counts<- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
+      # Merges with empty_df
+      counts<- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Masking values less than 5
@@ -134,7 +134,7 @@ if(length(med_files)>0){
       for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
         counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
-        counts_ind<- as.data.table(merge(x = empty_counts_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
+        counts_ind<- as.data.table(merge(x = empty_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
         counts_ind[is.na(counts_ind[,N]), N:=0]
         # Masking values less than 5
         # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
