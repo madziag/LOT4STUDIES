@@ -20,7 +20,7 @@ source(paste0(pre_dir,"functions/RecoverAllRecordsOfAPregnanciesList.R"))
 
 # Select the pregnancy IDs where there were records of valproate/retinoid dispensing
 
-pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_med_use_during_pregnancy.rds"))
+pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_Valproate_med_use_during_pregnancy.rds"))
 
 dataset_of_pregnancy_to_be_checked <- data.table(pregnancy_id = pregdata$pregnancy_id)
 
