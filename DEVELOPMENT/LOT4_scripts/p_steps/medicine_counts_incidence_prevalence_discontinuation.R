@@ -95,7 +95,7 @@ for (i in 1:length(tx_episodes_files)){
   df_prevalence_counts <- df_prevalence_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
   df_prevalence_counts <- df_prevalence_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
-  saveRDS(df_prevalence_counts, (paste0(medicines_counts_dir,"/", gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
+  saveRDS(df_prevalence_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
   ##################################################################################################
   ################################## Calculates Incidence ##########################################
   ##################################################################################################
@@ -122,7 +122,7 @@ for (i in 1:length(tx_episodes_files)){
   df_incidence_counts <-df_incidence_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
   df_incidence_counts <-df_incidence_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
-  saveRDS(df_incidence_counts, (paste0(medicines_counts_dir,"/", gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
+  saveRDS(df_incidence_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
   ##################################################################################################
   ############################# Calculates Discontinuation Rates ###################################
   ##################################################################################################
@@ -132,7 +132,7 @@ for (i in 1:length(tx_episodes_files)){
   # Change dates to be in the correct format 
   df_with_exit_dates[, exit_date := as.Date(exit_date, format="%Y%m%d")]
   # Sort df 
-  df_with_exit_dates[order(person_id,episode.start,decreasing=TRUE),]
+  df_with_exit_dates[order(person_id,episode.start),]
   # Create a column with lead values of episode.start column (so that episode.end can be on the same row as the next episode.start of the same person)
   df_with_exit_dates[, next.episode.start:= shift(episode.start, type = "lead" ), by = person_id]
   # Create a column that indicates that treatment episode is the only/or last of a series of tx episode for a patient
@@ -175,6 +175,6 @@ for (i in 1:length(tx_episodes_files)){
   # Drops unnecessary columns 
   df_discontinued_counts <-df_discontinued_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
-  saveRDS(df_discontinued_counts, (paste0(medicines_counts_dir,"/", gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
+  saveRDS(df_discontinued_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
 }
 

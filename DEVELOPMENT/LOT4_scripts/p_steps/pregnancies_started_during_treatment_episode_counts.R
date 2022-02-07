@@ -19,14 +19,14 @@ D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "highest_quality")]
-# ### TESTING ###
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
-# ### TESTING ###
+### TESTING ###
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
+### TESTING ###
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "retinoid|valproate", ignore.case = T)
@@ -58,9 +58,9 @@ if (nrow(D3_pregnancy_reconciled)>0){
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
     # Merge tx episodes with pregnancy records 
     tx_episodes_preg <- D3_pregnancy_reconciled[tx_episodes, on = .(person_id)] # Left join
-    # ### TESTING ###
-    # tx_episodes_preg[person_id == "ConCDM_SIM_200421_00247" & episode.start == "2017-07-03"]$pregnancy_start_date <- as.IDate(as.character(20170705), "%Y%m%d")
-    # ### TESTING ###
+    ### TESTING ###
+    tx_episodes_preg[person_id == "ConCDM_SIM_200421_00247" & episode.start == "2017-07-03"]$pregnancy_start_date <- as.IDate(as.character(20170705), "%Y%m%d")
+    ### TESTING ###
     # Delete records without pregnancy records
     tx_episodes_preg <-  tx_episodes_preg[!is.na(pregnancy_start_date),]
     # Remove duplicates
@@ -85,7 +85,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       ############################
       preg_start_during_tx_counts <- within(preg_start_during_tx_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       # Load prevalence counts
-      prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
+      prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
       prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
       setnames(prevalent_counts, "N", "Freq")
       preg_start_during_tx_counts <- merge(x = preg_start_during_tx_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
@@ -94,8 +94,8 @@ if (nrow(D3_pregnancy_reconciled)>0){
       preg_start_during_tx_counts <- preg_start_during_tx_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(preg_start_during_tx_counts, "masked_num", "masked")
       # Save files 
-      saveRDS(tx_episodes_preg, paste0(counts_dfs_dir, gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_all_preg_starts_during_tx_episodes.rds"))
-      saveRDS(preg_start_during_tx_counts, paste0(preg_med_counts_dir,"/", gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_all_preg_starts_during_tx_episodes_counts.rds"))
+      saveRDS(tx_episodes_preg, paste0(counts_dfs_dir, gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_all_preg_starts_during_tx_episodes.rds"))
+      saveRDS(preg_start_during_tx_counts, paste0(preg_med_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_all_preg_starts_during_tx_episodes_counts.rds"))
       
       #### Taking into account highest_quality column in pregnancy df - Counts ####
       # Get the unique value of the highest quality column
@@ -116,7 +116,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
         ############################
         preg_start_during_tx_unique_counts <- within(preg_start_during_tx_unique_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
         # Load prevalence counts
-        prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
+        prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
         prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
         setnames(prevalent_counts, "N", "Freq")
         preg_start_during_tx_unique_counts <- merge(x = preg_start_during_tx_unique_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
@@ -125,11 +125,11 @@ if (nrow(D3_pregnancy_reconciled)>0){
         preg_start_during_tx_unique_counts <- preg_start_during_tx_unique_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
         setnames(preg_start_during_tx_unique_counts, "masked_num", "masked")
         # Save files 
-        saveRDS(tx_episodes_preg_unique, paste0(counts_dfs_dir, gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_hq_", hq_unique[j], "_preg_start_during_tx_episodes.rds"))
-        saveRDS(preg_start_during_tx_unique_counts, paste0(preg_med_counts_dir,"/",gsub("_treatment_episodes.rds", "", tx_episodes_files[i]), "_hq_", hq_unique[j], "_preg_starts_during_tx_episodes_counts.rds"))
+        saveRDS(tx_episodes_preg_unique, paste0(counts_dfs_dir, gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_hq_", hq_unique[j], "_preg_start_during_tx_episodes.rds"))
+        saveRDS(preg_start_during_tx_unique_counts, paste0(preg_med_counts_dir,"/",gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_hq_", hq_unique[j], "_preg_starts_during_tx_episodes_counts.rds"))
       }
     } else {
-      print(paste0(gsub("_treatment_episodes.rds", "",tx_episodes_files[i]), " study: There are no patients with pregnancy start dates that fall between episode start and end dates!"))
+      print(paste0(gsub("_CMA_treatment_episodes.rds", "",tx_episodes_files[i]), " study: There are no patients with pregnancy start dates that fall between episode start and end dates!"))
     }
   }
 } else {

@@ -72,6 +72,8 @@ for (i in 1:length(all_denominator_folders)){
 
 # 5. Pools counts files 
 all_counts_folders <- list.files(All_regions_dir, pattern = "count", full.names = FALSE)
+all_counts_folders <- all_counts_folders[!grepl(c("switched_to_alt_meds"), all_counts_folders)] # Excludes folders that do not use the overall denominator for calculating rates
+
 ## Loops through all the denominator folders 
 for (i in 1:length(all_counts_folders)){
   record_dir <- paste0(All_regions_dir, all_counts_folders[i], "/") # Sets path to numerator folder 
@@ -91,7 +93,7 @@ for (i in 1:length(all_counts_folders)){
 # 6. Moves subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
 num_files   <- list.files(All_regions_dir, pattern = "counts")
-num_files   <- num_files[!grepl(c("discontinued|after|prior|med_use_during_contraception_episodes|preg_starts_during_tx_episodes|med_use_during_pregnancy"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
+num_files   <- num_files[!grepl(c("discontinued|after|prior|med_use_during_contraception_episodes|preg_starts_during_tx_episodes|med_use_during_pregnancy|switched_to_alt_meds"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
 
 for (i in 1:length(num_files)){
   num_subpop <- strsplit(num_files[i], "_")[[1]][1]

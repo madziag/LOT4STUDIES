@@ -40,6 +40,12 @@ if (is_Denmark == T){
   source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
   # Counts of medicine records during contraception episodes
   source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
+  # Counts of patients who switched from Retinoid/Valproate use to alt med use
+  source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
+  # Makes plots of all counts files
+  source(paste0(pre_dir, "plots_mask.R"))
+  # Converts all .rds files into .csv or .xlsx (indicated by user)
+  source(paste0(pre_dir, "write_output.R"))
   
 } else {
   # Loops over each subpopulation
@@ -60,16 +66,18 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "treatment_episodes_contracep.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
     source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
-    # Counts of pregnancy tests within 90 days before/after medication record
+    # Counts of pregnancy tests within 90 days before/after medication record - HAS TEST CODE
     source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
     # Counts of contraception records within 90 days before medication record 
     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
-    # Counts of medicine records during contraception episodes
+    # Counts of medicine records during contraception episodes -HAS TEST CODE 
     source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
-    # Counts of pregnancies started during a treatment episode 
+    # Counts of pregnancies started during a treatment episode - HAS TEST CODE 
     source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
-    # Counts of medicines used during a pregnancy 
+    # Counts of medicines used during a pregnancy - HAS TEST CODE 
     source(paste0(pre_dir, "medicine_use_during_pregnancy_counts.R"))
+    # Counts of patients who switched from Retinoid/Valproate use to alt med use
+    source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
     # Makes plots of all counts files
     source(paste0(pre_dir, "plots_mask.R"))
     # Converts all .rds files into .csv or .xlsx (indicated by user)
@@ -112,8 +120,8 @@ preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 # baseline tables
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
 # medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts/medicine_use_during_pregnancy_counts
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
 # pregnancy_tests_within_90_days_of_medicine_use_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), pregnancy_test_counts_plots)}

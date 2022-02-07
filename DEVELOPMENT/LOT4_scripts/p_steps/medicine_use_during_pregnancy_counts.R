@@ -18,14 +18,14 @@ D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "pregnancy_end_date", "highest_quality")]
-# ### TESTING ###
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
-# ### TESTING ###
+### TESTING ###
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
+D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
+### TESTING ###
 # 2. Retinoid/Valproate records 
 # Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
 # name of variable with list of medicines available -> med_files
@@ -122,11 +122,11 @@ if (nrow(D3_pregnancy_reconciled)>0){
         saveRDS(med_use_during_preg_unique_counts, paste0(medicines_counts_dir,"/",gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy_counts.rds"))
       }
     } else {
-      print(paste0(gsub(".rds", "",med_files[i]), " study: There have been no medical records found occuring during a pregnancy!"))
+      print(paste0(gsub(".rds", "",med_files[i]), " study: No medicine use during a pregnancy found."))
     }
   }
 } else {
-  print("No pregancy records have been found")
+  print("No pregnancy records have been found")
 }
 
 

@@ -6,14 +6,12 @@
 # Numerator -> Number of Retinoid/Valproate records with a pregnancy test record (from events, procedures and medical observation tables) within 90 days before medication record
 # Denominator -> Total number of Retinoid/Valproate records that month (duplicates removed )
 # Intermediate data set -> data set of dispensed/prescribed Retinoid/Valproates per month with column indicating whether there was a prior pregnancy test 
-# THE ABOVE NEEDS TO BE CLARIFIED!!!!
 # Records needed -> pregnancy test records (combination of pregtest records from events, procedures and medical observations) 2. Retinoid/Valproate records 
 
 ## Objective 2.2: Proportion of Retinoid/Valproate users with pregnancy test performed within 90 days after medication record
 # Numerator -> Number of Retinoid/Valproate records with a pregnancy test record (from events, procedures and medical observation tables) within 90 days before medication record
 # Denominator -> Total number of Retinoid/Valproate records that month (duplicates removed )
 # Intermediate data set -> data set of dispensed/prescribed Retinoid/Valproates per month with column indicating whether there was a prior pregnancy test 
-# THE ABOVE NEEDS TO BE CLARIFIED!!!!
 # Records needed -> pregnancy test records (combination of pregtest records from events, procedures and medical observations) 2. Retinoid/Valproate records 
 
 ##################################################################################################################################################
@@ -53,13 +51,13 @@ if(length(pregtest_files)>0) {
   pregtest_df[,month:=month(Pregtest_date)][,year:=year(Pregtest_date)] # Creates month/year cols (for the purposes of deduplicating - only 1 pregnancy test record per person_id per month/year is allowed)
   pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
   pregtest_df <- pregtest_df[,-c("month", "year")]
-  # ################# TESTING ###################
-  # pregtest_df[person_id == "ConCDM_SIM_200421_00123"]$person_id  <- "ConCDM_SIM_200421_00841"
-  # pregtest_df[person_id == "ConCDM_SIM_200421_00079"]$person_id  <- "ConCDM_SIM_200421_00029" 
-  # pregtest_df[person_id == "ConCDM_SIM_200421_00225"]$person_id  <- "ConCDM_SIM_200421_00440" 
-  # pregtest_df[person_id == "ConCDM_SIM_200421_00629"]$person_id  <- "ConCDM_SIM_200421_00247"  
-  # pregtest_df[person_id == "ConCDM_SIM_200421_00945"]$person_id  <- "ConCDM_SIM_200421_00080"
-  # ################# TESTING ###################
+  ################# TESTING ###################
+  pregtest_df[person_id == "ConCDM_SIM_200421_00123"]$person_id  <- "ConCDM_SIM_200421_00841"
+  pregtest_df[person_id == "ConCDM_SIM_200421_00079"]$person_id  <- "ConCDM_SIM_200421_00029"
+  pregtest_df[person_id == "ConCDM_SIM_200421_00225"]$person_id  <- "ConCDM_SIM_200421_00440"
+  pregtest_df[person_id == "ConCDM_SIM_200421_00629"]$person_id  <- "ConCDM_SIM_200421_00247"
+  pregtest_df[person_id == "ConCDM_SIM_200421_00945"]$person_id  <- "ConCDM_SIM_200421_00080"
+  ################# TESTING ###################
   ##### Loops over medication files to create counts per medication type 
   for(i in 1:length(med_files)){
     ## Loads the medication record
