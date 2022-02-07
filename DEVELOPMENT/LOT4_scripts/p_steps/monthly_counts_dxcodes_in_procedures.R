@@ -11,8 +11,8 @@ proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TR
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_counts_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-names(empty_counts_df) <- c("year", "month")
+empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+names(empty_df) <- c("year", "month")
 # Checks for EVENTS Tables present
 if(length(proc_files)>0){
   # Creates a new folder for each code group type (to store records with matching codes) 
@@ -183,8 +183,8 @@ if(length(proc_files)>0){
       comb_meds <- comb_meds[!duplicated(comb_meds),]
       # Counts by month-year
       counts <- comb_meds[,.N, by = .(year,month(Date))]
-      # Merges with empty_counts_df
-      counts <- as.data.table(merge(x = empty_counts_df, y = counts, by = c("year", "month"), all.x = TRUE))
+      # Merges with empty_df
+      counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Masking values less than 5

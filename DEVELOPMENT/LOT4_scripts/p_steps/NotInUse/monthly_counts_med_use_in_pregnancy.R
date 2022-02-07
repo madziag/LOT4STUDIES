@@ -18,7 +18,7 @@ names(empty_counts) <- c("year", "month")
 study_preg_meds <- study_pop_meds 
 # Creates column that describes if ATC is Retinoid, Valproate or Unknowns (file read in run_all_counts_final.R)
 study_preg_meds[,med_type := ifelse(study_preg_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
-                                   ifelse(study_preg_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
+                                    ifelse(study_preg_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
 # Data cleaning 
 study_preg_meds[,person_id:=as.character(person_id)]
 study_preg_meds[,Date:=as.IDate(Date,"%Y%m%d")]
@@ -96,5 +96,3 @@ counts_preg <-counts_preg[,c("YM", "N", "masked")]
 
 # Saves file
 saveRDS(counts_preg, paste0(preg_med_counts_dir,"/", pop_prefix, "_Pregnancy_ALL_counts.rds"))
-
-

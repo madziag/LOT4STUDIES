@@ -222,3 +222,5 @@ for (i in 1:length(all_dfs_meds)){
   }
 }
 
+
+rm(all_dfs_meds, df, baseline, study_pop_first_occurrence, study_pop_ret, study_pop_ret_D05BB02, study_pop_ret_D10BA01, study_pop_ret_D11AH04, study_pop_ret_unique, study_pop_val, study_pop_val_unique)

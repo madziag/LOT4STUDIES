@@ -121,3 +121,5 @@ for (med in 1:length(med_files)){
 # }
 # 
 # 
+
+rm(my_data, my_treat_episode)

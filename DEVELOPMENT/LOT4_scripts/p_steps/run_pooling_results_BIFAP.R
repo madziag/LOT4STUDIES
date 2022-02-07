@@ -83,10 +83,15 @@ for (i in 1:length(all_counts_folders)){
   write.csv(comb_tables_num, paste0(record_dir, all_counts_folders[i],"_Pooled.csv")) # Saves pooled file
 }
 
+##########################################################################
+##########################################################################
+############## USES ORIGINAL DENOMINATOR AS DENOMINATOR ##################
+##########################################################################
+##########################################################################
 # 6. Moves subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
 num_files   <- list.files(All_regions_dir, pattern = "counts")
-num_files   <- num_files[!grepl(c("discontinued|after|prior"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
+num_files   <- num_files[!grepl(c("discontinued|after|prior|med_use_during_contraception_episodes|preg_starts_during_tx_episodes|med_use_during_pregnancy"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
 
 for (i in 1:length(num_files)){
   num_subpop <- strsplit(num_files[i], "_")[[1]][1]
@@ -122,15 +127,26 @@ for (i in 1:length(num_files)){
   df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
   df <- df[,c("YM", "N", "Freq", "rates", "masked")]
   write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
+  # Remove denominator file from folder 
+  unlink(unlink(denom_file))
 }
 
-### Discontinued counts use prevalence counts as a denominator
+##########################################################################
+##########################################################################
+############## USES PREVALENCE AS DENOMINATOR ############################
+##########################################################################
+##########################################################################
+
+### Discontinued counts & preg_start_during_tx_episodes use prevalence counts as a denominator
 # 8. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "prevalence")
-num_files   <- list.files(All_regions_dir, pattern = "discontinued_counts")
+num_files   <- list.files(All_regions_dir, pattern = "discontinued|preg_starts_during_tx_episodes")
 
 for (i in 1:length(num_files)){
-  num_subpop <- gsub("_discontinued_counts", "", num_files[i])
+  if(str_detect(num_files[i], pattern = "discontinued_counts")){num_subpop <- gsub("_discontinued_counts", "", num_files[i])}
+  if(str_detect(num_files[i], pattern = "all_preg_starts")){num_subpop <- strsplit(num_files[i], "_all")[[1]][1]}
+  if(str_detect(num_files[i], pattern = "_hq_")){num_subpop <- strsplit(num_files[i], "_hq_")[[1]][1]}
+  
   for (j in 1:length(denom_files)){
     denom_subpop <- gsub("_prevalence_counts", "", denom_files[j])
     if (num_subpop == denom_subpop){
@@ -151,7 +167,9 @@ for (i in 1:length(num_files)){
   denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
   setnames(denom_df, "N", "Freq")
   
-  num_file <- list.files(record_dir, pattern = "discontinued_counts_Pooled", full.names = T)
+  if(str_detect(num_files[i], pattern = "discontinued_counts")){num_file <- list.files(record_dir, pattern = "discontinued_counts_Pooled", full.names = T, ignore.case = T)}
+  if(str_detect(num_files[i], pattern = "all_preg_starts|_hq_")){num_file <- list.files(record_dir, pattern = "during_tx_episodes_counts_Pooled", full.names = T, ignore.case = T)}
+  
   num_df <-  fread(num_file)
   num_df <- num_df[,-c("V1")]
   setnames(num_df,"Sum", "N")
@@ -167,18 +185,30 @@ for (i in 1:length(num_files)){
   df <- df[,c("YM", "N", "Freq", "rates", "masked")]
   # Save file 
   write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
+  # Remove denominator file from folder 
+  unlink(unlink(denom_file))
 }
+
+##########################################################################
+##########################################################################
+############## USES RETINOID/VALPROATES AS DENOMINATOR ###################
+##########################################################################
+##########################################################################
 
 ### Pregtest and Contraceptives use retinoid/valproate counts as denominator
 # 10. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = paste0(c("Retinoid_MEDS", "Valproate_MEDS"), collapse = "|")) 
-num_files   <- list.files(All_regions_dir, pattern = paste0(c("prior", "after"), collapse = "|")) 
+num_files   <- list.files(All_regions_dir, pattern = "prior|after|med_use_during_contraception|med_use_during_pregnancy")
 
 for (i in 1:length(num_files)){
-  if(str_detect(num_files[i], pattern = "contraception_prior_counts")){num_subpop <- gsub("_contraception_prior_counts", "", num_files[i])}
-  if(str_detect(num_files[i], pattern = "pgtests_after_counts")){num_subpop <- gsub("_pgtests_after_counts", "", num_files[i])}
+
   if(str_detect(num_files[i], pattern = "pgtests_prior_counts")){num_subpop <- gsub("_pgtests_prior_counts", "", num_files[i])}
-  
+  if(str_detect(num_files[i], pattern = "pgtests_after_counts")){num_subpop <- gsub("_pgtests_after_counts", "", num_files[i])}
+  if(str_detect(num_files[i], pattern = "contraception_prior_counts")){num_subpop <- gsub("_contraception_prior_counts", "", num_files[i])}
+  if(str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_subpop <- gsub("_med_use_during_contraception_episodes_counts", "", num_files[i])}
+  if(str_detect(num_files[i], pattern = "_med_use_during_pregnancy_counts")){num_subpop <- gsub("_med_use_during_pregnancy_counts", "", num_files[i])}
+  if(str_detect(num_files[i], pattern = "_hq_")){num_subpop <- strsplit(num_files[i], "_hq_")[[1]][1]}
+ 
   for (j in 1:length(denom_files)){
     denom_subpop <- gsub("_MEDS_counts", "", denom_files[j])
     if (num_subpop == denom_subpop){
@@ -199,12 +229,14 @@ for (i in 1:length(num_files)){
   denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
   setnames(denom_df, "N", "Freq")
   # Loads numerator file
-  if (str_detect(num_files[i], pattern = "prior")){num_file <- list.files(paste0(All_regions_dir, num_files[i]), pattern = "prior_counts_Pooled", full.names = T)}
-  if (str_detect(num_files[i], pattern = "after")){num_file <- list.files(paste0(All_regions_dir, num_files[i]), pattern = "after_counts_Pooled", full.names = T)}
-  
+  if (str_detect(num_files[i], pattern = "pgtests_prior")){num_file <- list.files(record_dir, pattern = "pgtests_prior_counts_Pooled", full.names = T)}
+  if (str_detect(num_files[i], pattern = "pgtests_after")){num_file <- list.files(record_dir, pattern = "pgtests_after_counts_Pooled", full.names = T)}
+  if (str_detect(num_files[i], pattern = "contraception_prior")){num_file <- list.files(record_dir, pattern = "contraception_prior_counts_Pooled", full.names = T)}
+  if (str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_file <- list.files(record_dir, pattern = "med_use_during_contraception_episodes_counts_Pooled", full.names = T)}
+  if (str_detect(num_files[i], pattern = "med_use_during_pregnancy")){num_file <- list.files(record_dir, pattern = "med_use_during_pregnancy_counts_Pooled", full.names = T)}
   num_df <-  fread(num_file)
   num_df <- num_df[,-c("V1")]
-  setnames(num_df,"Sum", "N")
+  setnames(num_df, "Sum", "N")
   # Masking values less than 5
   # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
   num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
@@ -217,6 +249,8 @@ for (i in 1:length(num_files)){
   df <- df[,c("YM", "N", "Freq", "rates", "masked")]
   # Save file 
   write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
+  # Remove denominator file from folder 
+  unlink(unlink(denom_file))
 }
 
 # Clean up
