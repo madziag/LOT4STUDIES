@@ -68,8 +68,8 @@ if(SUBP){
                            category = "meaning_set",
                            replace_missing_end_date = "date_creation",
                            overlap = T,
-                           #only_overlaps = T,
-                           dataset_overlap = "overlap")
+                           dataset_overlap = "overlap",
+                           gap_allowed = 7)
               
               setnames(overlap,"category","meaning_set")
               setnames(overlap, "entry_spell_category", "op_start_date")
@@ -142,7 +142,6 @@ if(SUBP){
   
 }else{
 
-
 print("Create spells and select latest for ALL")
 
 before_CreateSpells <- nrow(OBSERVATION_PERIODS)
@@ -153,7 +152,8 @@ OBSERVATION_PERIODS1 <- CreateSpells(
   start_date = "op_start_date",
   end_date = "op_end_date",
   overlap = FALSE,
-  only_overlaps = F
+  only_overlaps = F,
+  gap_allowed = 7
 )
 
 print("CreateSpells run OK")
