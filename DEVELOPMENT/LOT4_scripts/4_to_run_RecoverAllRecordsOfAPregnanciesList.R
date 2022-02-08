@@ -97,3 +97,10 @@ if (study_type=="Both") {
   
 }
 
+# Clean up empty folders in g_intermediate and g_output made by re-running 99_path.
+ 
+# Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
+for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
+# Deletes temp files
+for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
+ 
