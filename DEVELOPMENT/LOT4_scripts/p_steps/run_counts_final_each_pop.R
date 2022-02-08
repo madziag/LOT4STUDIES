@@ -72,9 +72,9 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
     # Counts of medicine records during contraception episodes
     source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
-    # Counts of pregnancies started during a treatment episode - HAS TEST CODE 
+    # Counts of pregnancies started during a treatment episode
     source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
-    # Counts of medicines used during a pregnancy - HAS TEST CODE 
+    # Counts of medicines used during a pregnancy 
     source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
     # Counts of patients who switched from Retinoid/Valproate use to alt med use
     source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))

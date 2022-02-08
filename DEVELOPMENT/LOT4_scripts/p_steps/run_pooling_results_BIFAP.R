@@ -24,13 +24,13 @@ for(reg in 1:length(regions)){
   colnames(f1)  <- 'files.old' # Gives a name to the column
   # Creates new paths for the files to be copied in second column 
   f1$files.new <- stri_replace_all_regex(f1$files.old,
-                                   pattern=c(paste0(regions[reg], "/g_intermediate/recs_for_baseline_table_pooling/"), 
-                                             paste0(regions[reg], "/g_output/contraceptive_counts/csv_files/"),
-                                             paste0(regions[reg], "/g_output/medicines_counts/csv_files/"),
-                                             paste0(regions[reg], "/g_output/pregnancy_counts/csv_files/"), 
-                                             paste0(regions[reg], "/g_output/pregnancy_test_counts/csv_files/"),
-                                             paste0(regions[reg], "/g_output/preliminary_counts/csv_files/")),
-                                   replacement= paste0("ALL_regions/", regions[reg], "_"), vectorize=FALSE)
+                                         pattern=c(paste0(regions[reg], "/g_intermediate/recs_for_baseline_table_pooling/"), 
+                                                   paste0(regions[reg], "/g_output/contraceptive_counts/csv_files/"),
+                                                   paste0(regions[reg], "/g_output/medicines_counts/csv_files/"),
+                                                   paste0(regions[reg], "/g_output/pregnancy_counts/csv_files/"), 
+                                                   paste0(regions[reg], "/g_output/pregnancy_test_counts/csv_files/"),
+                                                   paste0(regions[reg], "/g_output/preliminary_counts/csv_files/")),
+                                         replacement= paste0("ALL_regions/", regions[reg], "_"), vectorize=FALSE)
   # Copies files from regional folders to ALL_regions folder
   file.copy(as.vector(f1$files.old), as.vector(f1$files.new))
 }
@@ -203,14 +203,14 @@ denom_files <- list.files(All_regions_dir, pattern = paste0(c("Retinoid_MEDS", "
 num_files   <- list.files(All_regions_dir, pattern = "prior|after|med_use_during_contraception|med_use_during_pregnancy")
 
 for (i in 1:length(num_files)){
-
+  
   if(str_detect(num_files[i], pattern = "pgtests_prior_counts")){num_subpop <- gsub("_pgtests_prior_counts", "", num_files[i])}
   if(str_detect(num_files[i], pattern = "pgtests_after_counts")){num_subpop <- gsub("_pgtests_after_counts", "", num_files[i])}
   if(str_detect(num_files[i], pattern = "contraception_prior_counts")){num_subpop <- gsub("_contraception_prior_counts", "", num_files[i])}
   if(str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_subpop <- gsub("_med_use_during_contraception_episodes_counts", "", num_files[i])}
   if(str_detect(num_files[i], pattern = "_med_use_during_pregnancy_counts")){num_subpop <- gsub("_med_use_during_pregnancy_counts", "", num_files[i])}
   if(str_detect(num_files[i], pattern = "_hq_")){num_subpop <- strsplit(num_files[i], "_hq_")[[1]][1]}
- 
+  
   for (j in 1:length(denom_files)){
     denom_subpop <- gsub("_MEDS_counts", "", denom_files[j])
     if (num_subpop == denom_subpop){
@@ -258,6 +258,110 @@ for (i in 1:length(num_files)){
 # Clean up
 rm(f1, f2, tables_denom, tables_num, comb_tables_denom, comb_tables_num)
 rm(num_files, num_file, denom_files, denom_file, num_df, denom_df, df)
+
+##########################################################################
+##########################################################################
+################################## SWITCHERS #############################
+##########################################################################
+##########################################################################
+# If all 9 regions have switchers counts, then pools the numerators and denominators and recalculates the rates
+# If not all regions have switchers counts, then gathers the switchers counts from the regions that have them, and gathers the prevalence counts from the regions that do not have switchers counts (to get the complete denominator counts)
+# Then it pools all the files together - numerators and denominators 
+# 1. First check if all folder contains switchers counts files from all regions (9)
+switch_folders <- list.files(All_regions_dir, pattern = "switch", ignore.case = T)
+# Loops through each folder checking which files are available
+for (file in 1:length(switch_folders)){
+  # Sets path
+  record_dir <- paste0(All_regions_dir, switch_folders[file], "/")
+  ### If the number of files in the switched meds folder is equal to the number of regions:
+  # Numerator is taken from adding the N column 
+  # Denominator is taken from adding the Freq columns
+  # Rates are calculated based on the summed values per month/year
+  # Masking is applied on the pooled data
+  if(length(list.files(record_dir, pattern = "switch", ignore.case = T)) == length(regions)){
+    # Binds all files in folder
+    all_dfs_list <- lapply(paste0(record_dir, list.files(record_dir)), read.csv, header = TRUE) # LOads all switched files 
+    all_dfs <- as.data.table(do.call(rbind, all_dfs_list)) # Binds all files 
+    all_dfs[, N_all:=sum(N), by = list(YM)][, Freq_all:=sum(Freq), by = list(YM)] # Sums up numerator and denominator values 
+    all_dfs <- all_dfs[,-c("rates", "N", "Freq", "masked")] # Drops unnecessary columns
+    all_dfs <- all_dfs[!duplicated(all_dfs)] # Removes any duplicates
+    setnames(all_dfs, "N_all", "N")
+    setnames(all_dfs, "Freq_all", "Freq")
+    # Masking values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    all_dfs$masked <- ifelse(all_dfs$N<5 & all_dfs$N>0, 1, 0)
+    # Changes values less than 5 and more than 0 to 5
+    if (mask == T){all_dfs[all_dfs$masked == 1,]$N <- 5} else {all_dfs[all_dfs$masked == 1,]$N <- all_dfs[all_dfs$masked == 1,]$N}
+    # Calculates rates 
+    all_dfs <- all_dfs[,rates:=as.numeric(N)/as.numeric(Freq)]
+    # Saves pooled file in folder 
+    write.csv(all_dfs, paste0(record_dir, switch_folders[i],"_Pooled.csv"))
+  } 
+  
+  ### If the number of files in the switched meds folder is less than the number of regions:
+  # If the region does not have a switched meds file, we still need to get the denominator value which is taken from the prevalence counts -> copy over this file to the switched meds folder
+  #### -> the freq column in the prevalence file is deleted (this was the overall denominator which we do not use here)
+  #### -> the N column becomes the new freq column as it is what we will use as the denominator count for regions that do not have a switched meds file
+  # If the region has a switched meds file, we use this instead
+  # All files are bound, summed up, deduplicated, rates calculated and masking applied 
+  if(length(list.files(record_dir, pattern = "switch", ignore.case = T)) < length(regions)){
+    # When not all regions have switchers 
+    # Copy prevalence files for each region into this folder 
+    denom_files <- list.files(All_regions_dir, pattern = paste0(gsub("_switched_to_alt_meds_counts", "", switch_folders[file]), "_prevalence_counts"), ignore.case = T)
+    num_files   <- list.files(All_regions_dir, pattern = switch_folders[file], ignore.case = T)
+    
+    for (i in 1:length(num_files)){
+      num_subpop <- gsub("_switched_to_alt_meds_counts", "", num_files[i])
+      for (j in 1:length(denom_files)){
+        denom_subpop <- gsub("_prevalence_counts", "", denom_files[j])
+        if (num_subpop == denom_subpop){
+          from <- list.files(All_regions_dir, pattern = paste0(denom_subpop, "_prevalence_counts.csv"), ignore.case = T, recursive = T, full.names = T)
+          to <- paste0(All_regions_dir, num_files[i])
+          file.copy(from, to)
+        } 
+      }
+    }
+    
+    # For each prevalence file, check if there is a switched file. If it exists then delete the prevalence file 
+    prev_files <- list.files(record_dir, pattern = "prevalence")
+    
+    for (n in 1:length(prev_files)){
+      num_subpop <- gsub("_prevalence_counts.csv", "", prev_files[n])
+      if(file.exists(paste0(record_dir, num_subpop, "_switched_to_alt_meds_counts.csv"))){
+        unlink(paste0(record_dir, prev_files[n]))
+      }
+    }
+    
+    # Cleans up prevalent files so that they can be bound to the switch files
+    prev_files <- lapply(paste0(record_dir, list.files(record_dir, pattern = "prevalence")), read.csv, header = TRUE) # LOads all switched files 
+    prev_dfs <- as.data.table(do.call(rbind, prev_files)) # Binds all files 
+    prev_dfs <- prev_dfs[,-c("Freq", "rates", "masked")] # remove unnecessary columns
+    setnames(prev_dfs, "N", "Freq")
+    prev_dfs[,N:=0]
+    switch_files <- lapply(paste0(record_dir, list.files(record_dir, pattern = "switched")), read.csv, header = TRUE) # LOads all switched files 
+    switch_dfs <- as.data.table(do.call(rbind, switch_files)) # Binds all files 
+    switch_dfs <- switch_dfs[,-c("rates", "masked")]
+    all_dfs <- rbind(prev_dfs, switch_dfs)
+    all_dfs[, N_all:=sum(N), by = list(YM)][, Freq_all:=sum(Freq), by = list(YM)] # Sums up numerator and denominator values 
+    all_dfs <- all_dfs[,-c("N", "Freq")]
+    all_dfs <- all_dfs[!duplicated(all_dfs)] # Removes any duplicates
+    setnames(all_dfs, "N_all", "N")
+    setnames(all_dfs, "Freq_all", "Freq")
+    # Masking values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    all_dfs$masked <- ifelse(all_dfs$N<5 & all_dfs$N>0, 1, 0)
+    # Changes values less than 5 and more than 0 to 5
+    if (mask == T){all_dfs[all_dfs$masked == 1,]$N <- 5} else {all_dfs[all_dfs$masked == 1,]$N <- all_dfs[all_dfs$masked == 1,]$N}
+    # Calculates rates 
+    all_dfs <- all_dfs[,rates:=as.numeric(N)/as.numeric(Freq)]
+    all_dfs$rates[is.nan(all_dfs$rates)]<-0
+    all_dfs <- all_dfs[,c("YM", "N", "Freq", "rates", "masked")]
+    # Saves pooled file in folder 
+    write.csv(all_dfs, paste0(record_dir, switch_folders[i],"_Pooled.csv"))
+    rm()
+  }
+  
+}
 
 ###########################################################################################################################################################################
 ########### BASELINE TABLES  ##############################################################################################################################################
