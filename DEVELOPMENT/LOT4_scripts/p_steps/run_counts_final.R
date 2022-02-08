@@ -58,9 +58,12 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
+  # Creates ALL_regions folder 
+  invisible(ifelse(!dir.exists(paste0(projectFolder, "/ALL_regions")), dir.create(paste0(projectFolder, "/ALL_regions")), FALSE))
+  All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
   # Saved as a function
   source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
-  # Calls pooling function
+  # Run function
   run_pooling()
   
 } else {
