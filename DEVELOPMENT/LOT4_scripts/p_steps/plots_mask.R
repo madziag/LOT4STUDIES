@@ -1,3 +1,8 @@
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 20/01/2022
+
 # Generates lineplots of counts of variables
 # monthly counts by year
 # total counts over whole study period

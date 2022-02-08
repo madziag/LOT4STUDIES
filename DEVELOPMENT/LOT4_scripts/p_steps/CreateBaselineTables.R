@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
 # Creates baseline table for retinoid and valproate counts
 
 # Transforms date variables to date type
@@ -19,7 +24,7 @@ study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 
 # Creates new column in Population with Retinoid and/or Valproate use: fu_dur_days 
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
 study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables
-# fu duration 
+# follow up duration 
 study_pop_meds[, fu_dur_days := exit_date - entry_date]
 # Creates age variable in Population with Retinoid and/or Valproate use = entry_date - birth date  (# Rounds down)
 study_pop_meds[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]

@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
 # Creates concept sets of diagnosis codes
 # Loads functions
 source(paste0(pre_dir,"/functions/LoadCodelist.R"))

@@ -4,6 +4,12 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
+#modified by Ema Alsina MSc. e.m.alsina-2@umcutrecht.nl
+
+# this script generates the observation spells used in the study. 
+# In the case of Lot4, observations with a gap of 7 days or less are concatenated, 
+# and in the case of multiple spells, the most recent is taken, and the others are discarded, resulting in one spell per personID
+
 print('Import and append observation periods files')
 
 FlowChartCreateSpells <- list()

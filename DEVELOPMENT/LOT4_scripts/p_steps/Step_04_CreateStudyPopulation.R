@@ -5,7 +5,7 @@
 #Date: 15/07/2021
 
 
-#add minimum spell length>=1 year
+# modified by Ema Alsina MSc. e.m.alsina-2@umcutrecht.nl
 
 if(SUBP){
   SCHEME_04 <- copy(subpopulation_meanings)

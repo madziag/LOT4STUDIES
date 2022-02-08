@@ -1,4 +1,9 @@
-#Directory
+#Author: Magda Gamba M.D.,Ema Alsina MSc.
+#email: m.a.gamba@uu.nl,e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+#This script sets and saves paths to folders needed for all subsequent scripts
 # setwd('..') #in Data Characterisation
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)

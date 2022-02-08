@@ -1,7 +1,14 @@
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 25/01/2022
+
 # this script will differentiate between censored CMAs (study ended) and terminated CMAs
 #before and after the 2018 intervention date (June 2018) 
 
 #loopify for multiple files
+# my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+
 my_data<-  readRDS(paste0(g_intermediate, "treatment_episodes/",(list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA"))))
 
 # 1. Create a data frame with all treatment episodes for valp/retin in the whole period
@@ -16,7 +23,6 @@ my_data<-  readRDS(paste0(g_intermediate, "treatment_episodes/",(list.files(past
 
 end_date<- as.Date("31-12-2015", "%d-%m-%Y")
 my_data$censor<-rep(NA, nrow(my_data))
-#check mathematical operations- not working right
 my_data$censor[my_data$episode.end>=end_date]<-1
 my_data$censor[my_data$episode.end!=end_date]<-0
 table(my_data$km_event)
