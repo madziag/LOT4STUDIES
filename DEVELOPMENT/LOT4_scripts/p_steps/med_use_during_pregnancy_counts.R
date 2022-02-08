@@ -89,7 +89,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       setnames(med_use_during_preg_counts, "masked_num", "masked")
       # Save files 
       saveRDS(med_use_during_preg, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy.rds"))
-      saveRDS(med_use_during_preg_counts, paste0(medicines_counts_dir,"/", gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy_counts.rds"))
+      saveRDS(med_use_during_preg_counts, paste0(preg_med_counts_dir,"/", gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy_counts.rds"))
       
       #### Taking into account highest_quality column in pregnancy df - Counts ####
       # Get the unique value of the highest quality column
@@ -119,7 +119,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
         setnames(med_use_during_preg_unique_counts, "masked_num", "masked")
         # Save files 
         saveRDS(med_use_during_preg_unique, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy.rds"))
-        saveRDS(med_use_during_preg_unique_counts, paste0(medicines_counts_dir,"/",gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy_counts.rds"))
+        saveRDS(med_use_during_preg_unique_counts, paste0(preg_med_counts_dir,"/",gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy_counts.rds"))
       }
     } else {
       print(paste0(gsub(".rds", "",med_files[i]), " study: No medicine use during a pregnancy found."))
