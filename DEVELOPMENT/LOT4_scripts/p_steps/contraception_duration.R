@@ -1,15 +1,7 @@
-# Using the contraception concept set datasets in g_intermediate/temp
-
-# diagnoses\iud_diag.rds
-# procedures\iud.rds
-# medications\contracep_fixedcomb.rds
-# medications\contracep_implant.rds
-# medications\contracep_injection.rds
-# medications\contracep_IUD.rds
-# medications\contracep_patch.rds
-# medications\contracep_progest.rds
-# medications\contracep_sequenprep.rds
-# medications\contracep_vaginalring.rds
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 05/01/2022
 
 #this section finds files matching any contraception vocabulary from the three possible folders: medications, procedures and diagnoses
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")

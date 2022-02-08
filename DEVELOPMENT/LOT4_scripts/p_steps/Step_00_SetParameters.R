@@ -3,6 +3,9 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
+#modifications made by Ema Alsina, MSc. e.m.alsina-2@umcutrecht.nl
+
+# this script creates a list of selection criteria which are used to extract the study population from the source dataset
 
 ############################################################################################
 #Get cdm_source file name

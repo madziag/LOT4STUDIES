@@ -1,3 +1,11 @@
+#Author: Magda Gamba M.D.,Ema Alsina MSc.
+#email: m.a.gamba@uu.nl, e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 20/12/2021
+
+
+# this script counts the number of elligible participants per month (as persons may leave and enter the database)
+
 if (is_Denmark == TRUE){
   # Loads customized denominator
   FUmonths_df <- fread(paste0(projectFolder, "/p_param/denominator.csv"), quote = "")
@@ -8,7 +16,7 @@ if (is_Denmark == TRUE){
   plot(FUmonths_df$studyFUmonths, FUmonths_df$Freq, ylab="Persons Observed per Month", xlab="Year and Month")
   invisible(dev.off())
 } else {
-  # This script counts the number of active/eligible participants per month in the study (denominator for events)
+  
   # Sets start and end dates 
   start.date<-as.Date(study_population$entry_date)
   end.date<-as.Date(study_population$exit_date)

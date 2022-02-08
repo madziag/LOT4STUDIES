@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
 rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
 library(rstudioapi)
@@ -25,6 +30,8 @@ source(paste0(pre_dir,"set_DAP_params.R"))
 
 #user input parameter
 ## Choose study type
+
+
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
 study_type <- "Both"

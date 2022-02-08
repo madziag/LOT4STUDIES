@@ -3,7 +3,8 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 26/1/2022
 
-#projectFolder is where to_run_preselect.r is saved (LOT4 folder)
+#this script reduces data size for subsequent scripts by removing those who are inelligible due to age and gender
+#MEDICINES is filtered on  ATC of interest
 
 if(!require(data.table)){install.packages("data.table")}
 library(data.table)
