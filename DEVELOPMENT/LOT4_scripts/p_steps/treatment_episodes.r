@@ -1,5 +1,8 @@
-# Create treatment episodes script
-# R.Pajouheshnia; 17 DEC 2021
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 18/12/2021
+
 # This script does two things:
 # 1. it loads valproate or retinoid concept set data sets created by running "to_run_source_pop_counts.R", for separate subpopulations and regions if necessary.
 # It then applys createDOT or a fixed duration value to create an estimated end date of treatment for every record
@@ -8,12 +11,7 @@
 #INPUTS 
 #study_type (Retinoids, Valproates, Both)
 #Retinoid.rds or Valproate.rds or both
-#p_param\DOT
 
-# what does the data need to look like?
-#fetch medicines data from CDMInstances
-
-#g_int/medications/valproate/rds
 # Creates treatment episodes directory
 invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.create(paste0(g_intermediate,"treatment_episodes")), FALSE))
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
@@ -35,9 +33,6 @@ print(med_files)
 for (med in 1:length(med_files)){
   my_data <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files[med]), readRDS))
   my_data$assumed_duration<-rep(30, nrow(my_data)) 
-  # colnames(my_data)
-  # Date should be used instead of dispensing date as some DAP's do not use dispensing date but prescribing date. The variable date is created to account for this
-  # my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
   my_data$Date <-as.Date(my_data$Date, format="%Y%m%d")
   # Creates treatment episodes
   my_treat_episode<-compute.treatment.episodes(data= my_data,
@@ -69,6 +64,8 @@ for (med in 1:length(med_files)){
   ) 
   summary(my_treat_episode)
   hist(my_treat_episode$episode.duration, breaks=100)
+  
+  ###############
   #LOGICAL CHECKS
   #duration is positive
   if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}

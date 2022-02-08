@@ -1,3 +1,7 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 07/12/2021
 # Takes into account if user_input: multiple_regions = T/F
 # If multiple_regions = T, for each region with records in CDMInstances folder 
 ## 1. Moves g_intermediate and g_output folders back into LOT4_scripts folder

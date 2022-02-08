@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 10/12/2021
+
 # 1. Looks for dx codes from the dx codelist (concept set created via CreateConceptSets_DxCodes.R) in EVENTS TABLES 
 # 2. Results in list of records with matching diagnosis codes
 # 3. Counts records saved in the previous step by month/year for each code group

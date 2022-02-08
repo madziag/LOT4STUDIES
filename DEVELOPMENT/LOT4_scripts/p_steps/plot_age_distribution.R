@@ -1,7 +1,10 @@
-#boxplots per year of age of study pop
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 05/01/2022
 
-# load study population with entry and exit dates
-# mydata<-readRDS(paste0(populations_dir,list.files(populations_dir)))
+#creates boxplots per study year of age distribution of study pop to check for unexpected patterns
+
 # Study population is already loaded in the wrapper script
 mydata <- study_population
 
