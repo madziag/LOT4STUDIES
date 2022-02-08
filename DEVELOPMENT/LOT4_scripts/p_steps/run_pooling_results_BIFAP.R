@@ -1,4 +1,4 @@
-run_pooling = function(){
+run_pooling <-  function(){
   # Apply masking
   mask_rec <- readline(prompt="Do you want to apply masking to your pooled records? (please enter Y or N): ")
   
