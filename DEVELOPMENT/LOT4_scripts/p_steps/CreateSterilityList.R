@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 10/01/2022
+
 # Finds sterility records in Events and Procedures tables using provides diagnosis and procedure codes. 
 ## Looks for sterility diagnosis codes in Events and Procedures tables
 ## Looks for sterility procedure codes in Procedures tables (ONLY for CPRD and PHARMO)

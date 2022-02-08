@@ -1,9 +1,11 @@
-# Creates entry and exit dates of study population
+#Author: Magda Gamba M.D.,Ema Alsina MSc.
+#email: m.a.gamba@uu.nl,e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 10/01/2022
+
+# Creates entry and exit dates for each person based on their elligibility and data availability
 # Adds spell_start and spell_end
-print("merge spell_start spell_end from OBS_SPELLS")
-# # Gets study population prefix to be used to read in corresponding OBS_SPELLS data
-# pop_prefix <- str_replace(populations[pop], "study_population.rds", "")
-# Reads in OBS_SPELLS  
+
 OBS_SPELLS <- readRDS(paste0(g_intermediate,"tmp/STUDY_SOURCE_POPULATION/", pop_prefix, "_OBS_SPELLS.rds"))
 # copy columns
 OBS_SPELLS$spell_start_date<-OBS_SPELLS$op_start_date
@@ -17,7 +19,7 @@ study_population<-OBS_SPELLS[study_population,on=.(person_id)] # Left join
 # Creates Entry Date 
 ## entry date <- latest date at which ANY of the following conditions are met: age > 12, observation starts, study starts
 # Looks for max date of all chosen columns
-# study_population$start_date <- as.Date(as.character(20100101), "%Y%m%d")
+
 study_population$start_date <- as.IDate(as.character(20100101), "%Y%m%d")
 
 study_population$entry_date <- pmax(study_population$date_min, study_population$spell_start_date, study_population$start_date, na.rm = TRUE)

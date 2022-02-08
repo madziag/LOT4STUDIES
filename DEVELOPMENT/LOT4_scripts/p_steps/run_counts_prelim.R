@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
 # Takes into account if user_input: multiple_regions = T/F
 # If multiple_regions = T, for each region with records in CDMInstances folder 
 ## 1. Creates folder with name of corresponding region

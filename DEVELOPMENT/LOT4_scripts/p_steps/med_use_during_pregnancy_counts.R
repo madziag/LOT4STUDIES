@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 10/01/2022
+
 ##################################################################################################################################################
 ###################################################### OBJECTIVE: 3.2 ############################################################################
 ##################################################################################################################################################
@@ -18,14 +23,7 @@ D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 # D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "pregnancy_end_date", "highest_quality")]
-### TESTING ###
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
-### TESTING ###
+
 # 2. Retinoid/Valproate records 
 # Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
 # name of variable with list of medicines available -> med_files
