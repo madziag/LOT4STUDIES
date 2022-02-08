@@ -22,7 +22,8 @@ RecoverAllRecordsOfAPregnanciesList <- function(DatasetInput =  NULL,
                                                 SaveOriginalSampleInCsv = TRUE,
                                                 DirectoryOutputCsv = NULL,
                                                 anonymous = TRUE,
-                                                validation_variable = TRUE
+                                                validation_variable = TRUE,
+                                                output_file_name = NULL
                                                 ){
   
   library(lubridate)
@@ -510,7 +511,7 @@ RecoverAllRecordsOfAPregnanciesList <- function(DatasetInput =  NULL,
   
   ### save 
   if(SaveOutputInCsv){
-    fwrite(sample_from_pregnancies_anon, paste0(DirectoryOutputCsv, "/Records_of_pregnancies_", now, ".csv"))
+    fwrite(sample_from_pregnancies_anon, paste0(DirectoryOutputCsv, "/Records_of_pregnancies_", now, output_file_name, ".csv"))
   }
   return(sample_from_pregnancies_anon)
 }

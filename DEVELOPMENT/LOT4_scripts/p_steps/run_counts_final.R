@@ -58,7 +58,11 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
+  # Saved as a function
   source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
+  # Calls pooling function
+  run_pooling()
+  
 } else {
   # Sources files 
   source(paste0(pre_dir,"info.R"))
