@@ -28,6 +28,11 @@ source(paste0(pre_dir,"functions/RecoverAllRecordsOfAPregnanciesList.R"))
  study_type <- "Valproate"
 # study_type <- "Both" # NOTE: If you are participating in both the retinoids and valproate studies but only detect records of one or the other during pregnancies, the script will fail if you select "both". In such a case, select your study type as either "Retinoid" or "Valproate" depending on which medicine you identified/dispensed as being prescribed during a pregnancy (for which there is corresponding a file in g_intermediate\counts_dfs)
 
+#user input parameter
+# Chose format to save files 
+my_format <- "csv"
+# my_format <- "xlsx"
+ 
 # Select the pregnancy IDs where there were records of valproate/retinoid dispensing
 # Create a data.table/data.frame with the pregnancy_id to be examined using this structure
 
