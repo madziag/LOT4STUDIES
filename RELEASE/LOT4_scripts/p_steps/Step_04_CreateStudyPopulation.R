@@ -5,6 +5,8 @@
 #Date: 15/07/2021
 
 
+# modified by Ema Alsina MSc. e.m.alsina-2@umcutrecht.nl
+
 if(SUBP){
   SCHEME_04 <- copy(subpopulation_meanings)
   SCHEME_04 <- SCHEME_04[, ':=' (file_in = paste0(subpopulations,"_source_population.rds"), file_out = paste0(subpopulations,"_study_population.rds"), folder_out = "populations") ]

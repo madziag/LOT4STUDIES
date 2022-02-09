@@ -4,18 +4,34 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
+#modified by Ema Alsina MSc. e.m.alsina-2@umcutrecht.nl
+
+# this script generates the observation spells used in the study. 
+# In the case of Lot4, observations with a gap of 7 days or less are concatenated, 
+# and in the case of multiple spells, the most recent is taken, and the others are discarded, resulting in one spell per personID
+
 print('Import and append observation periods files')
 
+FlowChartCreateSpells <- list()
 
 OBSERVATION_PERIODS <- IMPORT_PATTERN(pat = "OBSERVATION_PERIODS", dir = path_dir)
 
+step0<-"original data"
+
+step0_nrow<-nrow(OBSERVATION_PERIODS)
+
+step0_unique<-length(unique(OBSERVATION_PERIODS$person_id))
+
+step1<-'Set start and end date to date format and if end date is empty fill with end study date'
 
 print('Set start and end date to date format and if end date is empty fill with end study date')
 lapply(c("op_start_date","op_end_date"), function (x) OBSERVATION_PERIODS <- OBSERVATION_PERIODS[,eval(x) := as.IDate(as.character(get(x)),"%Y%m%d")])
 
 OBSERVATION_PERIODS <- OBSERVATION_PERIODS[is.na(op_end_date), op_end_date := end_study_date]
 
-FlowChartCreateSpells <- list()
+step1_nrow<-nrow(OBSERVATION_PERIODS)
+
+step1_unique<-length(unique(OBSERVATION_PERIODS$person_id))
 
 if(SUBP){
   print("There are subpopulations, so a column with meaning_set is added as specified in metadata")
@@ -34,7 +50,7 @@ if(SUBP){
           TEMP <- OBSERVATION_PERIODS[meaning_set %in% unlist(str_split(subpopulation_meanings[subpopulations==subpopulations[i],meaning_sets], pattern = " "))]
           TEMP <- TEMP[,c("person_id","op_start_date","op_end_date","meaning_set")]
           #TEMP <- TEMP[0]
-          
+          original_unique_ID<-length(unique(TEMP$person_id))
           if(nrow(TEMP) > 0){
           if(length(strsplit(subpopulation_meanings[["subpopulations"]][i],"-")[[1]]) > 1){
             print("Select only overlapping periods")
@@ -58,8 +74,8 @@ if(SUBP){
                            category = "meaning_set",
                            replace_missing_end_date = "date_creation",
                            overlap = T,
-                           #only_overlaps = T,
-                           dataset_overlap = "overlap")
+                           dataset_overlap = "overlap",
+                           gap_allowed = 7)
               
               setnames(overlap,"category","meaning_set")
               setnames(overlap, "entry_spell_category", "op_start_date")
@@ -122,18 +138,17 @@ if(SUBP){
           
           after <- nrow(TEMP)
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$step <- "01_CreateSpells"
+          FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$original_unique_ID <- original_unique_ID
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$population <- subpopulation_meanings[["subpopulations"]][i]
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$before <- before
           FlowChartCreateSpells[[paste0("Spells_",subpopulation_meanings[["subpopulations"]][i])]]$after <- after
+          saveRDS(FlowChartCreateSpells, file = paste0(output_dir,subpopulation_meanings[["subpopulations"]][i],"_flowchart.rds"))
           rm(TEMP)
           gc()
   }
   
-}
+}else{
 
-
-
-######################################################################################################################  
 print("Create spells and select latest for ALL")
 
 before_CreateSpells <- nrow(OBSERVATION_PERIODS)
@@ -144,7 +159,8 @@ OBSERVATION_PERIODS1 <- CreateSpells(
   start_date = "op_start_date",
   end_date = "op_end_date",
   overlap = FALSE,
-  only_overlaps = F
+  only_overlaps = F,
+  gap_allowed = 7
 )
 
 print("CreateSpells run OK")
@@ -168,23 +184,24 @@ saveRDS(OBSERVATION_PERIODS1, file = paste0(std_pop_tmp,"ALL_OBS_SPELLS.rds"))
 
 ###################################################################################################################### 
 print("store FlowChart data on attrition")
-CreateSpellsStep<-c("original number of OBSERVATION PERIODS", 
+CreateSpellsStep<-c("original number of OBSERVATION PERIODS", "original number of unique personID",
                     "number of OBSERVATION PERIODS after concatenating observations with gaps <= 7 days", 
                     "number of OBSERVATION PERIODS after selecting the most recent observation (one spell per unique ID)")
 
-OBS_number<-c(before_CreateSpells,after_CreateSpells, select_most_recent)
+OBS_number<-c(before_CreateSpells,step0_unique, after_CreateSpells, select_most_recent)
 
 FlowChartCreateSpells<-as.data.frame(cbind(CreateSpellsStep, OBS_number))
 
 saveRDS(FlowChartCreateSpells, file = paste0(output_dir,"FlowChartCreateSpells.rds"))
 
 if(exists("FlowChartOverlap")){ 
-  saveRDS(FlowChartOverlap, file = paste0(std_pop_tmp,"FlowChartOverlap.rds"))
+  saveRDS(FlowChartOverlap, file = paste0(std_pop_tmp,"SUBPOP_FlowChartOverlap.rds"))
   rm(FlowChartOverlap)
 }
   
 rm(before_CreateSpells,after_CreateSpells, select_most_recent, OBSERVATION_PERIODS, OBSERVATION_PERIODS1, FlowChartCreateSpells)
 gc()
+}
 
 
 

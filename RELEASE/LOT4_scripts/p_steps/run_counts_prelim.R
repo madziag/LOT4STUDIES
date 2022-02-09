@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
 # Takes into account if user_input: multiple_regions = T/F
 # If multiple_regions = T, for each region with records in CDMInstances folder 
 ## 1. Creates folder with name of corresponding region
@@ -114,9 +119,9 @@ if(multiple_regions == T){
     preliminary_counts_dir <- paste0(output_dir, "preliminary_counts")
     # Sources study_source_population_script.R
     source(paste0(pre_dir,"study_source_population_script.R"))
+    # SUBP = T
     # Sources run_counts_prelim_each_pop.R 
     source(paste0(pre_dir,"run_counts_prelim_each_pop.R"))
-
     # Moves g_intermediate, g_output folders from LOT4_script folder to respective regional folders
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))

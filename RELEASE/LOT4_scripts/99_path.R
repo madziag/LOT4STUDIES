@@ -1,4 +1,9 @@
-#Directory
+#Author: Magda Gamba M.D.,Ema Alsina MSc.
+#email: m.a.gamba@uu.nl,e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+#This script sets and saves paths to folders needed for all subsequent scripts
 # setwd('..') #in Data Characterisation
 
 projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
@@ -102,16 +107,17 @@ invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(
 baseline_tables_dir <- paste0(output_dir, "baseline_tables")
 # 3. MED USE DURING PREGNANCY 
 invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_counts")), dir.create(paste0(output_dir, "pregnancy_counts")), FALSE))
-preg_med_counts <- paste0(output_dir, "pregnancy_counts")
-# 4. CONTRACEPTIVE COUNTS (not yet in use)
-# invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
-# contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
-# 5. MEDICINES COUNTS (not yet in use)
-# invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
-# medicines_counts_dir <- paste0(output_dir, "medicines_counts")
-# 6. PREGNANCY TEST COUNTS (not yet in use)
-# invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
-# pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
+preg_med_counts_dir <- paste0(output_dir, "pregnancy_counts")
+
+# 4. CONTRACEPTIVE COUNTS 
+invisible(ifelse(!dir.exists(paste0(output_dir, "contraceptive_counts")), dir.create(paste0(output_dir, "contraceptive_counts")), FALSE))
+contraceptive_counts_dir <- paste0(output_dir, "contraceptive_counts")
+# 5. MEDICINES COUNTS 
+invisible(ifelse(!dir.exists(paste0(output_dir, "medicines_counts")), dir.create(paste0(output_dir, "medicines_counts")), FALSE))
+medicines_counts_dir <- paste0(output_dir, "medicines_counts")
+# 6. PREGNANCY TEST COUNTS 
+invisible(ifelse(!dir.exists(paste0(output_dir, "pregnancy_test_counts")), dir.create(paste0(output_dir, "pregnancy_test_counts")), FALSE))
+pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
 
 # Path to pregnancy records (created by running pregnancy script) 
 preg_dir <-paste0(dir_base, "/ConcePTIONAlgorithmPregnancies-version_2.0/")
