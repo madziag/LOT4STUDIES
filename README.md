@@ -49,8 +49,8 @@ Information on the EMA-funded [Lot 4 retinoids](https://www.encepp.eu/encepp/vie
 **GitHub resources for the LOT4 studies**      
 The following GitHub repositories are used in the Lot 4 studies:
 1.	Quality checks I [Level 1 checks](https://github.com/IMI-ConcePTION/Level-1-checks)
-2.	Quality checks II [Level 2 checks](https://github.com/IMI-ConcePTION/Level-3-checks)   
-3.	Quality checks III [Level 3 checks](https://github.com/IMI-ConcePTION/Level-4-checks) 
+2.	Quality checks II [Level 2 checks](https://github.com/IMI-ConcePTION/Level-2-checks)   
+3.	Quality checks III [Level 3 checks](https://github.com/IMI-ConcePTION/Level-3-checks) 
 4.	Scripts for creating sets of pregnancies from study data, to be used in the analyses [ConcePTIONAlgorithmPregnancies](https://github.com/ARS-toscana/ConcePTIONAlgorithmPregnancies)
 5.	The study analysis script suite
 
