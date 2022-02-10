@@ -1,6 +1,7 @@
  
  <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V3.0</h3>
- <p align="center"> RELEASE NOTE: V3.0 - Final main analyses 
+ <p align="center"> RELEASE NOTE: V3.0 - Final main analyses
+ 
 1.	All main descriptive analyses implemented for study objectives 1-4 (See protocol v1.1/SAP v2.0)
 2.	Error in pre-select filtering corrected (DAPs requested to re-run pre-select in next major script update V3.0
 3.	pregnancy counts per month added; datasets of disp/presc during pregnancy now saved in g_intermediate
