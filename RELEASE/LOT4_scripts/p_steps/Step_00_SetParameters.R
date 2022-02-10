@@ -3,6 +3,9 @@
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 15/07/2021
 
+#modifications made by Ema Alsina, MSc. e.m.alsina-2@umcutrecht.nl
+
+# this script creates a list of selection criteria which are used to extract the study population from the source dataset
 
 ############################################################################################
 #Get cdm_source file name
@@ -38,6 +41,7 @@ Age_max<-55
 SelectionCriteria <- list(
   
   No_observation_time = expression(!is.na(num_spell) & !is.na(op_start_date) & !is.na(op_end_date)),
+  Spell_less_than_year = expression((op_end_date-op_start_date)>=365),
   No_op_start_date = expression(!is.na(op_start_date)),
   No_year_of_birth = expression(!is.na(year_of_birth)),
   No_year_of_death = expression(!(is.na(year_of_death) & (!is.na(day_of_death) | !is.na(month_of_death)))),

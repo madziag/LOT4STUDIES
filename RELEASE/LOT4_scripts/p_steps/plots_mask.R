@@ -1,18 +1,21 @@
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 20/01/2022
+
 # Generates lineplots of counts of variables
 # monthly counts by year
 # total counts over whole study period
 # plot groups of variables on one plot
 # count files already masked to_run_study_population
-
-# Loads denominator file
-denominator<-FUmonths_df
+# Loads denominator file  ### THIS NEEDS TO BE GENERALIZED OTHERWISE IT WILL NOT WORK WITH THE 2 BIFAP SUBPOPULATION DENOMINATORS
+# denominator<-readRDS(paste0(output_dir, pop_prefix, "_denominator.rds"))
 # Gets lists of files for plotting 
-pattern1 = c("monthly_counts", "pregnancy_counts")
+pattern1 = c("monthly_counts", "pregnancy_counts", "medicines_counts", "contraceptive_counts", "pregnancy_test_counts")
 monthly_counts_folders <- list.files(path = output_dir, pattern = paste0(pattern1, collapse="|"))
 # Creates lists 
 count_names_all <- list()
 count_files_all <- list()
-
 # Extracts counts files
 for (folder in 1:length(monthly_counts_folders)){
   if(length(list.files(paste0(output_dir, monthly_counts_folders[folder], "/"), pattern="count")) > 0){
@@ -42,9 +45,8 @@ if (length(count_files_all)>0){
       my_pch[my_pch==0]<-16
       my_pch[my_pch==1]<-8
       
-      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", yaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+      plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
       axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
-      axis(2, seq(0:(max(count_files_all[[1]][[1]]$N)+1)))
       dev.off()
     }
   }
@@ -76,3 +78,6 @@ if (length(count_files_all)>0){
 } else {
   print("There are no files to plot")
 }
+
+# Clean up
+# rm(count_files, count_files_all, count_names_all, denominator, my_data)

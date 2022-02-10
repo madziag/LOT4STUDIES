@@ -2,6 +2,8 @@
 
 if(!require(rmarkdown)){install.packages("rmarkdown")}
 suppressPackageStartupMessages(library(rmarkdown))
+if(!require(survival)){install.packages("survival")}
+suppressPackageStartupMessages(library(survival))
 if(!require(stringr)){install.packages("stringr")}
 suppressPackageStartupMessages(library(stringr))
 if(!require(data.table)){install.packages("data.table")}
@@ -34,3 +36,9 @@ if(!require(writexl)){install.packages("writexl")}
 suppressPackageStartupMessages(library(writexl))
 if(!require(ff)){install.packages("ff")}
 suppressPackageStartupMessages(library(ff))
+if(!require(dplyr)){install.packages("dplyr")}
+suppressPackageStartupMessages(library(dplyr))
+if(!require(AdhereR)){install.packages("AdhereR")}
+suppressPackageStartupMessages(library(AdhereR))
+if(!require(stringi)){install.packages("stringi")}
+suppressPackageStartupMessages(library(stringi))

@@ -8,10 +8,14 @@ populations <- list.files(populations_dir, pattern = "study_population")
 for(pop in 1:length(populations)){
   # Loads study population
   study_population <- readRDS(paste0(populations_dir, populations[pop]))
+  # Assign study population prefix name
+  pop_prefix <- gsub("_study_population.rds", "", populations[pop])
   # Creates sterility list 
   source(paste0(pre_dir,"CreateSterilityList.R"))
   # Creates entry and exit dates
   source(paste0(pre_dir,"CreateEntryExit.R"))
+  # Plots age distribution of study population
+  source(paste0(pre_dir, "plot_age_distribution.R"))
   # Creates denominator file
   source(paste0(pre_dir,"denominator_monthly.R"))
   # Finds matching dx codes from dx concept set in EVENTS tables
@@ -29,8 +33,15 @@ for(pop in 1:length(populations)){
 }
 
 # Moves all counts, plots, formatted files to preliminary_counts folder
-pattern1 = c("monthly_counts", "plots", paste0(my_format,"_files"), "FlowChart")
+pattern1 = c("monthly_counts", "plots", paste0(my_format,"_files"))
 # files_to_move <- list.files(path=output_dir, pattern=paste0(pattern1, collapse="|"))
 for(file in list.files(path=output_dir, pattern=paste0(pattern1, collapse="|"), ignore.case = T)){file.move(paste0(output_dir,file), paste0(paste0(preliminary_counts_dir, "/") ,file))}
 # Deletes temp files
 for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
+# Delete Flowchart files 
+for(file in list.files(path = output_dir, pattern ="FlowChart")){unlink(paste0(output_dir, file), recursive = TRUE)}
+# Delete Study_population_folder 
+for(file in list.files(path = output_dir, pattern ="STUDY_SOURCE_POPULATION")){unlink(paste0(output_dir, file), recursive = TRUE)}
+
+
+
