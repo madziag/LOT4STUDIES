@@ -1,3 +1,8 @@
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 05/12/2021
+
 # Writes count output into csv or excel format 
 # Creates folder for output + path
 invisible(ifelse(!dir.exists(paste0(output_dir,my_format, "_files")),  dir.create(paste0(output_dir,my_format, "_files")), FALSE))

@@ -1,17 +1,18 @@
+#Author: Romin Pajouheshnia
+#email: r.pajouheshnia@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 03/02/2022
+
 # Script for converting Excel files for UCPH to 
 #input: denominator file for UCPH, excel file counts/rates
 #output: pdf plots
-#03 Deb 2022
-#R Pajouheshnia
-install.packages("readxl")
+
+
+if(!require(readxl)){install.packages("readxl")}
 library(readxl)
-install.packages("Rccp")
+
+if(!require(Rccp)){install.packages("Rccp")}
 library(Rccp)
-#if(!require(rstudioapi)){install.packages("rstudioapi")}
-#library(rstudioapi)
-#projectFolder<-dirname(rstudioapi::getSourceEditorContext()$path)
-#setwd(projectFolder)
-#setwd('..')
 
 yoda_path <- "Y:/research-ucph/Analysis scripts/g_output_020222/preliminary_counts"
 plot_folder <- paste0(yoda_path,"/plots")
