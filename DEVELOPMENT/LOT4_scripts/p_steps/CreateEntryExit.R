@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.,Ema Alsina MSc.
+#Author: Magdalena Gamba M.D.,Ema Alsina MSc.
 #email: m.a.gamba@uu.nl,e.m.alsina-2@umcutrecht.nl
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
 #Date: 10/01/2022
