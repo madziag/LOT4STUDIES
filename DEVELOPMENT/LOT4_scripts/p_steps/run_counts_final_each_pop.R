@@ -137,7 +137,7 @@ for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pre
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
-# for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
+for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
 # Deletes temp files
 for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file), recursive = TRUE)}
 

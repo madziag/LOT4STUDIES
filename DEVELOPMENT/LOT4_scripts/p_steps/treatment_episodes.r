@@ -1,3 +1,4 @@
+
 #Author: Ema Alsina MSc.
 #email: e.m.alsina-2@umcutrecht.nl
 #Organisation: UMC Utrecht, Utrecht, The Netherlands
@@ -36,7 +37,7 @@ if(study_type=="Both")     {
   table(all_data$Code)
   split_data<-split(all_data, all_data$Code)
   my_name<-levels(factor(all_data$Code))
-  }
+}
 
 
 for (i in 1:length(split_data)){
@@ -86,12 +87,12 @@ for (i in 1:length(split_data)){
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
   
   #write data
- 
-  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", my_name[i],"_CMA_treatment_episodes.rds")))
-  saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", my_name[i],"_summary_treatment_episodes.rds")))
+  
+  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
+  saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))
 }
 
-rm(my_data, my_treat_episode, all_data)
+# rm(my_data, my_treat_episode, all_data)
 
 #make "all_retinoid" and "all_valproate"
 
@@ -105,23 +106,24 @@ my_names$Code<-c("D05BB02", "D11AH04","D10BA01", "N03AG01", "N03AG02")
 my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
 
 for(i in 1:length(my_data)){
-my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
+  my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
 
-my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
-my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
+  my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
+  my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
 
 
 all_data<-bind_rows(my_data, .id = "column_label")
 
-all_ret<- all_data[all_data$type=="Retinoid",]
-all_valp<- all_data[all_data$type=="Valproate",]
+all_ret<- as.data.table(all_data[all_data$type=="Retinoid",])
+all_valp<- as.data.table(all_data[all_data$type=="Valproate",])
 
 if(nrow(all_ret>0)){
-saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/","all_Retinoid_CMA_treatment_episodes.rds")))
+  saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Retinoid_CMA_treatment_episodes.rds")))
 }
 
+
 if(nrow(all_valp>0)){
-  saveRDS(all_valp, (paste0(g_intermediate, "treatment_episodes/","all_Valproate_CMA_treatment_episodes.rds")))
+  saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
 }
 
 rm(my_data, my_treat_episode)
