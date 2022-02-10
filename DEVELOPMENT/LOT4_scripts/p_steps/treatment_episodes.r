@@ -19,9 +19,15 @@ my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="ALL_Retinoid")
 my_valproate<-list.files(paste0(tmp,"medications/"), pattern="ALL_Valproate")
 
 if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))
-my_name<-"Retinoid"}
+all_data<-my_data
+my_name<-levels(factor(my_data$Code))
+split_data<-split(all_data, all_data$Code)}
+
 if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))
-my_name<-"Valproate"}
+my_name<-levels(factor(my_data$Code))
+all_data<-my_data
+split_data<-split(all_data, all_data$Code)}
+
 if(study_type=="Both")     {
   my_data<-list()
   my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
@@ -66,7 +72,6 @@ for (i in 1:length(split_data)){
                                                suppress.warnings = FALSE,
                                                return.data.table = FALSE
   ) 
-  summary(my_treat_episode)
   
   
   ###############
@@ -79,12 +84,42 @@ for (i in 1:length(split_data)){
   if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
   #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
+  
   #write data
  
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", my_name[i],"_CMA_treatment_episodes.rds")))
   saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", my_name[i],"_summary_treatment_episodes.rds")))
 }
 
+rm(my_data, my_treat_episode, all_data)
+
+#make "all_retinoid" and "all_valproate"
+
+my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+
+my_data<-  lapply(paste0(g_intermediate, "treatment_episodes/",my_files), readRDS)
+
+my_names<-as.data.frame(matrix(ncol = 2, nrow=5))
+colnames(my_names)<-c("Code", "Drug")
+my_names$Code<-c("D05BB02", "D11AH04","D10BA01", "N03AG01", "N03AG02")
+my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
+
+for(i in 1:length(my_data)){
+my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
+
+my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
+my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
 
 
-rm(my_data, my_treat_episode)
+all_data<-bind_rows(my_data, .id = "column_label")
+
+all_ret<- all_data[all_data$type=="Retinoid",]
+all_valp<- all_data[all_data$type=="Valproate",]
+
+if(nrow(all_ret>0)){
+saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/","all_Retinoid_CMA_treatment_episodes.rds")))
+}
+
+if(nrow(all_valp>0)){
+  saveRDS(all_valp, (paste0(g_intermediate, "treatment_episodes/","all_Valproate_CMA_treatment_episodes.rds")))
+}

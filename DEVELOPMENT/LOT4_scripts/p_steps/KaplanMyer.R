@@ -63,6 +63,6 @@ dev.off()
 my_surv<-list()
 my_surv[[1]]<-surv_int
 my_surv[[2]]<-comparrison
-saveRDS(my_surv,paste0(g_intermediate,"kaplan_myer_", my_label[2],"_",my_label[1], "_model_data.rds")) 
+saveRDS(my_surv,paste0(g_output,"mediccines_counts/","kaplan_myer_", my_label[2],"_",my_label[1], "_model_data.rds")) 
 }
        
