@@ -30,10 +30,10 @@ if (is_Denmark == T){
   source(paste0(pre_dir,"CreateBaselineTables.R"))
   # Creates Retinoid/Valproate treatment episodes 
   source(paste0(pre_dir, "treatment_episodes.R"))
+  # Creates KM plots # Doesn't save them yet
+  source(paste0(pre_dir, "KaplanMeier.R"))
   # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
   source(paste0(pre_dir, "contraception_duration.R"))
-  # Creates KM plots # Doesn't save them yet
-  # source(paste0(pre_dir, "KM.R"))
   # Creates contraception treatment episodes 
   source(paste0(pre_dir, "treatment_episodes_contracep.R"))
   # Counts of prevalence, incidence, discontinuation - medicines use 
@@ -63,7 +63,7 @@ if (is_Denmark == T){
     # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
     # Creates KM plots # Doesn't save them yet
-    # source(paste0(pre_dir, "KM.R"))
+    source(paste0(pre_dir, "KaplanMeier.R"))
     # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))
     # Creates contraception treatment episodes 
