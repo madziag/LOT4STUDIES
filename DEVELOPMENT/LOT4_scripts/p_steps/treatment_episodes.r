@@ -86,44 +86,5 @@ for (i in 1:length(split_data)){
 }
 
 
-#subset data to look at retinoids separately
-
-
-### Run separate depending on study
-
-# if (study_type == "Retinoids"){
-#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-#   # Retinoids - subgroups
-#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-#   
-# } else if (study_type == "Valproates"){
-#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_val_unique)
-#   names(all_dfs_meds) <- c("All Users", "Valproates Only")
-#   
-# } else if (study_type == "Both"){
-#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-#   
-#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-#   
-# }
-# 
-# 
 
 rm(my_data, my_treat_episode)
