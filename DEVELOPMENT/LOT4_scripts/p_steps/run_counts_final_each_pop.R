@@ -30,6 +30,8 @@ if (is_Denmark == T){
   source(paste0(pre_dir,"CreateBaselineTables.R"))
   # Creates Retinoid/Valproate treatment episodes 
   source(paste0(pre_dir, "treatment_episodes.R"))
+  # Creates KM plots # Doesn't save them yet
+  source(paste0(pre_dir, "KaplanMeier.R"))
   # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
   source(paste0(pre_dir, "contraception_duration.R"))
   # Creates contraception treatment episodes 
@@ -60,6 +62,8 @@ if (is_Denmark == T){
     source(paste0(pre_dir,"CreateBaselineTables.R"))
     # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
+    # Creates KM plots # Doesn't save them yet
+    source(paste0(pre_dir, "KaplanMeier.R"))
     # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))
     # Creates contraception treatment episodes 
@@ -121,7 +125,7 @@ preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
 # medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts/medicine_use_during_pregnancy_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "med_use_during_pregnancy", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
 # pregnancy_tests_within_90_days_of_medicine_use_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), pregnancy_test_counts_plots)}
@@ -129,7 +133,7 @@ for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignor
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), contraceptive_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), contraceptive_counts_plots)}
 #pregnancies_started_during_treatment_episode_counts
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="preg_starts_during_tx_episodes| med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)

@@ -28,7 +28,7 @@ if(length(events_files)>0){
     # Loads table 
     df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")] # Keeps necessary columns
+    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text" )] # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_event","Meaning") # Renames column names
     setnames(df,"start_date_record","Date") # Renames column names
@@ -58,12 +58,24 @@ if(length(events_files)>0){
     df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
+    # PHARMO free text
+    if(is_PHARMO == T){
+      df_free_text <- df[Vocabulary == "free_text_dutch"]
+      df <- df[!Vocabulary == "free_text_dutch"]
+    }
+    if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
+    
+
     # Adds column with Vocabulary main type i.e. start, READ, SNOMED
-    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
-                       ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
-                              ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
+    if(nrow(df)>0){
+      df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
+                         ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
+                                ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
+    }
     # Prints Message
     print(paste0("Finding matching records in ", events_files[y]))
+    df <- df[,-c("event_free_text")]
+    
     # If more than 1 unique value in vocab column 
     if (length(unique(df$vocab)) > 1){
       # creates a subset for each of the unique values and run the filter on each subset 

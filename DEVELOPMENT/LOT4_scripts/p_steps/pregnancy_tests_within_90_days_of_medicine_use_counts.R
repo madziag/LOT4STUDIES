@@ -56,7 +56,7 @@ if(length(pregtest_files)>0) {
   pregtest_df[,month:=month(Pregtest_date)][,year:=year(Pregtest_date)] # Creates month/year cols (for the purposes of deduplicating - only 1 pregnancy test record per person_id per month/year is allowed)
   pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
   pregtest_df <- pregtest_df[,-c("month", "year")]
-  
+
   ##### Loops over medication files to create counts per medication type 
   for(i in 1:length(med_files)){
     ## Loads the medication record

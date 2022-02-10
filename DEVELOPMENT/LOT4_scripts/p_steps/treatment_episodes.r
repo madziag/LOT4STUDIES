@@ -123,3 +123,6 @@ saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/","all_Retinoid_CMA
 if(nrow(all_valp>0)){
   saveRDS(all_valp, (paste0(g_intermediate, "treatment_episodes/","all_Valproate_CMA_treatment_episodes.rds")))
 }
+
+rm(my_data, my_treat_episode)
+

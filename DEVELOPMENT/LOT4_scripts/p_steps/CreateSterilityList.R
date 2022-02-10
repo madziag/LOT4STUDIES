@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 10/01/2022
@@ -24,7 +24,7 @@ if(length(events_files)>0){
     # Loads events table
     df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-as.data.table(df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event")]) # Keeps necessary columns
+    df<-as.data.table(df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text")]) # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_event","Meaning") # Renames column names
     setnames(df,"start_date_record","Date") # Renames column names
@@ -52,8 +52,29 @@ if(length(events_files)>0){
     df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
+    
+    # PHARMO free text
+    if(is_PHARMO == T){
+      df_free_text <- df[Vocabulary == "free_text_dutch"]
+      df <- df[!Vocabulary == "free_text_dutch"]
+    }
+    concept_set_terms <- vector(mode="list")
+    concept_set_terms[["sterility"]]=c("menopause", "overgang", "climac.")
+    
+    for(i in 1:length(concept_set_terms)){
+      for(j in 1:length(concept_set_terms[[i]])){
+        df_free_text_subset <- df_free_text[grepl(event_free_text, pattern = concept_set_terms[[i]][j], ignore.case = T),]
+        df_free_text_subset <- df_free_text_subset[,-c("event_free_text")]
+        df_free_text_subset[,table_origin:='EVENTS']
+        if(nrow(df_free_text_subset)>0){
+          saveRDS(df_free_text_subset, paste0(events_tmp_sterility, pop_prefix, "_", names(concept_set_terms[i]), "-", concept_set_terms[[i]][j], "_",events_prefix, "_free_text_dutch.rds"))
+        }
+      }
+    }
+    # Drop events free text column
+    df <- df[,-c("event_free_text")]
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
-    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
+    df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
                               ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
     # Prints Message
