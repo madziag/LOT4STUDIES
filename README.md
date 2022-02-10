@@ -11,7 +11,6 @@
 7.	Adjustment to the scripts that detect diagnostic/procedure codes to correct issue with detect of codes with "."s and irrelevant codes.
 
 
-<!-- IMPORTANT NOTES -->
 All groups are requested to run this script as soon as possible and report to UU/UMCU and issues encountered. Once results are generated, please upload to YODA.
 Following this, each group is requested to review the output using the guidance document (to be shared 10th Feb 2022).
 
