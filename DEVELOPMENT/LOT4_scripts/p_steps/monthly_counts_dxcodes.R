@@ -60,6 +60,7 @@ if(length(events_files)>0){
     }
     if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
     
+
     # Adds column with Vocabulary main type i.e. start, READ, SNOMED
     if(nrow(df)>0){
       df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
@@ -68,8 +69,7 @@ if(length(events_files)>0){
     }
     # Prints Message
     print(paste0("Finding matching records in ", events_files[y]))
-    
-
+    df <- df[,-c("event_free_text")]
     
     # If more than 1 unique value in vocab column 
     if (length(unique(df$vocab)) > 1){
