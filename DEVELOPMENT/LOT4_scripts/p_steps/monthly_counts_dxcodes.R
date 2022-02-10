@@ -62,9 +62,9 @@ if(length(events_files)>0){
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]
       df <- df[!Vocabulary == "free_text_dutch"]
-    }
-    if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
     
+    if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
+    }
 
     # Adds column with Vocabulary main type i.e. start, READ, SNOMED
     if(nrow(df)>0){

@@ -57,7 +57,7 @@ if(length(events_files)>0){
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]
       df <- df[!Vocabulary == "free_text_dutch"]
-    }
+    
     concept_set_terms <- vector(mode="list")
     concept_set_terms[["sterility"]]=c("menopause", "overgang", "climac.")
     
@@ -70,6 +70,7 @@ if(length(events_files)>0){
           saveRDS(df_free_text_subset, paste0(events_tmp_sterility, pop_prefix, "_", names(concept_set_terms[i]), "-", concept_set_terms[[i]][j], "_",events_prefix, "_free_text_dutch.rds"))
         }
       }
+    }
     }
     # Drop events free text column
     df <- df[,-c("event_free_text")]
