@@ -117,13 +117,16 @@ all_data<-bind_rows(my_data, .id = "column_label")
 all_ret<- as.data.table(all_data[all_data$type=="Retinoid",])
 all_valp<- as.data.table(all_data[all_data$type=="Valproate",])
 
+# Suppresses warnings 
+options(warn=-1)
+
 if(nrow(all_ret>0)){
   saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Retinoid_CMA_treatment_episodes.rds")))
 }
 
 
 if(nrow(all_valp>0)){
-  saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
+   saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
 }
 
 rm(my_data, my_treat_episode)
