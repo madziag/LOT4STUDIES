@@ -34,7 +34,7 @@ for(i in seq_along(codelist_list)) {
   #Creates variable code_no_dot by removing dot from all codes
   codelist[,code_no_dot:=gsub("\\.","",codelist[,Code])]
   # Creates col that specifies vocab type
-  codelist[,vocab:= ifelse(codelist[,Coding_System] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
+  codelist[,vocab:= ifelse(codelist[,Coding_System] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
                            ifelse(codelist[,Coding_System] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
                                   ifelse(codelist[,Coding_System] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
   # Creates df based on vocab group types and presence or absence of dots
