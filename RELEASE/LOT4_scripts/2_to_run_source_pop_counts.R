@@ -1,3 +1,9 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+
 rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
 library(rstudioapi)
@@ -8,19 +14,25 @@ setwd(projectFolder)
 ###############################################
 ### NOTE FOR DAPS: If you have run the preselection script and would like to use the subsetted data sets that it produces instead of your full ETL'd data files, you need to go to the "99_path.R" file and choose the second path option, by adding a "#" symbol at the start of line 7, and removing the "#" symbol at the start of line 8. If the preselection files have been stored elsewhere, then the path will need to be set manually.
 
+### Please indicate DAP NAME 
+DAP_name <- "ARS"
+# DAP_name <- "BIFAP"
+# DAP_name <- "CASERTA"
+# DAP_name <- "CPRD"
+# DAP_name <- "DNR"
+# DAP_name <- "FISABIO"
+# DAP_name <- "PHARMO"
+#user input parameter
+  
 ### Below you must set
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
+source(paste0(pre_dir,"set_DAP_params.R"))
 
 ## Choose study type
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
 study_type <- "Both"
-#user input parameter
-
-# Chose customized denominator
-# is_Denmark <- T
-is_Denmark <- F
 #user input parameter
 
 ## Turn statement to T if multiple regions #BIFAP
@@ -49,12 +61,11 @@ source(paste0(pre_dir,"run_counts_prelim.R"))
 #set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"
 clear_int_files <- F
 #user input parameter
-
+#set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"
 if(clear_int_files==T){
   unlink(paste0(g_intermediate, "/tmp"), recursive = TRUE)
   unlink(paste0(g_intermediate, "/populations"), recursive = TRUE)
 }
-
 
 
 

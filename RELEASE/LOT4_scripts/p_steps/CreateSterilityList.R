@@ -1,8 +1,12 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 10/01/2022
+
 # Finds sterility records in Events and Procedures tables using provides diagnosis and procedure codes. 
 ## Looks for sterility diagnosis codes in Events and Procedures tables
 ## Looks for sterility procedure codes in Procedures tables (ONLY for CPRD and PHARMO)
 # Sterility records to be used in CreateEntryExit.R
-
 ##################################################################################################################
 ################################# 1. DIAGNOSIS CODES IN EVENTS TABLES ############################################
 ##################################################################################################################
@@ -15,6 +19,8 @@ events_files <- list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE
 if(length(events_files)>0){
   # Processes each EVENTS table
   for (y in 1:length(events_files)){
+    # Gets prefix for events tables 
+    events_prefix <- gsub(".csv", "", events_files[y])
     # Loads events table
     df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -38,15 +44,13 @@ if(length(events_files)>0){
     # Creates year variable
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
+    if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
@@ -56,137 +60,90 @@ if(length(events_files)>0){
     print(paste0("Finding matching records in ", events_files[y]))
     
     if (length(unique(df$vocab)) > 1){
-      
       # Creates a subset for each of the unique values and run the filter on each subset 
       for (voc in 1:length(unique(df$vocab))){
         # Creates subsets for each vocab type
         df_subset_vocab <- setDT(df)[vocab == unique(df$vocab)[voc]]
-        
         if(nrow(df_subset_vocab)>0){ 
-          
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
-            
             for (i in 1:length(codelist_start_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='EVENTS']
-              
               if(nrow(df_subset)>0){
-                # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){ 
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",populations[pop], "_",events_files[y], "_EVENTS_start.rds"))
-                } else {
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", events_files[y], "_EVENTS_start.rds"))
-                  
-                } 
+                # Saves with the prefix of subpop name 
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_start_all[i]), "_",events_prefix, "_start.rds"))
               } 
             } 
-            
           } else if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ"){ 
-            
             for (i in 1:length(codelist_read_all)){ 
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='EVENTS']
-              
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
-                # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",events_files[y], "_EVENTS_READ.rds"))
-                } else {                  
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",events_files[y], "_EVENTS_READ.rds"))
-                  
-                }
+                # Checks for subpops - if present, saves with the prefix of subpop name
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_read_all[i]), "_",events_prefix, "_READ.rds"))
               } 
             }
-            
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
-            
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='EVENTS']
-              
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
                 # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop],"_",events_files[y], "_EVENTS_SNOMED.rds"))
-                } else {   
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",events_files[y], "_EVENTS_SNOMED.rds"))
-                } 
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_snomed_all[i]), "_",events_prefix, "_SNOMED.rds"))
               } 
             }
-            
           } else { 
             print(paste0(unique(df_subset_vocab$Vocabulary), " is not part of code list Vocabulary"))
           }
         } else {print(paste0("There are no matching records in ", events_files[y]))
         }
       }
-      
     } else {
-      
       # Checks if df is NOT empty
       if(nrow(df)>0){
-        
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
-          
           for (i in 1:length(codelist_start_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset_vocab <- df
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='EVENTS']
-            
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){ 
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",populations[pop], "_",events_files[y], "_EVENTS_start.rds"))
-              } else {
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", events_files[y], "_EVENTS_start.rds"))
-                
-              } 
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_start_all[i]), "_",events_prefix, "_start.rds"))
             } 
           } 
-          
         } else if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ"){ 
-          
           for (i in 1:length(codelist_read_all)){ 
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='EVENTS']
-            
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",events_files[y], "_EVENTS_READ.rds"))
-              } else {                  
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",events_files[y], "_EVENTS_READ.rds"))
-                
-                
-              }
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_read_all[i]), "_",events_prefix, "_READ.rds"))
             } 
           } 
-          
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
-          
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='EVENTS']
-            
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop],"_",events_files[y], "_EVENTS_SNOMED.rds"))
-              } else {   
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",events_files[y], "_EVENTS_SNOMED.rds"))
-              } 
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_snomed_all[i]), "_",events_prefix, "_SNOMED.rds"))
             } 
           } 
-          
         } else { 
           print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))
         }
@@ -196,7 +153,6 @@ if(length(events_files)>0){
 } else {
   print("There are no EVENTS tables available")
 }
-
 #################################################################################################################
 ################################# 2. DIAGNOSIS CODES IN PROCEDURES TABLES ########################################
 ##################################################################################################################
@@ -209,6 +165,8 @@ proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TR
 if(length(proc_files)>0){
   # Processes each EVENTS table
   for (y in 1:length(proc_files)){
+    # Gets prefix for procedures tables 
+    procedures_prefix <- gsub(".csv", "", proc_files[y])
     # Loads events table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -232,15 +190,13 @@ if(length(proc_files)>0){
     # Creates year variable
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
+    if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
@@ -248,141 +204,92 @@ if(length(proc_files)>0){
                               ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
     # Prints Message
     print(paste0("Finding matching records in ", proc_files[y]))
-    
     if (length(unique(df$vocab)) > 1){
-      
       # creates a subset for each of the unique values and run the filter on each subset 
       for (voc in 1:length(unique(df$vocab))){
         # Creates subsets for each vocab type
         df_subset_vocab <- setDT(df)[vocab == unique(df$vocab)[voc]]
-        
         if(nrow(df_subset_vocab)>0){ 
-          
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
-            
             for (i in 1:length(codelist_start_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              # df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='PROCEDURES']
-              
               if(nrow(df_subset)>0){
                 # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){ 
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",populations[pop], "_",proc_files[y], "_PROCEDURES_start.rds"))
-                } else {
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", proc_files[y], "_PROCEDURES_start.rds"))
-                  
-                } 
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
               } 
             } 
-            
           } else if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ"){ 
-            
             for (i in 1:length(codelist_read_all)){ 
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='PROCEDURES']
-              
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
                 # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",proc_files[y], "_PROCEDURES_READ.rds"))
-                } else {                  
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",proc_files[y], "_PROCEDURES_READ.rds"))
-                  
-                }
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_read_all[i]), "_",procedures_prefix, "_READ.rds"))
               } 
             }
-            
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
-            
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
               df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='PROCEDURES']
-              
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
                 # Checks for subpops - if present, saves with the prefix of subpop name 
-                if(SUBP == TRUE){
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop],"_",proc_files[y], "_PROCEDURES_SNOMED.rds"))
-                } else {   
-                  saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",proc_files[y], "_PROCEDURES_SNOMED.rds"))
-                  
-                  
-                } 
+                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
               } 
             }
-            
           } else { 
             print(paste0(unique(df_subset_vocab$Vocabulary), " is not part of code list vocabulary"))
           }
         } else {print(paste0("There are no matching records in ", proc_files[y]))
         }
       }
-      
     } else {
-      
       # Checks if df is NOT empty
       if(nrow(df)>0){
-        
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
-          
           for (i in 1:length(codelist_start_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset_vocab <- df
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='PROCEDURES']
-            
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){ 
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_",populations[pop], "_",proc_files[y], "_PROCEDURES_start.rds"))
-              } else {
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_start_all[i]), "_", proc_files[y], "_PROCEDURES_start.rds"))
-                
-              } 
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
             } 
           } 
-          
         } else if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ"){ 
-          
           for (i in 1:length(codelist_read_all)){ 
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='PROCEDURES']
-            
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_", populations[pop], "_",proc_files[y], "_PROCEDURES_READ.rds"))
-              } else {                  
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_read_all[i]), "_",proc_files[y], "_PROCEDURES_READ.rds"))
-                
-                
-              }
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_read_all[i]), "_",procedures_prefix, "_READ.rds"))
             } 
           } 
-          
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
-          
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
             df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='PROCEDURES']
-            
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
-              if(SUBP == TRUE){
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_", populations[pop],"_",proc_files[y], "_PROCEDURES_SNOMED.rds"))
-              } else {   
-                saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_snomed_all[i]), "_",proc_files[y], "_PROCEDURES_SNOMED.rds"))
-              } 
+              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
             } 
           } 
-          
         } else { 
           print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))
         }
@@ -392,7 +299,6 @@ if(length(proc_files)>0){
 } else {
   print("There are no PROCEDURES tables available")
 }
-
 ##################################################################################################################
 ################################# 3. PROCEDURE CODES IN PROCEDURES TABLES ########################################
 ##################################################################################################################
@@ -405,6 +311,8 @@ proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TR
 if(length(proc_files)>0){
   # Processes each PROCEDURES table
   for (y in 1:length(proc_files)){
+    # Gets prefix for procedures tables 
+    procedures_prefix <- gsub(".csv", "", proc_files[y])
     # Loads events table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -428,21 +336,17 @@ if(length(proc_files)>0){
     # Creates year variable
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
-    df<-df[year>2008 & year<2021] # Years used in study
+    if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
     df[,date_dif:=NULL][,filter:=NULL]
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
     df<-df[is.na(obs_out)] # Removes records outside study period
     df[,obs_out:=NULL]
-    df<-df[!is.na(Code) | !is.na(Vocabulary)]# Removes records with both event code and event record vocabulary missing
-    df<-df[!is.na(Vocabulary)] # Removes empty vocabularies
+    df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
     # Adds column for origin of code i.e. CPRD, PHARMO
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("OPCS4"), "CPRD",
-                       ifelse(df[,Vocabulary] %chin% c("CVV", "CBV", "ZA"), "PHARMO", "UNKNOWN"))]
-    
+                       ifelse(df[,Vocabulary] %chin% c("cvv_procedure", "cbv_procedure", "za_procedure"), "PHARMO", "UNKNOWN"))]
     # Checks if df is NOT empty
     if(nrow(df)>0){
       # Looks for matches in df using event vocabulary type specific code list
@@ -452,14 +356,8 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           df_subset[,table_origin:='PROCEDURES']
-          
           if(nrow(df_subset)>0){
-            if(SUBP == TRUE){
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_CPRD_all[i]), "_", populations[pop], "_",proc_files[y], "_PROCEDURES.rds"))
-            }else{
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_CPRD_all[i]), "_",proc_files[y], "_PROCEDURES.rds"))
-            }
-            
+            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_CPRD_all[i]), "_", procedures_prefix, "_CPRD.rds"))
           }
         }
         # Covers PHARMO Codes
@@ -468,18 +366,11 @@ if(length(proc_files)>0){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           df_subset[,table_origin:='PROCEDURES']
-          
           if(nrow(df_subset)>0){
-            if(SUBP == TRUE){
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_PHARM0_all[i]), "_", populations[pop], "_",proc_files[y], "_PROCEDURES.rds"))
-            }else{
-              saveRDS(data.table(df_subset), paste0(events_tmp_sterility, names(codelist_PHARM0_all[i]), "_",proc_files[y], "_PROCEDURES.rds"))
-            }
-            
+            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
           }
         }
       } else {print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))}
-      
     } else {
       print(paste0("There are no matching records in ", proc_files[y]))
     }
@@ -487,7 +378,6 @@ if(length(proc_files)>0){
 } else {
   print("There are no PROCEDUREStable available")
 }
-
 #################################################################################################################
 ################################# 4. BINDS ALL FOUND STERILITY RECORDS###########################################
 #################################################################################################################
@@ -498,13 +388,10 @@ if (length(list.files(events_tmp_sterility))> 0){
   sterility_all <-do.call(rbind,lapply(paste0(events_tmp_sterility, sterility_list), readRDS))
   sterility_all_first_occurrence  <- setDT(sterility_all)[order(Date), head(.SD, 1L), by = person_id]
   # Saves records
-  if (SUBP == TRUE){
-    saveRDS(sterility_all, paste0(sterility_pop, populations[pop], "_sterility_all.rds"))
-    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, populations[pop], "_sterility_all_first_occurrence.rds"))
-  }else {
-    saveRDS(sterility_all, paste0(sterility_pop, "sterility_all.rds"))
-    saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, "sterility_all_first_occurrence.rds"))
-  }  
+  saveRDS(sterility_all, paste0(sterility_pop, pop_prefix, "_sterility_all.rds"))
+  saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, pop_prefix, "_sterility_all_first_occurrence.rds"))
+  rm(codelist_all, codelist_CPRD_all, codelist_PHARM0_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
 } else {
   print("There are no Sterility records")
-  }
+}
+
