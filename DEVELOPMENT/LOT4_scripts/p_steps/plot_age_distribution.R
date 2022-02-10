@@ -23,7 +23,7 @@ for(i in 1:ncol(myplotdata)){
   }
 }
 
-summary(myplotdata)
+
 pdf((paste0(plot_folder,"/", pop_prefix, "_age_distribution_boxplot.pdf")), width=8, height=4)
 boxplot(myplotdata, main="Entry Age Distribution of Participants by Year")
 dev.off() 
