@@ -31,7 +31,7 @@ if (is_Denmark == T){
   # Creates Retinoid/Valproate treatment episodes 
   source(paste0(pre_dir, "treatment_episodes.R"))
   # Creates KM plots # Doesn't save them yet
-  source(paste0(pre_dir, "KaplanMeier.R"))
+  #source(paste0(pre_dir, "KaplanMeier.R"))
   # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
   source(paste0(pre_dir, "contraception_duration.R"))
   # Creates contraception treatment episodes 
@@ -63,7 +63,7 @@ if (is_Denmark == T){
     # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
     # Creates KM plots # Doesn't save them yet
-    source(paste0(pre_dir, "KaplanMeier.R"))
+    #source(paste0(pre_dir, "KaplanMeier.R"))
     # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))
     # Creates contraception treatment episodes 
