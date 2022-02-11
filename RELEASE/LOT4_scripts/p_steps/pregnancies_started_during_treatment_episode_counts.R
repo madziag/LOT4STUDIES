@@ -1,3 +1,8 @@
+#Author: Magda Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 07/02/2022
+
 ##################################################################################################################################################
 ###################################################### OBJECTIVE: 3.1 ############################################################################
 ##################################################################################################################################################
@@ -18,15 +23,6 @@ D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermedia
 D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
-# D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "highest_quality")]
-### TESTING ###
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00044"]$person_id <- "ConCDM_SIM_200421_00029"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00058"]$person_id <- "ConCDM_SIM_200421_00030"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00064"]$person_id <- "ConCDM_SIM_200421_00080"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00065"]$person_id <- "ConCDM_SIM_200421_00092"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00101"]$person_id <- "ConCDM_SIM_200421_00247"
-# D3_pregnancy_reconciled[person_id == "ConCDM_SIM_200421_00219"]$person_id <- "ConCDM_SIM_200421_00397"
-### TESTING ###
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "retinoid|valproate", ignore.case = T)
@@ -58,9 +54,6 @@ if (nrow(D3_pregnancy_reconciled)>0){
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
     # Merge tx episodes with pregnancy records 
     tx_episodes_preg <- D3_pregnancy_reconciled[tx_episodes, on = .(person_id)] # Left join
-    # ### TESTING ###
-    # tx_episodes_preg[person_id == "ConCDM_SIM_200421_00247" & episode.start == "2017-07-03"]$pregnancy_start_date <- as.IDate(as.character(20170705), "%Y%m%d")
-    # ### TESTING ###
     # Delete records without pregnancy records
     tx_episodes_preg <-  tx_episodes_preg[!is.na(pregnancy_start_date),]
     # Remove duplicates

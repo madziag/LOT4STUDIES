@@ -1,28 +1,45 @@
-#boxplots per year of age of study pop
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 05/01/2022
 
-# load study population with entry and exit dates
-# mydata<-readRDS(paste0(populations_dir,list.files(populations_dir)))
+#creates boxplots per study year of age distribution of study pop to check for unexpected patterns
+
 # Study population is already loaded in the wrapper script
 mydata <- study_population
+mydata <- mydata[,c("person_id", "birth_date", "entry_date", "exit_date")]
+mydata <- mydata[,nrow:=.I]
 
-# dataframe to store ids
-myplotdata<-data.frame(matrix(ncol=length(seq(2010,2020, by=1))))
-colnames(myplotdata)<-as.character(seq(2010,2020, by=1))
-myyears<-(seq(2010,2020, by=1))
+mydata_expanded <- setDT(mydata)[,list(idnum = person_id, year_in_study = year(seq(entry_date, exit_date, by = "year"))), by = 1:nrow(mydata)]
+# Merges back with original df
+mydata_expanded <-  merge(mydata, mydata_expanded, by = "nrow")
+# Age in every year of study 
+mydata_expanded[,age:= year_in_study - year(birth_date)]
 
-#assign personIDs to all years of participation
-myentry<-lubridate::year(mydata$entry_date)
-myexit<-lubridate::year(mydata$exit_date)
 
-for(i in 1:ncol(myplotdata)){
-  for(j in 1:nrow(mydata)){
-    if(dplyr::between(x=myyears[i], left=myentry[j], right=myexit[j])==T){myplotdata[j,i]<-(myyears[i]-mydata$year_of_birth[j])}else{myplotdata[j,i]<-NA}
-  }
-}
-
-summary(myplotdata)
 pdf((paste0(plot_folder,"/", pop_prefix, "_age_distribution_boxplot.pdf")), width=8, height=4)
-boxplot(myplotdata, main="Entry Age Distribution of Participants by Year")
+boxplot(age ~ year_in_study, data = mydata_expanded, main="Entry Age Distribution of Participants by Year")
 dev.off() 
 
-rm(i,j, mydata, myplotdata, myentry, myexit, myyears)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
