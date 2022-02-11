@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 10/12/2021

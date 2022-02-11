@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 10/01/2022
@@ -40,7 +40,7 @@
 ### Loads records needed: 
 # 1. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
-tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "retinoid|valproate", ignore.case = T)
+tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
 # 2. Denominator 
@@ -59,6 +59,7 @@ names(empty_df) <- c("year", "month")
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 
   df_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
+  df_episodes <- df_episodes[,-c("ATC", "type")]
   # Reads in study population data
   ##### ->  Study_population has already been read in by the wrapper script, variable name = study_population
   # Adds column that indicates row number (to be used when merging expanded df with original df)

@@ -1,5 +1,9 @@
-# Create treatment episodes script
-# R.Pajouheshnia; 17 DEC 2021
+
+#Author: Ema Alsina MSc.
+#email: e.m.alsina-2@umcutrecht.nl
+#Organisation: UMC Utrecht, Utrecht, The Netherlands
+#Date: 18/12/2021
+
 # This script does two things:
 # 1. it loads valproate or retinoid concept set data sets created by running "to_run_source_pop_counts.R", for separate subpopulations and regions if necessary.
 # It then applys createDOT or a fixed duration value to create an estimated end date of treatment for every record
@@ -8,39 +12,40 @@
 #INPUTS 
 #study_type (Retinoids, Valproates, Both)
 #Retinoid.rds or Valproate.rds or both
-#p_param\DOT
 
-# what does the data need to look like?
-#fetch medicines data from CDMInstances
-
-#g_int/medications/valproate/rds
 # Creates treatment episodes directory
 invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.create(paste0(g_intermediate,"treatment_episodes")), FALSE))
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
-# my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="Retinoid")
-# my_valproate<-list.files(paste0(tmp,"medications/"), pattern="Valproate")
-# 
-# if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))}
-# if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))}
-# if(study_type=="Both")     {
-#   my_data<-list()
-#   my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
-#   my_data[[2]]<-readRDS(paste0(tmp, "medications/",my_valproate))
-#   my_data<-rbind(my_data[[1]],my_data[[2]])
-#   }
-# Load medication data (all the above code is done in run_counts_final_each_pop)
-## med_files in wrapper script contains the list of Retinoid and/or Valproates that need to be read 
-print(med_files)
+my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="ALL_Retinoid")
+my_valproate<-list.files(paste0(tmp,"medications/"), pattern="ALL_Valproate")
 
-for (med in 1:length(med_files)){
-  my_data <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files[med]), readRDS))
-  my_data$assumed_duration<-rep(30, nrow(my_data)) 
-  # colnames(my_data)
-  # Date should be used instead of dispensing date as some DAP's do not use dispensing date but prescribing date. The variable date is created to account for this
-  # my_data$date_dispensing<-as.Date(my_data$date_dispensing, format="%Y%m%d")
-  my_data$Date <-as.Date(my_data$Date, format="%Y%m%d")
+if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))
+all_data<-my_data
+my_name<-levels(factor(my_data$Code))
+split_data<-split(all_data, all_data$Code)}
+
+if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))
+my_name<-levels(factor(my_data$Code))
+all_data<-my_data
+split_data<-split(all_data, all_data$Code)}
+
+if(study_type=="Both")     {
+  my_data<-list()
+  my_data[[1]]<-readRDS(paste0(tmp, "medications/",my_retinoid))
+  my_data[[2]]<-readRDS(paste0(tmp, "medications/",my_valproate))
+  all_data<-bind_rows(my_data, .id = "column_label")
+  table(all_data$Code)
+  split_data<-split(all_data, all_data$Code)
+  my_name<-levels(factor(all_data$Code))
+}
+
+
+for (i in 1:length(split_data)){
+  cma_data <- split_data[[i]]
+  cma_data$assumed_duration<-rep(30, nrow(cma_data)) 
+  cma_data$Date <-as.Date(cma_data$Date, format="%Y%m%d")
   # Creates treatment episodes
-  my_treat_episode<-compute.treatment.episodes(data= my_data,
+  my_treat_episode<-compute.treatment.episodes(data= cma_data,
                                                ID.colname = "person_id",
                                                event.date.colname = "Date",
                                                event.duration.colname = "assumed_duration",
@@ -48,7 +53,8 @@ for (med in 1:length(med_files)){
                                                medication.class.colname = "Code",
                                                carryover.within.obs.window = TRUE,
                                                carry.only.for.same.medication = TRUE,
-                                               consider.dosage.change = TRUE,
+                                               consider.dosage.change =FALSE,
+                                               #change between retinoids counts as a new treatment episode
                                                medication.change.means.new.treatment.episode = TRUE,
                                                dosage.change.means.new.treatment.episode = FALSE,
                                                maximum.permissible.gap = 0,
@@ -67,59 +73,61 @@ for (med in 1:length(med_files)){
                                                suppress.warnings = FALSE,
                                                return.data.table = FALSE
   ) 
-  summary(my_treat_episode)
-  hist(my_treat_episode$episode.duration, breaks=100)
+  
+  
+  ###############
   #LOGICAL CHECKS
   #duration is positive
   if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
   #person id merged, but no one lost
-  original_ids<-unique(my_data$person_id)
+  original_ids<-unique(cma_data$person_id)
   treat_epi_ids<-unique(my_treat_episode$person_id)
   if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
   #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
+  
   #write data
-  med_prefix <- gsub(".rds", "", med_files[med])
-  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", med_prefix, "_CMA_treatment_episodes.rds")))
+  
+  saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
+  saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))
+}
+
+# rm(my_data, my_treat_episode, all_data)
+
+#make "all_retinoid" and "all_valproate"
+
+my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+
+my_data<-  lapply(paste0(g_intermediate, "treatment_episodes/",my_files), readRDS)
+
+my_names<-as.data.frame(matrix(ncol = 2, nrow=5))
+colnames(my_names)<-c("Code", "Drug")
+my_names$Code<-c("D05BB02", "D11AH04","D10BA01", "N03AG01", "N03AG02")
+my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
+
+for(i in 1:length(my_data)){
+  my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
+
+  my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
+  my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
+
+
+all_data<-bind_rows(my_data, .id = "column_label")
+
+all_ret<- as.data.table(all_data[all_data$type=="Retinoid",])
+all_valp<- as.data.table(all_data[all_data$type=="Valproate",])
+
+# Suppresses warnings 
+options(warn=-1)
+
+if(nrow(all_ret>0)){
+  saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Retinoid_CMA_treatment_episodes.rds")))
 }
 
 
-
-### Run separate depending on study
-
-# if (study_type == "Retinoids"){
-#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-#   # Retinoids - subgroups
-#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-#   
-# } else if (study_type == "Valproates"){
-#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_val_unique)
-#   names(all_dfs_meds) <- c("All Users", "Valproates Only")
-#   
-# } else if (study_type == "Both"){
-#   study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-#   study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-#   study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-#   study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-#   study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-#   
-#   study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-#   study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-#   
-#   all_dfs_meds <- list(study_pop_all, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-#   names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-#   
-# }
-# 
-# 
+if(nrow(all_valp>0)){
+   saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
+}
 
 rm(my_data, my_treat_episode)
+
