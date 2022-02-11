@@ -60,7 +60,8 @@ my_format <- "csv"
 # Final counts + plots
 #################################################
 source(paste0(pre_dir,"run_counts_final.R"))
-
+# BIFAP ONLY pooled masking
+# run_pooling(mask= T)
 ###########################################
 # clear g_intermediate 
 #set to TRUE to clear out intermediate files PLEASE REPLACE T WITH F IF YOU WANT TO SAVE INTERMEDIATE DATA SETS, I.E. TO REDUCE AMOUNT OF STORED DATA"

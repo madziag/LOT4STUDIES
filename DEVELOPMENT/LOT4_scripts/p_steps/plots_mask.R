@@ -19,7 +19,7 @@ count_files_all <- list()
 # Extracts counts files
 for (folder in 1:length(monthly_counts_folders)){
   if(length(list.files(paste0(output_dir, monthly_counts_folders[folder], "/"), pattern="count")) > 0){
-    count_names<-list.files(paste0(output_dir, monthly_counts_folders[folder]), pattern = "counts")
+    count_names<-list.files(paste0(output_dir, monthly_counts_folders[folder]), pattern = "count")
     count_files<-lapply(paste0(output_dir, monthly_counts_folders[folder],"/", count_names), readRDS)
     count_names_all[[folder]] <- count_names
     count_files_all[[folder]] <- count_files
@@ -58,7 +58,7 @@ if (length(count_files_all)>0){
       
       main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
       
-      if(main_name == "Pregnancy_ALL" | main_name == "ALL_study_population_Pregnancy_ALL"){
+      if(main_name == "all_pregnancies"){
         print(paste0("There are no rates plots for: ", main_name))
       } else {
         pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)

@@ -1,8 +1,4 @@
-run_pooling <-  function(){
-  # Apply masking
-  mask_rec <- readline(prompt="Do you want to apply masking to your pooled records? (please enter Y or N): ")
-  
-  
+run_pooling <-  function(mask= T){
   ### BIFAP POOLING ###
   print("##################################################")
   print("##################################################")
@@ -10,8 +6,7 @@ run_pooling <-  function(){
   print("##################################################")
   print("##################################################")
   
-  if (grepl("y", mask_rec, ignore.case = T)){mask <- T; print("Masking will be applied!")} else {mask <- F; print("Masking will not be applied!")}
-  
+   
   ###########################################################################################################################################################################
   ########### COUNTS ########################################################################################################################################################
   ###########################################################################################################################################################################
@@ -114,6 +109,8 @@ run_pooling <-  function(){
       } 
     }
   }
+  
+  num_files   <- num_files[!grepl(c("all_pregnancies"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
   
   # 7. Merge denominator files with count files 
   for (i in 1:length(num_files)){
@@ -608,6 +605,7 @@ run_pooling <-  function(){
   source(paste0(pre_dir,"bifap_aggr_plots.R"))
 
 }
+
 
 
 

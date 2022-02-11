@@ -76,6 +76,8 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
     # Counts of medicine records during contraception episodes
     source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
+    # Counts of all pregnancies 
+    source(paste0(pre_dir, "all_pregnancies_counts.R"))
     # Counts of pregnancies started during a treatment episode
     source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
     # Counts of medicines used during a pregnancy 
@@ -123,7 +125,7 @@ preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 ### Moves csv/xslx/plot files with matching pattern to corresponding folders
 # baseline tables
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
-# medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts/medicine_use_during_pregnancy_counts
+# medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds", "kaplan"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
 # pregnancy_tests_within_90_days_of_medicine_use_counts
@@ -132,9 +134,9 @@ for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignor
 # contraceptive_use_within_90_days_of_medicine_use_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), contraceptive_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="contraception_prior", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), contraceptive_counts_plots)}
-#pregnancies_started_during_treatment_episode_counts
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
+#pregnancies_started_during_treatment_episode_counts/med_use_during_pregnancy_counts/all_pregnancies_counts
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy|all_pregnancies", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),preg_med_counts_csv_xlsx )}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern="preg_starts_during_tx_episodes|med_use_during_pregnancy|all_pregnancies", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file),preg_med_counts_plots )}
 
 # Removes csv/xlsx, plots and monthly counts folders from LOT4_script (after everything has been copied to corresponding folders)
 for (file in list.files(path=paste0(output_dir), pattern=paste0(c("plots", paste0(my_format,"_files"), "denominator", "monthly_counts"), collapse="|"), ignore.case = T)){unlink(paste0(output_dir,file), recursive = TRUE)}
