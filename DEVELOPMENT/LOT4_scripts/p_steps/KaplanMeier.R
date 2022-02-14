@@ -35,7 +35,8 @@ end_date<- as.Date("31-12-2020", "%d-%m-%Y")
 my_KM$censor<-rep(NA, nrow(my_KM))
 my_KM$censor[my_KM$episode.end>=end_date]<-0
 my_KM$censor[my_KM$episode.end<end_date]<-1
-table(my_KM$censor)
+
+if(length(table(my_KM$censor))>1){
 #   
 #   3. split the data frame into two: episodes that started before the intervention date (in 2018, depending on country).
 int_date<- as.Date("01-06-2018", "%d-%m-%Y")
@@ -63,6 +64,7 @@ dev.off()
 my_surv<-list()
 my_surv[[1]]<-surv_int
 my_surv[[2]]<-comparrison
-saveRDS(my_surv,paste0(output_dir,"medicines_counts/", pop_prefix, "_kaplan_meir_", my_label[2],"_",my_label[1], "_model_data.rds")) 
+saveRDS(my_surv,paste0(output_dir,"medicines_counts/", pop_prefix, "_kaplan_meir_", my_label[2],"_",my_label[1], "_model_data.rds"))}
+else{print("no censored cases, survival model cannot be fit")}
 }
        
