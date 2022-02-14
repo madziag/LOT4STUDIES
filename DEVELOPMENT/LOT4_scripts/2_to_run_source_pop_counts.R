@@ -42,8 +42,8 @@ multiple_regions <- F
 #user input parameter
 
 ## MASKING 
-mask <- T
-# mask <- F
+# mask <- T
+mask <- F
 #user input parameter
 
 # Chose format to save files 

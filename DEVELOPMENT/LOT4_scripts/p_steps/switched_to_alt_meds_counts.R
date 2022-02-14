@@ -15,7 +15,7 @@ alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ig
 alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
-tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "retinoid|valproate", ignore.case = T)
+tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
@@ -39,8 +39,8 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
     tx_episodes <- tx_episodes[,-c("ATC", "type")]
     # Reads in the altmed files (corresponding to the medication)
-    if(str_detect(tx_episodes_files[i], pattern = "Retinoid")){alt_med_df <- do.call(rbind,lapply(alt_med_retinoid_files, readRDS))}
-    if(str_detect(tx_episodes_files[i], pattern = "Valproate")){alt_med_df <- do.call(rbind,lapply(alt_med_valproate_files, readRDS))}
+    if(str_detect(tx_episodes_files[i], pattern = "Retinoid_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_retinoid_files, readRDS))}
+    if(str_detect(tx_episodes_files[i], pattern = "Valproate_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_valproate_files, readRDS))}
     # Clean up altmed_df
     alt_med_df <- alt_med_df[,c("person_id", "Code", "Date")]
     setnames(alt_med_df, "Code", "ATC")
@@ -58,9 +58,13 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     # if person has record for alt med between episode.start.date and episode.end.date + 90 days -> value = earliest date of alternative medicine record between the 2 dates)
     # else assign the episode.end.date 
     # Is record_date of alt medicine between episode.start.date and episode.end.date + 90?
-    alt_med_tx_episodes[, switch:= fifelse(record_date>=episode.start & record_date<=episode.end + 90, 1, 0)]
+    alt_med_tx_episodes[, switch:= fifelse(record_date>episode.start & record_date<=episode.end + 90, 1, 0)]
+    # Check if record date is equal to or less than episode start date. If it is
+    alt_med_tx_episodes[, switch:= fifelse(record_date < episode.start & switch == 1, 0, switch)]
     # Non-switchers
-    alt_med_tx_episodes_0 <- alt_med_tx_episodes[switch== 0,][, episode.end.switch := episode.end] # Persons that did not have alt medicines within their tx episodes + 90
+    # Creates a df where switch == 0
+    alt_med_tx_episodes_0a <- alt_med_tx_episodes[switch== 0,]
+    alt_med_tx_episodes_0 <- alt_med_tx_episodes_0a[, episode.end.switch := episode.end] # Persons that did not have alt medicines within their tx episodes + 90
     # Remove column with alt med dates
     alt_med_tx_episodes_0 <- alt_med_tx_episodes_0[,-c("record_date")]  
     # Removes duplicates
@@ -68,7 +72,10 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     # Switchers 
     # Get earliest alt_med record date by patient id ONLY for those who have altmed use within treatment episode # Check if any records match before you run this
     if(nrow(alt_med_tx_episodes[switch == 1,])>0){
-      alt_med_tx_episodes_1 <- alt_med_tx_episodes[switch == 1,][, episode.end.switch := min(record_date), by=c("episode.ID", "person_id")] # Persons that had alt medicines within their tx episodes + 90
+      # Creates a df where switch == 1
+      alt_med_tx_episodes_1a <- alt_med_tx_episodes[switch == 1,]
+      # Assigns the minimal altmed record value as end of episode.switch
+      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1a[, episode.end.switch := min(record_date), by=c("episode.ID", "person_id")] # Persons that had alt medicines within their tx episodes + 90
       # Remove column with alt med dates (the earliest alt med record date has already been copied to episode.end.switch)
       alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[,-c("record_date")]
       # Removes duplicates

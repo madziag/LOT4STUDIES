@@ -25,7 +25,7 @@ D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
-tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "retinoid|valproate", ignore.case = T)
+tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
 # 3. Prevalent user counts 
@@ -52,6 +52,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
   for (i in 1:length(tx_episodes_files)){ 
     # Reads in the treatment episodes file 
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
+    tx_episodes <- tx_episodes[,-c("ATC", "type")]
     # Merge tx episodes with pregnancy records 
     tx_episodes_preg <- D3_pregnancy_reconciled[tx_episodes, on = .(person_id)] # Left join
     # Delete records without pregnancy records

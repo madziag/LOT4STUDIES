@@ -11,7 +11,7 @@ if(SUBP) {
   
   SCHEME_05 <- copy(subpopulation_meanings)
   SCHEME_05 <- SCHEME_05[, ':=' (file_in = paste0(subpopulations,"_source_population.rds"), file_out = paste0(subpopulations,"_source_population.rds"),folder_in = std_pop_tmp, folder_out = std_pop_tmp) ]
-  SCHEME_05 <- rbind(data.frame(subpopulations = c("ALL"),meaning_sets = "ALL",file_in = "ALL_source_population.rds", file_out = "ALL_source_population.rds",folder_in = std_pop_tmp, folder_out = std_pop_tmp),SCHEME_05)  
+  # SCHEME_05 <- rbind(data.frame(subpopulations = c("ALL"),meaning_sets = "ALL",file_in = "ALL_source_population.rds", file_out = "ALL_source_population.rds",folder_in = std_pop_tmp, folder_out = std_pop_tmp),SCHEME_05)  
 
 }
 
