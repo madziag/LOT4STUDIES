@@ -75,7 +75,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # Creates a df where switch == 1
       alt_med_tx_episodes_1a <- alt_med_tx_episodes[switch == 1,]
       # Assigns the minimal altmed record value as end of episode.switch
-      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1a[, episode.end.switch := min(record_date), by=c("episode.ID", "person_id")] # Persons that had alt medicines within their tx episodes + 90
+      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1a[, episode.end.switch := min(record_date), by=c("episode.start", "person_id")] # Persons that had alt medicines within their tx episodes + 90
       # Remove column with alt med dates (the earliest alt med record date has already been copied to episode.end.switch)
       alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[,-c("record_date")]
       # Removes duplicates
@@ -85,7 +85,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # If > 90, switch column remains 1
       # Create column that puts next episode.start date on the same row level as episode.end of previous tx.episode per gtoup
       # Sort df 
-      alt_med_tx_episodes_1[order(person_id,episode.ID),]
+      alt_med_tx_episodes_1[order(person_id,episode.start),]
       # Create a column with lead values of episode.start column (so that episode.end can be on the same row as the next episode.start of the same person)
       alt_med_tx_episodes_1[, next.episode.start:= shift(episode.start, type = "lead" ), by = person_id]
       # Subtract episode.end from next.episode.start. If difference <= 90 then switch -> 0, else switch remains 1
@@ -100,9 +100,11 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       alt_med_tx_episodes <- rbind(alt_med_tx_episodes_1, alt_med_tx_episodes_0) # Binds the 2 dfs
       ### Creates Denominator
       # Adds column that indicates row number (to be used when merging expanded df with original df)
+
       alt_med_tx_episodes <- alt_med_tx_episodes[,nrow:=.I]
       # Expands df (1 row for every day of treatment per patient) -> gives 2 cols (person_id + tx day)
-      alt_med_tx_episodes_expanded <- setDT(alt_med_tx_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end.switch, by = "day")), by = 1:nrow(alt_med_tx_episodes)]
+      alt_med_tx_episodes_switched <- alt_med_tx_episodes[switch == 1,]
+      alt_med_tx_episodes_expanded <- setDT(alt_med_tx_episodes_switched)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end.switch, by = "day")), by = 1:nrow(alt_med_tx_episodes_switched)]
       # Merges back with original df
       alt_med_tx_episodes_expanded <-  merge(alt_med_tx_episodes, alt_med_tx_episodes_expanded, by = "nrow")
       # Create year-months columns episode.day
