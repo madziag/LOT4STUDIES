@@ -35,7 +35,8 @@ end_date<- as.Date("31-12-2020", "%d-%m-%Y")
 my_KM$censor<-rep(NA, nrow(my_KM))
 my_KM$censor[my_KM$episode.end>=end_date]<-0
 my_KM$censor[my_KM$episode.end<end_date]<-1
-table(my_KM$censor)
+
+if(length(table(my_KM$censor))>1){
 #   
 #   3. split the data frame into two: episodes that started before the intervention date (in 2018, depending on country).
 int_date<- as.Date("01-06-2018", "%d-%m-%Y")
@@ -55,7 +56,7 @@ surv_int<-survfit(Surv(my_KM$episode.duration, my_KM$censor)~my_KM$int)
 comparrison<-survdiff(Surv(my_KM$episode.duration, my_KM$censor)~my_KM$int)
 my_median<-summary(surv_int)$table[,'median']
 my_median<-paste0(my_median[1],", ",my_median[2])
-pdf((paste0(plot_folder,"/","kaplan_myer_", my_label[2],"_",my_label[1], ".pdf")), width=8, height=4)
+pdf((paste0(plot_folder,"/","kaplan_meir_", my_label[2],"_",my_label[1], ".pdf")), width=8, height=4)
 plot(surv_int, col=c(1,2), lwd=2, main=paste0(my_label[1]," treatment episode duration"), cex.main=1.5)
 legend("topright", c("before", "after", paste0("median: ", my_median)), col=c(2,1,1), lwd=2,lty=c(1,1,2), bty="n", cex=1.5)
 abline(h=0.5, lty=2)
@@ -63,6 +64,7 @@ dev.off()
 my_surv<-list()
 my_surv[[1]]<-surv_int
 my_surv[[2]]<-comparrison
-saveRDS(my_surv,paste0(output_dir,"medicines_counts/", pop_prefix, "_kaplan_myer_", my_label[2],"_",my_label[1], "_model_data.rds")) 
+saveRDS(my_surv,paste0(output_dir,"medicines_counts/", pop_prefix, "_kaplan_meir_", my_label[2],"_",my_label[1], "_model_data.rds"))}
+else{print("no censored cases, survival model cannot be fit")}
 }
        
