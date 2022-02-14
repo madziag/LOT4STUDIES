@@ -27,15 +27,15 @@ bifap_plots<- paste0(All_regions_dir,"/plots/")
 
 #get dates vector
 
-denominator <- list.files(All_regions_dir, pattern = "denominator_Pooled.csv", recursive = TRUE, ignore.case = T)[[1]][1]
+denominator <- (list.files(paste0(All_regions_dir,"/ALL_denominator/"), pattern = "denominator_Pooled.csv", recursive = TRUE, ignore.case = T))
 
-my_date_df<-fread(paste0(All_regions_dir, denominator[[1]][1]))
+my_date_df<-fread(paste0(All_regions_dir,"/ALL_denominator/", denominator))
 
 my_dates<-my_date_df$YM
 
 # Get a dynamic list of region names 
-my_regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
-# my_regions<-c("AR", "AS","CA", "CL","CM","CN","MA","MU","NA")
+# my_regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
+my_regions<-c("AR", "AS","CA", "CL","CM","CN","MA","MU","NA")
 
 my_pallette<-RColorBrewer::brewer.pal(n =length(my_regions), name="Set1" )
 
@@ -53,8 +53,7 @@ for(i in 1:length(my_folders)){
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
-      my_data<-fread(paste0(All_regions_dir,my_folders[i],"/",my_files[j]))
-      my_perc<-my_data$rates*100
+      my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files[j]))
       my_reg<-substr(my_files[j],1,2)
       my_col<-as.character(region_key$my_pallette[region_key$my_regions==my_reg])
       #jitterred lines so that overlapping regions are distinguishable
@@ -68,11 +67,15 @@ for(i in 1:length(my_folders)){
 
 
 #pooled plots for each output- one pooled file per output folder
+my_folders<- list.files(All_regions_dir, pattern="counts")
 
 for(i in 1:length(my_folders)){
-  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='Pooled', invert=FALSE, value=TRUE)
-  main_name<-paste0("pooled",substr(my_folders[i], 1,nchar(my_folders[i])-7))
+  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='counts_Pooled', invert=FALSE, value=TRUE)
+  my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files))
+  main_name<-paste0("Pooled ",substr(my_folders[i], 1,nchar(my_folders[i])-7))
   pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-  plot(x=1:nrow(my_date_df),y=my_files$rates, main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+  plot(x=1:nrow(my_date_df),y=my_data$rates, main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+  lines(x=(1:nrow(my_data)), y=my_data$rates, lwd=2)
   axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
+  dev.off()
 }
