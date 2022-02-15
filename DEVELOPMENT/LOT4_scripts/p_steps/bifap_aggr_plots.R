@@ -68,6 +68,7 @@ for(i in 1:length(my_folders)){
 
 #pooled plots for each output- one pooled file per output folder
 my_folders<- list.files(All_regions_dir, pattern="counts")
+my_folders<- my_folders[!grepl(c("all_pregnancies"), my_folders)]
 
 for(i in 1:length(my_folders)){
   my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='counts_Pooled', invert=FALSE, value=TRUE)

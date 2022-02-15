@@ -36,14 +36,14 @@ study_type <- "Both"
 #user input parameter
 
 ## Turn statement to T if multiple regions #BIFAP
-# multiple_regions <- F
-multiple_regions <- T # BIFAP
-multiple_regions_dir <- paste0(path_dir, "BIFAP/")
+multiple_regions <- F
+# multiple_regions <- T # BIFAP
+# multiple_regions_dir <- paste0(path_dir, "BIFAP/")
 #user input parameter
 
 ## MASKING 
-# mask <- T
-mask <- F
+mask <- T
+# mask <- F
 #user input parameter
 
 # Chose format to save files 

@@ -29,7 +29,7 @@ pregnancy_all_counts$masked <- ifelse(pregnancy_all_counts $N < 5 & pregnancy_al
 if(mask == T){pregnancy_all_counts[pregnancy_all_counts$masked == 1,]$N <- 5} else {pregnancy_all_counts[pregnancy_all_counts$masked == 1,]$N <- pregnancy_all_counts[pregnancy_all_counts$masked == 1,]$N} # Changes values less than 5 and more than 0 to 5
 pregnancy_all_counts <- within(pregnancy_all_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
 pregnancy_all_counts <- pregnancy_all_counts[,c("YM", "N", "masked")]
-saveRDS(pregnancy_all_counts, paste0(preg_med_counts_dir,"/","all_pregnancies_counts.rds"))
+saveRDS(pregnancy_all_counts, paste0(preg_med_counts_dir,"/", pop_prefix, "_all_pregnancies_counts.rds"))
 
 # Stratified by highest quality
 pregnancy_all_counts_stratified <- D3_pregnancy_reconciled[,.N, by = .(year(pregnancy_start_date),month(pregnancy_start_date), highest_quality)]
@@ -44,6 +44,6 @@ for(i in 1:length(hq_unique)){
   if(mask == T){counts_subset[counts_subset$masked == 1,]$N <- 5} else {counts_subset[counts_subset$masked == 1,]$N <- counts_subset[counts_subset$masked == 1,]$N} # Changes values less than 5 and more than 0 to 5
   counts_subset <- within(counts_subset, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
   counts_subset <- counts_subset[,c("YM", "N", "masked")]
-  saveRDS(counts_subset, paste0(preg_med_counts_dir,"/", hq_unique[i], "_all_pregnancies_counts.rds"))
+  saveRDS(counts_subset, paste0(preg_med_counts_dir,"/", pop_prefix,"_", hq_unique[i], "_all_pregnancies_counts.rds"))
 }
 

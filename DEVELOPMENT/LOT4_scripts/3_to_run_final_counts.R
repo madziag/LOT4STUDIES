@@ -31,7 +31,6 @@ source(paste0(pre_dir,"set_DAP_params.R"))
 #user input parameter
 ## Choose study type
 
-
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
 study_type <- "Both"
