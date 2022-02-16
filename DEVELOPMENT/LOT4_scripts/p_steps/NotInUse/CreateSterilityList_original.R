@@ -13,7 +13,7 @@
 # Loads sterility codes from Lot4_completediagnosis_codelist_20211110
 matches <- c("sterility")
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
-source(paste0(pre_dir,"excluded_ICD.R"))
+source(paste0(pre_dir, "excluded_ICD.R"))
 # Gets list of events tables from CDM/LOT4 folders
 events_files <- list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE)
 # Finds sterility codes in events tables 
@@ -79,12 +79,6 @@ if(length(events_files)>0){
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
                               ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
-    # Check if records have dots or not Flag = 1 when dotted and 0 when not dotted 
-    df[, flag:= ifelse(str_detect(Code, "\\."), 1, 0)]
-    # if all flags are 0 then use undotted codes else use dotted codes 
-    # If unique value of flag is both 0 and 1, then we assume that the DAP uses dots in their ICD codes
-    # If there is only 1 unique value of flag: If equal to 1 -> then DAP uses dots in their ICD code. If flag == 0, then we assume that there are no dots used in the data 
-    dotted <- ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
     # Prints Message
     print(paste0("Finding matching records in ", events_files[y]))
     
@@ -96,9 +90,10 @@ if(length(events_files)>0){
         if(nrow(df_subset_vocab)>0){ 
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             for (i in 1:length(codelist_start_all)){
-              if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-              if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='EVENTS']
               # Remove excluded codes (found as a result of code with no dots)
               df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -110,7 +105,7 @@ if(length(events_files)>0){
           } else if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ"){ 
             for (i in 1:length(codelist_read_all)){ 
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='EVENTS']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -121,7 +116,7 @@ if(length(events_files)>0){
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,-c("vocab")]
               df_subset[,table_origin:='EVENTS']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -141,9 +136,11 @@ if(length(events_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           for (i in 1:length(codelist_start_all)){
             df_subset_vocab <- df
-            if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-            if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='EVENTS']
             # Remove excluded codes (found as a result of code with no dots)
             df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -155,7 +152,7 @@ if(length(events_files)>0){
         } else if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ"){ 
           for (i in 1:length(codelist_read_all)){ 
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='EVENTS']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -166,7 +163,7 @@ if(length(events_files)>0){
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,-c("vocab")]
             df_subset[,table_origin:='EVENTS']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -228,20 +225,11 @@ if(length(proc_files)>0){
     df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
-    # Drop events free text column
-    df <- df[,-c("event_free_text")]
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
                               ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
     
-    # Check if records have dots or not 
-    df[, flag:= ifelse(str_detect(Code, "\\."), 1, 0)]
-    # if all flags are 0 then use undotted codes else use dotted codes 
-    # If unique value of flag is both 0 and 1, then we assume that the DAP uses dots in their ICD codes
-    # If there is only 1 unique value of flag: If equal to 1 -> then DAP uses dots in their ICD code. If flag == 0, then we assume that there are no dots used in the data 
-    dotted <- ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
     # Prints Message
     print(paste0("Finding matching records in ", proc_files[y]))
     if (length(unique(df$vocab)) > 1){
@@ -252,9 +240,11 @@ if(length(proc_files)>0){
         if(nrow(df_subset_vocab)>0){ 
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             for (i in 1:length(codelist_start_all)){
-              if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-              if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              # df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset[,table_origin:='PROCEDURES']
               # Remove excluded codes (found as a result of code with no dots)
               df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -297,13 +287,14 @@ if(length(proc_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           for (i in 1:length(codelist_start_all)){
             df_subset_vocab <- df
-            if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-            if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset[,table_origin:='PROCEDURES']
             # Remove excluded codes (found as a result of code with no dots)
             df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
-
             if(nrow(df_subset)>0){
               # Checks for subpops - if present, saves with the prefix of subpop name 
               saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
@@ -438,3 +429,5 @@ if (length(list.files(events_tmp_sterility))> 0){
   print("There are no Sterility records")
 }
 
+# Sterility_all = 324
+# Sterility_all_first # 98

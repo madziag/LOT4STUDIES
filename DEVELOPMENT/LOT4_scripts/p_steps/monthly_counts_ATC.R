@@ -151,7 +151,7 @@ if(length(med_files)>0){
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
         counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked")]
-        if(comb_meds[[i]][,.N]>0){
+        if(sub_ind[,.N]>0){
           saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_prefix,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
         } else {
           print(paste("There are no matching records for", names(codelist_all[i])))

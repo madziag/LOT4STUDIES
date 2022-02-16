@@ -5,14 +5,20 @@
 
 #this section finds files matching any contraception vocabulary from the three possible folders: medications, procedures and diagnoses
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
-contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud")                               
+contracep_med_list <- contracep_med_list[grepl(pop_prefix, contracep_med_list)]
+contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud")    
+contracep_proc_list <- contracep_proc_list[grepl(pop_prefix, contracep_proc_list)]
 contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")                               
+contracep_diag_list <- contracep_diag_list[grepl(pop_prefix, contracep_diag_list)]
 
 contracep_tables<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list))
 
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = F,pattern="contracep")
+contracep_med_list <- contracep_med_list[grepl(pop_prefix, contracep_med_list)]
 contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud")
+contracep_proc_list <- contracep_proc_list[grepl(pop_prefix, contracep_proc_list)]
 contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")
+contracep_diag_list <- contracep_diag_list[grepl(pop_prefix, contracep_diag_list)]
 
 contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list))
 

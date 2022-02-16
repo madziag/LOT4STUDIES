@@ -10,7 +10,6 @@
 # Loads Create Concept Sets file
 matches <- c()
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
-source(paste0(pre_dir,"excluded_ICD.R"))
 # Loads Procedure files
 proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
 # Creates empty table for counts 
@@ -63,12 +62,6 @@ if(length(proc_files)>0){
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ", 
                               ifelse(df[,Vocabulary] %chin% c("SNOMEDCT_US", "SCTSPA", "SNOMED"), "SNOMED", "UNKNOWN")))]
-    # Check if records have dots or not 
-    df[, flag:= ifelse(str_detect(Code, "\\."), 1, 0)]
-    # if all flags are 0 then use undotted codes else use dotted codes 
-    # If unique value of flag is both 0 and 1, then we assume that the DAP uses dots in their ICD codes
-    # If there is only 1 unique value of flag: If equal to 1 -> then DAP uses dots in their ICD code. If flag == 0, then we assume that there are no dots used in the data 
-    dotted <- ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
     # Prints Message
     print(paste0("Finding matching records in ", proc_files[proc]))
     # If more than 1 unique value in vocab column 
@@ -83,13 +76,12 @@ if(length(proc_files)>0){
           # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             for (i in 1:length(codelist_start_all)){
-              if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-              if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
-              # Remove excluded codes (found as a result of code with no dots)
-              df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
+              df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+              df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+              # df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]
+              df_subset <- df_subset[,-c("vocab")]
+              df_subset <- df_subset[,-c("Code_no_dot")]
               df_subset <- df_subset[!duplicated(df_subset),]
-              
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
                 new_file <-c(list.files(events_tmp_PROC_dxcodes, "\\_start.rds$"))
@@ -100,7 +92,7 @@ if(length(proc_files)>0){
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ") {
             for (i in 1:length(codelist_read_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,-c("vocab")]
               df_subset <- df_subset[!duplicated(df_subset),]
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_read_all[i]), "_", procedures_prefix, "_READ.rds"))
@@ -112,7 +104,7 @@ if(length(proc_files)>0){
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,-c("vocab")]
               df_subset <- df_subset[!duplicated(df_subset),]
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix,"_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
@@ -137,11 +129,11 @@ if(length(proc_files)>0){
           
           for (i in 1:length(codelist_start_all)){
             df_subset_vocab <- df
-            if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-            if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
-            # Remove excluded codes (found as a result of code with no dots)
-            df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
+            df_subset_vocab <- df_subset_vocab[,Code_no_dot := gsub("\\.", "", Code)]
+            df_subset <- setDT(df_subset_vocab)[Code_no_dot %chin% codelist_start_all[[i]][,Code]]
+            # df_subset <- setDT(df)[Code %chin% codelist_start_all[[i]][,Code]]
+            df_subset <- df_subset[,-c("vocab")]
+            df_subset <- df_subset[,-c("Code_no_dot")]
             df_subset <- df_subset[!duplicated(df_subset),]
             if(nrow(df_subset)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix,"_",names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
@@ -153,7 +145,7 @@ if(length(proc_files)>0){
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ") {
           for (i in 1:length(codelist_read_all)){
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,-c("vocab")]
             df_subset <- df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
@@ -166,7 +158,7 @@ if(length(proc_files)>0){
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,-c("vocab")]
             df_subset <- df_subset[!duplicated(df_subset),]
             if(nrow(df_subset)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
@@ -224,10 +216,3 @@ if(length(proc_files)>0){
 } else {
   print("There are no PROCEDURES tables to analyse!")
 }
-
-
-
-
-
-
-
