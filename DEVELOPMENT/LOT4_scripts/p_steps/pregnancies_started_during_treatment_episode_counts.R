@@ -28,10 +28,22 @@ D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
+  tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
+}
+
 # 3. Prevalent user counts 
 prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
 # Filters by current subpopulation 
 prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
+  prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
+}
+
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 

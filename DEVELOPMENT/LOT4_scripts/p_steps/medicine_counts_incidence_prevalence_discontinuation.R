@@ -43,6 +43,11 @@
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
+  tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
+}
 # 2. Denominator 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))

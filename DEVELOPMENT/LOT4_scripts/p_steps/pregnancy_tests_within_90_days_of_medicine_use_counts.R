@@ -27,6 +27,13 @@
 # 1. Pregnancy test records 
 # Looks for pregnancy test files in tmp folder 
 pregtest_files <- list.files(tmp, pattern = paste0(c("pregtest.rds", "preg_test.rds"), collapse = "|"), recursive = T, ignore.case = T, full.names = T)
+# Filters by current subpopulation 
+pregtest_files <- pregtest_files[grepl(pop_prefix, pregtest_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  pregtest_files <- list.files(tmp, pattern = paste0(c("pregtest.rds", "preg_test.rds"), collapse = "|"), recursive = T, ignore.case = T, full.names = T)
+  pregtest_files <- pregtest_files[!grepl("PC_HOSP", pregtest_files)]
+}
 # 2. Retinoid/Valproate records 
 # Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
 # name of variable with list of medicines available -> med_files

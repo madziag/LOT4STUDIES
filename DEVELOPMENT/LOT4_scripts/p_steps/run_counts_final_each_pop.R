@@ -8,20 +8,24 @@
 populations <- list.files(populations_dir, pattern = "study_population")
 # Checks for study type
 if(study_type == "Retinoid"){
-  pattern1 = c("Retinoid")
+  pattern_meds = c("Retinoid")
 } else if (study_type == "Valproate") {
-  pattern1 = c("Valproate")
+  pattern_meds = c("Valproate")
 } else if (study_type == "Both") {
-  pattern1 = c("Retinoid","Valproate")
+  pattern_meds = c("Retinoid","Valproate")
 } else {
   print ("Please indicate Study Type")
 }
-# Loads files with matching pattern 
-med_files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse="|"))
-# Reads in records of population with indicated study type
-study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
+# # Loads files with matching pattern 
+# med_files <- list.files(path=medications_pop, pattern=paste0(pattern1, collapse="|"))
+# # Reads in records of population with indicated study type
+# study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
 
 if (is_Denmark == T){
+  # Loads files with matching pattern 
+  med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
+  # Reads in records of population with indicated study type
+  study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
   # Loads study population
   study_population <- readRDS(paste0(populations_dir, populations))
   # Assign study population prefix name
@@ -56,13 +60,22 @@ if (is_Denmark == T){
     study_population <- readRDS(paste0(populations_dir, populations[pop]))
     # Assign study population prefix name
     pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+    # Loads files with matching pattern 
+    med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
+    med_files <- med_files[grepl(pop_prefix, med_files)]
+    if(populations[pop] == "PC_study_population.rds"){
+      med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
+      med_files <- med_files[!grepl("PC_HOSP", med_files)]
+    }
+    # Reads in records of population with indicated study type
+    study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
     # Make sure last exit data is 2019 if DAP == "PHARMO"
     if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
-    # Creates baseline tables 
+    # Creates baseline tables #
     source(paste0(pre_dir,"CreateBaselineTables.R"))
-    # Creates Retinoid/Valproate treatment episodes 
+    # Creates Retinoid/Valproate treatment episodes #
     source(paste0(pre_dir, "treatment_episodes.R"))
-    # Creates KM plots # Doesn't save them yet
+    # Creates KM plots # 
     source(paste0(pre_dir, "KaplanMeier.R"))
     # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))

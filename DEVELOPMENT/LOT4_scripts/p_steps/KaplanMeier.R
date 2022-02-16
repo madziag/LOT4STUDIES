@@ -9,6 +9,11 @@
 #load flexibly for multiple files
 
 my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+my_files<-my_files[grepl(pop_prefix, my_files)]
+if(populations[pop] == "PC_study_population.rds"){
+  my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+  my_files<-my_files[!grepl("PC_HOSP", my_files)]
+}
 
 my_data<-  lapply(paste0(g_intermediate, "treatment_episodes/",my_files), readRDS)
 

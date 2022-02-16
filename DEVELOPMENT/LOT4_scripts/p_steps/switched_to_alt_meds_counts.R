@@ -11,13 +11,36 @@
 ##################################################################################################################################################
 ### Loads records needed 
 # 1. Alternative medicines files 
+# Retinoids 
 alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
+# Filters by current subpopulation 
+alt_med_retinoid_files <- alt_med_retinoid_files[grepl(pop_prefix, alt_med_retinoid_files)]
+if(populations[pop] == "PC_study_population.rds"){
+  alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
+  alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("PC_HOSP", alt_med_retinoid_files)]
+}
+
+# Valproates
 alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
+# Filters by current subpopulation 
+alt_med_valproate_files <- alt_med_valproate_files[grepl(pop_prefix, alt_med_valproate_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
+  alt_med_valproate_files <- alt_med_valproate_files[!grepl("PC_HOSP", alt_med_valproate_files)]
+}
+
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
 # Filters by current subpopulation 
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
+  tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
+}
+
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))

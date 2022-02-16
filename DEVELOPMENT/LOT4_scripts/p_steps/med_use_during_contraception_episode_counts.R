@@ -20,6 +20,13 @@
 # 1. Contraception episode records 
 # Looks for Contraception episode files in treatment episodes folder 
 contra_epi_files <- list.files(paste0(g_intermediate,"treatment_episodes/"), pattern = paste0(pop_prefix, "_contraceptive"), recursive = T, full.names = T)
+# Filters by current subpopulation 
+contra_epi_files <- contra_epi_files[grepl(pop_prefix, contra_epi_files )]
+
+if(populations[pop] == "PC_study_population.rds"){
+  contra_epi_files <- list.files(paste0(g_intermediate,"treatment_episodes/"), pattern = paste0(pop_prefix, "_contraceptive"), recursive = T, full.names = T)
+  contra_epi_files <- contra_epi_files[!grepl("PC_HOSP", contra_epi_files)]
+}
 # 2. Retinoid/Valproate records 
 # Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
 # name of variable with list of medicines available -> med_files

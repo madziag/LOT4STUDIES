@@ -32,6 +32,11 @@ prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence
 # Filters by current subpopulation 
 prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
 
+if(populations[pop] == "PC_study_population.rds"){
+  prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
+  prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
+}
+
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))
