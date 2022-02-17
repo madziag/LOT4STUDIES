@@ -62,7 +62,7 @@ comparrison<-survdiff(Surv(my_KM$episode.duration, my_KM$censor)~my_KM$int)
 my_median<-summary(surv_int)$table[,'median']
 my_median<-paste0(my_median[1],", ",my_median[2])
 pdf((paste0(plot_folder,"/","kaplan_meir_", my_label[2],"_",my_label[1], ".pdf")), width=8, height=4)
-plot(surv_int, col=c(1,2), lwd=2, main=paste0(my_label[1]," treatment episode duration"), cex.main=1.5)
+plot(surv_int, col=c(1,2), lwd=2, main=paste0(my_label[1]," treatment episode duration"), ylab = "proportion still exposed", cex.main=1.5)
 legend("topright", c("before", "after", paste0("median: ", my_median)), col=c(2,1,1), lwd=2,lty=c(1,1,2), bty="n", cex=1.5)
 abline(h=0.5, lty=2)
 dev.off()

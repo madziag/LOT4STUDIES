@@ -49,7 +49,7 @@ for(i in 1:length(my_folders)){
   if (length(my_files)>0){
     main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
     pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0, 2), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
@@ -75,7 +75,7 @@ for(i in 1:length(my_folders)){
   my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files))
   main_name<-paste0("Pooled ",substr(my_folders[i], 1,nchar(my_folders[i])-7))
   pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-  plot(x=1:nrow(my_date_df),y=my_data$rates, main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+  plot(x=1:nrow(my_date_df),y=my_data$rates, ylim=c(0,max(my_data$rates)), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
   lines(x=(1:nrow(my_data)), y=my_data$rates, lwd=2)
   axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
   dev.off()
@@ -92,7 +92,7 @@ for(i in 1:length(my_folders)){
   if (length(my_files)>0){
     main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
     pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
+    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0,2), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
@@ -119,7 +119,7 @@ for(i in 1:length(my_folders)){
   my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files))
   main_name<-paste0("Pooled ",substr(my_folders[i], 1,nchar(my_folders[i])-7))
   pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-  plot(x=1:nrow(my_date_df),y=my_data$rates, main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
+  plot(x=1:nrow(my_date_df),y=my_data$rates,ylim=c(0,max(my_data$rates)), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
   lines(x=(1:nrow(my_data)), y=my_data$rates, lwd=2)
   axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
   dev.off()
