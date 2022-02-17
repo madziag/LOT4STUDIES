@@ -24,6 +24,8 @@ if(populations[pop] == "PC_study_population.rds"){
   alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("PC_HOSP", alt_med_retinoid_files)]
 }
 
+if(is_CASERTA){alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("altmed_retin_psoriasis", alt_med_retinoid_files)]}
+
 # Valproates
 alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
 # Filters by current subpopulation 

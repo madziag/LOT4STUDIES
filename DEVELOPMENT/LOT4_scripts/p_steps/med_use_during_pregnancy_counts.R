@@ -118,6 +118,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
         setnames(prevalent_counts, "N", "Freq")
         med_use_during_preg_unique_counts <- merge(x = med_use_during_preg_unique_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
         med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+        med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,rates:=rates*1000]
         med_use_during_preg_unique_counts$rates[is.nan(med_use_during_preg_unique_counts$rates)]<-0
         med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
         setnames(med_use_during_preg_unique_counts, "masked_num", "masked")
