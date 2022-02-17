@@ -118,6 +118,7 @@ if(length(med_files)>0){
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      counts <-counts[,rates:=rates*1000]
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){
@@ -150,6 +151,7 @@ if(length(med_files)>0){
         counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
         counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
+        counts_ind <-counts_ind[,rates:=rates*1000]
         counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked")]
         if(sub_ind[,.N]>0){
           saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_prefix,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))

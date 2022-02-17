@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 10/12/2021
@@ -209,6 +209,7 @@ if(length(proc_files)>0){
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      counts <-counts[,rates:=rates*1000]
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){

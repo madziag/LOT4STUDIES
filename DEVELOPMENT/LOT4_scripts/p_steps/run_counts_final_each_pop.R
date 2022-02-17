@@ -1,3 +1,8 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 16/02/2022
+
 # Takes into account subpopulations 
 # Loads records with Retinoid/Valproate use (depending on study type)
 # Loads study_population 

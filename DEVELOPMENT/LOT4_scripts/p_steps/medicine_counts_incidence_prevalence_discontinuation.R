@@ -104,6 +104,7 @@ for (i in 1:length(tx_episodes_files)){
   df_prevalence_counts <- merge(x = df_prevalence_counts_num, y = denominator, by = c("year", "month"), all.x = TRUE)
   # Calculates rates
   df_prevalence_counts <- df_prevalence_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+  df_prevalence_counts <- df_prevalence_counts[,rates:=rates*1000]
   df_prevalence_counts <- df_prevalence_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
   saveRDS(df_prevalence_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
@@ -130,7 +131,8 @@ for (i in 1:length(tx_episodes_files)){
   # df_incidence_counts_num <- within(df_incidence_counts_num, YM<- sprintf("%d-%02d", year, month))
   df_incidence_counts <- merge(x = df_incidence_counts_num, y = denominator, by = c("year", "month"), all.x = TRUE)
   # Calculates rates
-  df_incidence_counts <-df_incidence_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+  df_incidence_counts <- df_incidence_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+  df_incidence_counts <- df_incidence_counts[,rates:=rates*1000]
   df_incidence_counts <-df_incidence_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
   saveRDS(df_incidence_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))

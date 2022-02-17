@@ -1,3 +1,8 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 16/02/2022
+
 # Takes into account subpopulations 
 # Runs individual scripts for each subpopulation
 # Result: If SUBP -> TRUE then each folder will contain (if present) results coming from all indicated subpops. Resulting files are prefixed with the name of the subpop

@@ -98,7 +98,8 @@ if(length(events_files)>0){
             for (i in 1:length(codelist_start_all)){
               if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
               if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='EVENTS']
               # Remove excluded codes (found as a result of code with no dots)
               df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -110,7 +111,8 @@ if(length(events_files)>0){
           } else if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ"){ 
             for (i in 1:length(codelist_read_all)){ 
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='EVENTS']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -121,7 +123,8 @@ if(length(events_files)>0){
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='EVENTS']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -143,7 +146,8 @@ if(length(events_files)>0){
             df_subset_vocab <- df
             if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
             if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='EVENTS']
             # Remove excluded codes (found as a result of code with no dots)
             df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -155,7 +159,8 @@ if(length(events_files)>0){
         } else if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ"){ 
           for (i in 1:length(codelist_read_all)){ 
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='EVENTS']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -166,7 +171,8 @@ if(length(events_files)>0){
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='EVENTS']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -183,6 +189,8 @@ if(length(events_files)>0){
 } else {
   print("There are no EVENTS tables available")
 }
+
+
 #################################################################################################################
 ################################# 2. DIAGNOSIS CODES IN PROCEDURES TABLES ########################################
 ##################################################################################################################
@@ -252,7 +260,8 @@ if(length(proc_files)>0){
             for (i in 1:length(codelist_start_all)){
               if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
               if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='PROCEDURES']
               # Remove excluded codes (found as a result of code with no dots)
               df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -264,7 +273,8 @@ if(length(proc_files)>0){
           } else if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ"){ 
             for (i in 1:length(codelist_read_all)){ 
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='PROCEDURES']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -275,7 +285,8 @@ if(length(proc_files)>0){
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
             for (i in 1:length(codelist_snomed_all)){
               df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab")]
+              # df_subset <- df_subset[,-c("vocab", "flag")]
+              df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
               df_subset[,table_origin:='PROCEDURES']
               # Saves table only if it is not empty
               if(nrow(df_subset)>0){
@@ -297,7 +308,8 @@ if(length(proc_files)>0){
             df_subset_vocab <- df
             if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
             if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='PROCEDURES']
             # Remove excluded codes (found as a result of code with no dots)
             df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
@@ -310,7 +322,8 @@ if(length(proc_files)>0){
         } else if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ"){ 
           for (i in 1:length(codelist_read_all)){ 
             df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='PROCEDURES']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -321,7 +334,8 @@ if(length(proc_files)>0){
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
           for (i in 1:length(codelist_snomed_all)){
             df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab")]
+            # df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
             df_subset[,table_origin:='PROCEDURES']
             # Saves table only if it is not empty
             if(nrow(df_subset)>0){
@@ -393,7 +407,8 @@ if(length(proc_files)>0){
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
         for (i in 1:length(codelist_CPRD_all)){
           df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
+          # df_subset <- df_subset[,-c("vocab")]
+          df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_subset[,table_origin:='PROCEDURES']
           if(nrow(df_subset)>0){
             saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_CPRD_all[i]), "_", procedures_prefix, "_CPRD.rds"))
@@ -403,7 +418,8 @@ if(length(proc_files)>0){
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
         for (i in 1:length(codelist_PHARM0_all)){
           df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
+          # df_subset <- df_subset[,-c("vocab")]
+          df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_subset[,table_origin:='PROCEDURES']
           if(nrow(df_subset)>0){
             saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
