@@ -47,7 +47,7 @@ if(length(monthly_counts_folders)>0){
         my_pch[my_pch==0]<-16
         my_pch[my_pch==1]<-8
         # Makes plots 
-        plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+        plot(x=1:nrow(my_data), y=my_data$N, ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
         axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
         dev.off()
       }
@@ -65,7 +65,7 @@ if(length(monthly_counts_folders)>0){
         my_pch[my_pch==1]<-8
         # Makes plots 
         if(str_detect(main_name, "altmed")){ylab_prelim <- "Number presc/disp per 1000 pm"} else {ylab_prelim <- "nr. records/1000 person-months"}
-        plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n",type="b", xlab="", ylab=ylab_prelim, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
+        plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,max(my_data$rates)), xaxt="n",type="b", xlab="", ylab=ylab_prelim, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
         axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
         dev.off()
       }
@@ -111,7 +111,7 @@ if(length(final_counts_rates_folders)>0){
         my_pch[my_pch==0]<-16
         my_pch[my_pch==1]<-8
         # Makes plots 
-        plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+        plot(x=1:nrow(my_data), y=my_data$N, ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
         axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
         dev.off()
       }
@@ -136,7 +136,7 @@ if(length(final_counts_rates_folders)>0){
           if(str_detect(main_name, "med_use_during_pregnancy")){ylab_rates <- "Number presc/disp during pregnancy per 1000 pm"}
           if(str_detect(main_name, "preg_start")){ylab_rates <- "Number pregnancies during exposure per 1000 pm"}
           # Makes plots
-          plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n",type="b", xlab="", ylab= ylab_rates, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
+          plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,max(my_data$rates)), xaxt="n",type="b", xlab="", ylab= ylab_rates, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
           axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
           dev.off()
         }
@@ -182,7 +182,7 @@ if(length(final_counts_props_folders)>0){
         my_pch[my_pch==0]<-16
         my_pch[my_pch==1]<-8
         # Makes plots 
-        plot(x=1:nrow(my_data), y=my_data$N, xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+        plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
         axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
         dev.off()
       }
@@ -206,7 +206,7 @@ if(length(final_counts_props_folders)>0){
         if(str_detect(main_name, "before")){ylab_props <- "Proportion presc/disp. with pregnancy test before"}
         if(str_detect(main_name, "after")){ylab_props <- "Proportion presc/disp. with pregnancy test after"}
         # Makes plots
-        plot(x=1:nrow(my_data), y=my_data$rates, xaxt="n",type="b", xlab="", ylab= ylab_props, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
+        plot(x=1:nrow(my_data), y=my_data$rates, ylim=c(0,max(my_data$rates)),xaxt="n",type="b", xlab="", ylab= ylab_props, main=main_name, pch=my_pch, lwd=2, cex.main=1.5)
         axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
         dev.off()
       }
