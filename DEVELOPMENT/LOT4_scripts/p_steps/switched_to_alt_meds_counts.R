@@ -8,7 +8,7 @@
 
 ## Objective 4.2: Proportion of people who switched from Retinoid/Valproate to an alternative medicine (any of the altmed retin or altmed valp)
 # Numerator -> Number of people who have switched from a Retinoid/Valproate to an alternative medicine
-# Denominator ->  Number of prevalent (current users) who have not switched to an alternative medicine 
+# Denominator ->  Number of prevalent (current) users
 # Records needed -> 1. Treatment episodes 2. Alternative medicines records (combined set of alt meds for Retinoids/combined set of alt meds for Valproates) 3. Prevalent users patient records 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -45,6 +45,16 @@ tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
 if(populations[pop] == "PC_study_population.rds"){
   tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
   tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
+}
+
+# 3. Prevalent user counts 
+prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
+# Filters by current subpopulation 
+prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
+  prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
 }
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
@@ -88,16 +98,6 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     # else assign the episode.end.date 
     # Is record_date of alt medicine between episode.start.date and episode.end.date + 90?
     alt_med_tx_episodes[, switch:= fifelse(record_date>episode.start & record_date<=episode.end + 90, 1, 0)]
-    # Check if record date is equal to or less than episode start date. If it is
-    alt_med_tx_episodes[, switch:= fifelse(record_date < episode.start & switch == 1, 0, switch)]
-    # Non-switchers
-    # Creates a df where switch == 0
-    alt_med_tx_episodes_0a <- alt_med_tx_episodes[switch== 0,]
-    alt_med_tx_episodes_0 <- alt_med_tx_episodes_0a[, episode.end.switch := episode.end] # Persons that did not have alt medicines within their tx episodes + 90
-    # Remove column with alt med dates
-    alt_med_tx_episodes_0 <- alt_med_tx_episodes_0[,-c("record_date")]  
-    # Removes duplicates
-    alt_med_tx_episodes_0 <- alt_med_tx_episodes_0[!duplicated(alt_med_tx_episodes_0)]
     # Switchers 
     # Get earliest alt_med record date by patient id ONLY for those who have altmed use within treatment episode # Check if any records match before you run this
     if(nrow(alt_med_tx_episodes[switch == 1,])>0){
@@ -108,7 +108,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # Remove column with alt med dates (the earliest alt med record date has already been copied to episode.end.switch)
       alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[,-c("record_date")]
       # Removes duplicates
-      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[!duplicated(alt_med_tx_episodes_1)]
+      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[!duplicated(alt_med_tx_episodes_1[,-c("ATC")])]
       # If more than 2 episodes -> check if difference between next episode start and previous episode end is >= 90 
       # If < 90, then this is not a true switcher -> switch column turns to 0
       # If > 90, switch column remains 1
@@ -125,40 +125,10 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[,-c("next.episode.start")]
       # If switch has now been changed back to 0, then episode.end.switch = episode.end
       alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[switch == 0, episode.end.switch := episode.end] 
-      # Binds the 2 df 
-      alt_med_tx_episodes <- rbind(alt_med_tx_episodes_1, alt_med_tx_episodes_0) # Binds the 2 dfs
-      ### Creates Denominator
-      # Adds column that indicates row number (to be used when merging expanded df with original df)
-
-      alt_med_tx_episodes <- alt_med_tx_episodes[,nrow:=.I]
-      # Expands df (1 row for every day of treatment per patient) -> gives 2 cols (person_id + tx day)
-      alt_med_tx_episodes_switched <- alt_med_tx_episodes[switch == 1,]
-      alt_med_tx_episodes_expanded <- setDT(alt_med_tx_episodes_switched)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end.switch, by = "day")), by = 1:nrow(alt_med_tx_episodes_switched)]
-      # Merges back with original df
-      alt_med_tx_episodes_expanded <-  merge(alt_med_tx_episodes, alt_med_tx_episodes_expanded, by = "nrow")
-      # Create year-months columns episode.day
-      alt_med_tx_episodes_expanded$year <- year(alt_med_tx_episodes_expanded$episode.day)
-      alt_med_tx_episodes_expanded$month <- month(alt_med_tx_episodes_expanded$episode.day)
-      # Remove episode.day column (we already have the month and year extracted from this column) + other duplicate/unnecessary columns
-      alt_med_tx_episodes_expanded <- alt_med_tx_episodes_expanded[,-c("nrow", "idnum", "episode.day")]
-      # Remove duplicate records
-      alt_med_tx_episodes_expanded <- alt_med_tx_episodes_expanded[!duplicated(alt_med_tx_episodes_expanded)]
-      # Count the number of patients treated per month
-      denom_0_1_counts <- alt_med_tx_episodes_expanded[,.N, by = .(year,month)]
-      # Merge with empty df (for counts that do not have counts for all months and years of study)
-      denom_0_1_counts <- as.data.table(merge(x = empty_df, y = denom_0_1_counts, by = c("year", "month"), all.x = TRUE))
-      # Fills in missing values with 0
-      denom_0_1_counts[is.na(denom_0_1_counts[,N]), N:=0]
-      # Masks values less than 5
-      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      denom_0_1_counts$masked_den <- ifelse(denom_0_1_counts$N < 5 & denom_0_1_counts$N > 0, 1, 0)
-      # Changes values less than 5 and more than 0 to 5
-      if (mask == T){denom_0_1_counts[denom_0_1_counts$masked_den == 1,]$N <- 5} else {denom_0_1_counts[denom_0_1_counts$masked_den == 1,]$N <- denom_0_1_counts[denom_0_1_counts$masked_den == 1,]$N}
-      # Renames columns (to not have the same name as in the numerator)
-      setnames(denom_0_1_counts, "N", "Freq")
-      ### Creates numerator 
-      # Count the number of patients treated per month
-      num_1_counts <- alt_med_tx_episodes_expanded[switch == 1,][,.N, by = .(year,month)]
+      # Drop records where switch == 0
+      alt_med_tx_episodes_1 <- alt_med_tx_episodes_1[switch==1,]
+      # Creates numerator 
+      num_1_counts <- alt_med_tx_episodes_1[,.N, by = .(year(episode.end.switch),month(episode.end.switch))]
       # Merge with empty df (for counts that do not have counts for all months and years of study)
       num_1_counts  <- as.data.table(merge(x = empty_df, y = num_1_counts, by = c("year", "month"), all.x = TRUE))
       num_1_counts[is.na(num_1_counts[,N]), N:=0]
@@ -169,9 +139,14 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       if (mask == T){num_1_counts[num_1_counts$masked == 1,]$N <- 5} else {num_1_counts[num_1_counts$masked == 1,]$N <- num_1_counts[num_1_counts$masked == 1,]$N}
       # Create YM variable 
       num_1_counts <- within(num_1_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
+      # Get denominator 
+      # Load prevalence counts
+      prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
+      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
+      setnames(prevalent_counts, "N", "Freq")
       # Calculate rates 
       ### Merges numerator file with denominator file
-      alt_med_counts <- merge(x = num_1_counts, y = denom_0_1_counts, by = c("year", "month"), all.x = TRUE)
+      alt_med_counts <- merge(x = num_1_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE)
       # Calculates rates
       alt_med_counts <- alt_med_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
       # Adjust for PHARMO
@@ -180,7 +155,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       alt_med_counts$rates[is.na(alt_med_counts$rates)]<-0
       # Drop unnecessary columns
       alt_med_counts <- alt_med_counts[,c("YM", "N", "Freq", "rates", "masked")]
-          # Saves files 
+      # Saves files 
       saveRDS(alt_med_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_switched_to_alt_meds_counts.rds")))
       # Clean up
       rm(tx_episodes, alt_med_df, alt_med_tx_episodes_0, alt_med_tx_episodes_1, alt_med_tx_episodes_expanded, denom_0_1_counts, num_1_counts, alt_med_counts)
@@ -191,11 +166,6 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
 } else {
   print("No alternative records medicines have been found")
 }
-
-
-
-
-
 
 
 

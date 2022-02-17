@@ -22,20 +22,6 @@ D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermedia
 D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
-# D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "pregnancy_end_date", "highest_quality")]
-
-# 2. Retinoid/Valproate records 
-# Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
-# name of variable with list of medicines available -> med_files
-# 3. Prevalent user counts 
-# prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-# # Filters by current subpopulation 
-# prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
-# 
-# if(populations[pop] == "PC_study_population.rds"){
-#   prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-#   prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
-# }
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
@@ -88,7 +74,6 @@ if (nrow(D3_pregnancy_reconciled)>0){
       # Save files 
       saveRDS(med_use_during_preg, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy.rds"))
       saveRDS(med_use_during_preg_counts, paste0(preg_med_counts_dir,"/", gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy_counts.rds"))
-      
       #### Taking into account highest_quality column in pregnancy df - Counts ####
       # Get the unique value of the highest quality column
       hq_unique <- unique(med_use_during_preg$highest_quality)
