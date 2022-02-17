@@ -49,7 +49,7 @@ for(i in 1:length(my_folders)){
   if (length(my_files)>0){
     main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
     pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0, 0.05), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0, 2), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
@@ -92,7 +92,7 @@ for(i in 1:length(my_folders)){
   if (length(my_files)>0){
     main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
     pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0,0.05), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
+    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0,2), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
