@@ -1,0 +1,9 @@
+After running the "to_run" files, the LOT4_scripts/g_output folder should be uploaded to YODA in the DAP-specific Analysis scripts folder as follows:
+
+1. Copy the g_output folder to your specific YODA folder (e.g. Y:\research-ars\Analysis scripts).
+2. Rename it as follows: "g_output_DDMMYYYY" with the date that the script was run.
+
+3. Review the following output:
+- Baseline table excel files (ignore valproate/retinoid files if your group is not participating in the study)
+- the following .csv/.xlsx files - FlowChartCreateSpells, FlowChartSourcetoStudy, the folder objective3_2_counts_per_month
+- Plots - focus on the "..._rate" files; it is good to check some of the count plots too, as this shows the absolute number of records detected. The UU/UMCU team will also review these and discuss with each group

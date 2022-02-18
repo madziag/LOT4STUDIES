@@ -57,18 +57,29 @@ personsfilter<-function(personstable=PERSONS, caseid="person_id", sex="sex_at_in
 
 
 #ATC filter
-#match on the first 4 cijfers in the code
+#match on the first 5 digits in the code
 
 
 #establish ATC library
 
 
-ATCfilter<-function(medtable=MEDICINES, ID="person_id", ATC="medicinal_product_atc_code", Lot4ATC= 
-                      c( "N03A","N05B", "N05A", "C07A", "N06A", "N07C", "N02C", "C02A", "G03A",
-                         "G03D", "G02B", "B03B", "B03A", "D10A", "J01F", "S01A", "J01A",
-                         "D07A", "H02A", "D11A", "L04A", "D05A", "D05B","A11C","D10B")){
-  medATC4<-substr((medtable[,get(ATC)]), 1,4)
-  newMED<-medtable[(medATC4%in%Lot4ATC),]
+ATCfilter<-function(medtable=MEDICINES, 
+                    ID="person_id", 
+                    ATC="medicinal_product_atc_code", 
+                    Lot4ATC= 
+                      c("B03BB","B03AE",
+                        "C02AC","C07AA","C07AB","C07AG",
+                        "D05AC","D05AD","D05BA","D05BB","D05BX","D07AA","D07AB","D07AC","D07AD",
+                        "D10AA","D10AB","D10AE","D10AF","D10BA","D11AH",
+                        "G02BA","G02BB","G03AA","G03AB","G03AC","G03DB",
+                        "H02AA","H02AB",
+                        "J01AA","J01FA",
+                        "L04AA","L04AB","L04AC","L04AD","L04AX",
+                        "N02CX","N03AA","N03AB","N03AD","N03AE","N03AF", "N03AG","N03AX",
+                        "N05BA","N05AH","N05AN","N06AA","N07CA",
+                        "S01AA")){
+  medATC5<-substr((medtable[,get(ATC)]), 1,5)
+  newMED<-medtable[(medATC5%in%Lot4ATC),]
   
   medID<-unique(newMED[[ID]])
   flowchart_ATC<-c(nrow(medtable), nrow(newMED))

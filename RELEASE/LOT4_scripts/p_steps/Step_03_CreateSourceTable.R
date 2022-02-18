@@ -7,8 +7,8 @@
 if(SUBP) {
   SCHEME_03 <- copy(subpopulation_meanings)
   SCHEME_03 <- SCHEME_03[, ':=' (file_in = paste0(subpopulations,"_OBS_SPELLS.rds"), file_out = paste0(subpopulations,"_source_population.rds"), folder_out = "tmp2") ]
-  SCHEME_03 <- rbind(data.frame(subpopulations = c("ALL"),meaning_sets = "ALL",file_in = "ALL_OBS_SPELLS.rds", file_out = "ALL_source_population.rds", folder_out = "tmp2"),SCHEME_03)
-  }
+  # SCHEME_03 <- rbind(data.frame(subpopulations = c("ALL"),meaning_sets = "ALL",file_in = "ALL_OBS_SPELLS.rds", file_out = "ALL_source_population.rds", folder_out = "tmp2"),SCHEME_03)
+}
   
 if(!SUBP) SCHEME_03 <- data.frame(subpopulations = c("ALL"),file_in = "ALL_OBS_SPELLS.rds", file_out = "ALL_source_population.rds", folder_out = "tmp2")
 

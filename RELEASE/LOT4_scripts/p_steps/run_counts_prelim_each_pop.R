@@ -1,3 +1,8 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 16/02/2022
+
 # Takes into account subpopulations 
 # Runs individual scripts for each subpopulation
 # Result: If SUBP -> TRUE then each folder will contain (if present) results coming from all indicated subpops. Resulting files are prefixed with the name of the subpop
@@ -42,6 +47,7 @@ for(file in list.files(path = tmp, pattern ="events_")){unlink(paste0(tmp, file)
 for(file in list.files(path = output_dir, pattern ="FlowChart")){unlink(paste0(output_dir, file), recursive = TRUE)}
 # Delete Study_population_folder 
 for(file in list.files(path = output_dir, pattern ="STUDY_SOURCE_POPULATION")){unlink(paste0(output_dir, file), recursive = TRUE)}
+
 
 
 

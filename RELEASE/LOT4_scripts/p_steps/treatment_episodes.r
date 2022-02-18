@@ -16,8 +16,10 @@
 # Creates treatment episodes directory
 invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.create(paste0(g_intermediate,"treatment_episodes")), FALSE))
 #four treatment episode datasets for retinoids (each separate, and one for any retinoid)
-my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="ALL_Retinoid")
-my_valproate<-list.files(paste0(tmp,"medications/"), pattern="ALL_Valproate")
+# my_retinoid <-list.files(paste0(tmp,"medications/"), pattern="ALL_Retinoid")
+# my_valproate<-list.files(paste0(tmp,"medications/"), pattern="ALL_Valproate")
+my_retinoid <-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, "_Retinoid"))
+my_valproate<-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, "_Valproate"))
 
 if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))
 all_data<-my_data
