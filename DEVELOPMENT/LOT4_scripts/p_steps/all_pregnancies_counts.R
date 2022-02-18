@@ -9,9 +9,9 @@ D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermedia
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
-denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))
+denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
 # Loads denominator file 
-denominator <- readRDS(paste0(output_dir, denominator_file))
+denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
