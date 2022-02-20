@@ -51,6 +51,8 @@ if(populations[pop] == "PC_study_population.rds"){
 prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
 # Filters by current subpopulation 
 prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
+# Removes age specific prevalent count files
+prevalent_counts_files <- prevalent_counts_files[!grepl("age_group", prevalent_counts_files)]
 
 if(populations[pop] == "PC_study_population.rds"){
   prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
