@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 10/01/2022
@@ -9,8 +9,8 @@
 
 ## Objective 3.2: Proportion of Retinoid/Valproate records that occurred during a pregnancy 
 # Numerator -> Number of Retinoid/Valproate records that occurred during a pregnancy
-# Denominator -> Number of prevalent (current) users that month 
-# Records needed -> 1. Pregnancy records (created by ARS Toscana script) 2. Retinoid/Valproate records  3. Prevalent user counts (saved in medicine_counts folder)
+# Denominator -> Number of eligible subjects that month (main denominator)
+# Records needed -> 1. Pregnancy records (created by ARS Toscana script) 2. Total number of female subjects in cohort for at least 1 day in the month (denominator file)
 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -22,29 +22,18 @@ D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermedia
 D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
-# D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date", "pregnancy_end_date", "highest_quality")]
-
-# 2. Retinoid/Valproate records 
-# Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
-# name of variable with list of medicines available -> med_files
-# 3. Prevalent user counts 
-prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-# Filters by current subpopulation 
-prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
-denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))
+denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
 # Loads denominator file 
-denominator <- readRDS(paste0(output_dir, denominator_file))
+denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 empty_df <- as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
-# Clean up
-rm(denominator)
 
 if (nrow(D3_pregnancy_reconciled)>0){
   # For each treatment episode file 
@@ -54,7 +43,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column
     # Merge med file with pregnancy records 
-    med_preg <- as.data.table(D3_pregnancy_reconciled[med_df, on = .(person_id)]) # Left join
+    med_preg <- as.data.table(D3_pregnancy_reconciled[med_df, on = .(person_id)], allow.cartesian = T) # Left join
     # Delete records without pregnancy records
     med_preg <-  med_preg[!is.na(pregnancy_start_date),]
     # Remove duplicates
@@ -76,19 +65,15 @@ if (nrow(D3_pregnancy_reconciled)>0){
       ##### Calculates Rates #####
       ############################
       med_use_during_preg_counts <- within(med_use_during_preg_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
-      # Load prevalence counts
-      prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub(".rds", "", med_files[i]), prevalent_counts_files)])
-      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
-      setnames(prevalent_counts, "N", "Freq")
-      med_use_during_preg_counts <- merge(x = med_use_during_preg_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
+      med_use_during_preg_counts <- merge(x = med_use_during_preg_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
       med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=rates*1000]
       med_use_during_preg_counts$rates[is.nan(med_use_during_preg_counts$rates)]<-0
       med_use_during_preg_counts <- med_use_during_preg_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(med_use_during_preg_counts, "masked_num", "masked")
       # Save files 
       saveRDS(med_use_during_preg, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy.rds"))
       saveRDS(med_use_during_preg_counts, paste0(preg_med_counts_dir,"/", gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy_counts.rds"))
-      
       #### Taking into account highest_quality column in pregnancy df - Counts ####
       # Get the unique value of the highest quality column
       hq_unique <- unique(med_use_during_preg$highest_quality)
@@ -106,12 +91,9 @@ if (nrow(D3_pregnancy_reconciled)>0){
         ##### Calculates Rates #####
         ############################
         med_use_during_preg_unique_counts <- within(med_use_during_preg_unique_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
-        # Load prevalence counts
-        prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub(".rds", "", med_files[i]), prevalent_counts_files)])
-        prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
-        setnames(prevalent_counts, "N", "Freq")
-        med_use_during_preg_unique_counts <- merge(x = med_use_during_preg_unique_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
+        med_use_during_preg_unique_counts <- merge(x = med_use_during_preg_unique_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
         med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+        med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,rates:=rates*1000]
         med_use_during_preg_unique_counts$rates[is.nan(med_use_during_preg_unique_counts$rates)]<-0
         med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
         setnames(med_use_during_preg_unique_counts, "masked_num", "masked")

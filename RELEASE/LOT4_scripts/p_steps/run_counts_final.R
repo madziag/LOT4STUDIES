@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 07/12/2021
@@ -66,9 +66,10 @@ if(multiple_regions == T){
   invisible(ifelse(!dir.exists(paste0(projectFolder, "/ALL_regions")), dir.create(paste0(projectFolder, "/ALL_regions")), FALSE))
   All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
   # Saved as a function
-  source(paste0(pre_dir,"run_pooling_results_BIFAP.R"))
+  source(paste0(pre_dir, "run_pooling_results_BIFAP.R"))
+
   # Run function
-  run_pooling()
+  # run_pooling()
   
 } else {
   # Sources files 

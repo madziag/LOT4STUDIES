@@ -1,4 +1,4 @@
-#Author: Magda Gamba M.D.
+#Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 31/01/2022
@@ -21,15 +21,22 @@
 # 1. Contraception records 
 # Looks for Contraception files in tmp folder 
 contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
+# Filters by current subpopulation 
+contra_files <- contra_files[grepl(pop_prefix, contra_files)]
+
+if(populations[pop] == "PC_study_population.rds"){
+  contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
+  contra_files <- contra_files[!grepl("PC_HOSP", contra_files)]
+}
 # 2. Retinoid/Valproate records 
 # Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
 # name of variable with list of medicines available -> med_files
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
-denominator_file <- list.files(output_dir, pattern = paste0(pop_prefix,"_denominator.rds"))
+denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
 # Loads denominator file 
-denominator <- readRDS(paste0(output_dir, denominator_file))
+denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
