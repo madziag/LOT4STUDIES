@@ -42,6 +42,7 @@ if(length(monthly_counts_folders)>0){
         main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
         pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
         my_data<-as.data.frame(count_files_all[[i]][[j]])
+        
         #indicate masked values with stars
         my_pch<-count_files_all[[i]][[j]]$masked
         my_pch[my_pch==0]<-16
@@ -60,6 +61,10 @@ if(length(monthly_counts_folders)>0){
         main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
         pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
         my_data<-count_files_all[[i]][[j]]
+        
+        #Set NA/inf rate values to 0
+        my_data[!is.finite(my_data$rates),]$rates <- 0
+        
         #indicate masked values with stars
         my_pch<-my_data$masked
         my_pch[my_pch==0]<-16
@@ -128,6 +133,10 @@ if(length(final_counts_rates_folders)>0){
         } else {
           pdf((paste0(plot_folder,"/", main_name, "_rate.pdf")), width=8, height=4)
           my_data<-count_files_all[[i]][[j]]
+          
+          #Set NA/inf rate values to 0
+          my_data[!is.finite(my_data$rates),]$rates <- 0
+          
           #indicate masked values with stars
           my_pch<-my_data$masked
           my_pch[my_pch==0]<-16
@@ -198,6 +207,10 @@ if(length(final_counts_props_folders)>0){
         main_name<-substr(count_names_all[[i]][[j]], 1,nchar(count_names_all[[i]][[j]])-11)
         pdf((paste0(plot_folder,"/", main_name, "_proportion.pdf")), width=8, height=4)
         my_data<-count_files_all[[i]][[j]]
+        
+        #Set NA/inf rate values to 0
+        my_data[!is.finite(my_data$rates),]$rates <- 0
+        
         #indicate masked values with stars
         my_pch<-my_data$masked
         my_pch[my_pch==0]<-16
