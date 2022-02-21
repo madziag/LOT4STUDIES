@@ -11,11 +11,11 @@
 if(!require(readxl)){install.packages("readxl")}
 library(readxl)
 
-if(!require(Rccp)){install.packages("Rccp")}
-library(Rccp)
+if(!require(Rcpp)){install.packages("Rcpp")}
+library(Rcpp)
 
-yoda_path <- "Y:/research-ucph/Analysis scripts/g_output_020222/preliminary_counts"
-plot_folder <- paste0(yoda_path,"/plots")
+yoda_path <- "Y:/research-ucph/Analysis scripts/g_output_2022.02.15/medicines_counts"
+plot_folder <- yoda_path
 setwd(yoda_path)
 denom<-read.csv(paste0(yoda_path,"/denominator.csv"))
 
@@ -31,11 +31,11 @@ for (i in 1:length(count_files_all)){
       
       my_data<-as.data.frame(count_files_all[[i]])
       #indicate masked values with stars
-      my_pch<-count_files_all[[i]]$masked
-      my_pch[my_pch==0]<-16
-      my_pch[my_pch==1]<-8
+     # my_pch<-count_files_all[[i]]$masked
+    #  my_pch[my_pch=="no"]<-16
+    #  my_pch[my_pch==""]<-8
       
-      plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+      plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
       axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
       dev.off()
 }
@@ -48,11 +48,11 @@ for (i in 1:length(count_files_all)){
   
   my_data<-as.data.frame(count_files_all[[i]])
   #indicate masked values with stars
-  my_pch<-count_files_all[[i]]$masked
-  my_pch[my_pch==0]<-16
-  my_pch[my_pch==1]<-8
+ # my_pch<-count_files_all[[i]]$masked
+#  my_pch[my_pch==0]<-16
+#  my_pch[my_pch==1]<-8
   
-  plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,max(my_data$rates)), xaxt="n", xlab="", ylab="rates", main=main_name, pch=my_pch, type="b", lwd=2, cex.main=1.5)
+  plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,max(my_data$rates)), xaxt="n", xlab="", ylab="rates", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
   axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
   dev.off()
 }
