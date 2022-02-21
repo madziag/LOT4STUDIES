@@ -43,7 +43,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column
     # Merge med file with pregnancy records 
-    med_preg <- as.data.table(D3_pregnancy_reconciled[med_df, on = .(person_id)], allow.cartesian = T) # Left join
+    med_preg <- as.data.table(D3_pregnancy_reconciled[med_df, on = .(person_id), allow.cartesian = T]) # Left join
     # Delete records without pregnancy records
     med_preg <-  med_preg[!is.na(pregnancy_start_date),]
     # Remove duplicates
