@@ -43,7 +43,7 @@ for(i in 1:nrow(SCHEME_03)){
                    )
   ]  
 
-  SOURCE_POPULATION <- SOURCE_POPULATION[!is.na(death_date), date_max := min(date_max,death_date)]
+  SOURCE_POPULATION <- SOURCE_POPULATION[!is.na(death_date), date_max := pmin(date_max,death_date)]
   SOURCE_POPULATION <- SOURCE_POPULATION[, Population := SCHEME_03[["subpopulations"]][i]]
   #SCHEME_03[i,"nrows"] <- nrow(SOURCE_POPULATION)
   #SCHEME_03[i,"ncols"] <- ncol(SOURCE_POPULATION)
