@@ -150,11 +150,9 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       ### Merges numerator file with denominator file
       alt_med_counts <- merge(x = num_1_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE)
       # Calculates rates
-      alt_med_counts <- alt_med_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
+      alt_med_counts <- alt_med_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       # Adjust for PHARMO
       if(is_PHARMO){alt_med_counts <- alt_med_counts[alt_med_counts$year < 2020,]} else {alt_med_counts <- alt_med_counts[alt_med_counts$year < 2021,]}
-      alt_med_counts$rates[is.nan(alt_med_counts$rates)]<-0
-      alt_med_counts$rates[is.na(alt_med_counts$rates)]<-0
       # Drop unnecessary columns
       alt_med_counts <- alt_med_counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files 

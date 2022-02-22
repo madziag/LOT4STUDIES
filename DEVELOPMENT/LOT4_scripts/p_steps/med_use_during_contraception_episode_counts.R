@@ -85,8 +85,7 @@ if(length(contra_epi_files)>0) {
       # Rate calculation
       tx_in_episode_counts <- within(tx_in_episode_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       tx_in_episode_counts <- merge(x = tx_in_episode_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      tx_in_episode_counts <- tx_in_episode_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      tx_in_episode_counts[is.nan(tx_in_episode_counts$rates)]$rates <- 0
+      tx_in_episode_counts <- tx_in_episode_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(tx_in_episode_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to medicines counts folder)

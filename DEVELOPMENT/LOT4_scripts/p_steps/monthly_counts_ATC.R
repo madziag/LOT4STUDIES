@@ -112,8 +112,7 @@ if(length(med_files)>0){
       # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      counts <-counts[,rates:=rates*1000]
+      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){

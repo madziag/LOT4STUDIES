@@ -95,9 +95,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
       setnames(prevalent_counts, "N", "Freq")
       preg_start_during_tx_counts <- merge(x = preg_start_during_tx_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
-      preg_start_during_tx_counts <- preg_start_during_tx_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      preg_start_during_tx_counts <- preg_start_during_tx_counts[,rates:=rates*1000]
-      preg_start_during_tx_counts$rates[is.nan(preg_start_during_tx_counts$rates)]<-0
+      preg_start_during_tx_counts <- preg_start_during_tx_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
       preg_start_during_tx_counts <- preg_start_during_tx_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(preg_start_during_tx_counts, "masked_num", "masked")
       # Save files 
@@ -127,9 +125,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
         prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
         setnames(prevalent_counts, "N", "Freq")
         preg_start_during_tx_unique_counts <- merge(x = preg_start_during_tx_unique_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
-        preg_start_during_tx_unique_counts <- preg_start_during_tx_unique_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-        preg_start_during_tx_unique_counts <- preg_start_during_tx_unique_counts[,rates:=rates*1000]
-        preg_start_during_tx_unique_counts$rates[is.nan(preg_start_during_tx_unique_counts$rates)]<-0
+        preg_start_during_tx_unique_counts <- preg_start_during_tx_unique_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
         preg_start_during_tx_unique_counts <- preg_start_during_tx_unique_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
         setnames(preg_start_during_tx_unique_counts, "masked_num", "masked")
         # Save files 
