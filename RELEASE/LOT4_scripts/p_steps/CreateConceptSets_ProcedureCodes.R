@@ -11,7 +11,7 @@ codelist_list <- load_codelist(paste0(pre_dir,filename), matches <- matches)
 var_names <- names(codelist_list)
 codelist_all <- list()
 codelist_CPRD_all <- list() # CPRD
-codelist_PHARM0_all <- list() # PHARMO
+codelist_PHARMO_all <- list() # PHARMO
 codelist_CPRD_names <- c()
 codelist_PHARMO_names <- c()
 # Data cleaning
@@ -46,15 +46,15 @@ for(i in seq_along(codelist_list)) {
   write.csv(get(var_names[i]), paste0(conceptsets_PROC_dir, var_names[i], ".csv"), row.names = FALSE)
   # Creates a list of all codelists by vocabulary type 
   if(nrow(codelist_CPRD)>0){codelist_CPRD_all[[i]] <- codelist_CPRD}
-  if(nrow(codelist_PHARMO)>0){codelist_PHARM0_all[[i]] <- codelist_PHARMO}
+  if(nrow(codelist_PHARMO)>0){codelist_PHARMO_all[[i]] <- codelist_PHARMO}
   if(nrow(codelist)>0){codelist_all[[i]] <- codelist}
 }
 # Removes empty lists 
 codelist_CPRD_all<-codelist_CPRD_all[!sapply(codelist_CPRD_all,is.null)]
-codelist_PHARM0_all<-codelist_PHARM0_all[!sapply(codelist_PHARM0_all,is.null)]
+codelist_PHARMO_all<-codelist_PHARMO_all[!sapply(codelist_PHARMO_all,is.null)]
 # Assigns  names to the codelists in the lists
 names(codelist_CPRD_all) <- codelist_CPRD_names
-names(codelist_PHARM0_all) <- codelist_PHARMO_names
+names(codelist_PHARMO_all) <- codelist_PHARMO_names
 names(codelist_all) <- names(codelist_list)
 # Cleanup 
 rm(list = noquote(names(codelist_list)))

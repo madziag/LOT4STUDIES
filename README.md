@@ -1,14 +1,15 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V3.1</h3>
- <p align="center"> RELEASE NOTE: V3.1 - Final main analyses
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V3.1.1</h3>
+ <p align="center"> RELEASE NOTE: V3.1.1 - Final main analyses, minor release update
  
 1.	All main descriptive analyses implemented for study objectives 1-4 (See protocol v1.1/SAP v2.0)
 2.	Plots of counts of pregnancies per month
 3.	Kaplan Meier drug survival curves
 4.	Additional data source-specific corrections added
 5.	Removal of incorrect sterility codes that were being picked up
-6.	Rates corrected, plot labels corrected, plot axes tidied.
+6.	Rates corrected, plot labels corrected, plot axes tidied - and adjusted to permit missing/non-finite values
 7.	Clarified flow chart xlsx/csv files in g_output/preliminary_counts
+8.	Addressed analysis script issues for FISABIO/FICF, BIFAP and PHARMO teams [22 Feb 2022]
 
 All groups are requested to run this script as soon as possible and report to UU/UMCU and issues encountered. Once results are generated, please upload to YODA.
 Following this, each group is requested to review the output using the guidance document (to be shared 10th Feb 2022).
