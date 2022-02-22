@@ -66,6 +66,7 @@ if(length(events_files)>0){
         for(j in 1:length(concept_set_terms[[i]])){
           df_free_text_subset <- df_free_text[grepl(event_free_text, pattern = concept_set_terms[[i]][j], ignore.case = T),]
           df_free_text_subset <- df_free_text_subset[,-c("event_free_text")]
+          df_free_text_subset <- df_free_text_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_free_text_subset[,table_origin:='EVENTS']
           if(nrow(df_free_text_subset)>0){
             saveRDS(df_free_text_subset, paste0(events_tmp_sterility, pop_prefix, "_", names(concept_set_terms[i]), "-", concept_set_terms[[i]][j], "_",events_prefix, "_free_text_dutch.rds"))
