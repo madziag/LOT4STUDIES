@@ -105,8 +105,7 @@ if(length(pregtest_files)>0) {
       # Rate calculation
       pregtest_prior_counts <- within(pregtest_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       pregtest_prior_counts <- merge(x = pregtest_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      pregtest_prior_counts <- pregtest_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      pregtest_prior_counts[is.nan(pregtest_prior_counts$rates)]$rates <- 0
+      pregtest_prior_counts <- pregtest_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       pregtest_prior_counts <- pregtest_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(pregtest_prior_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to pregnancy_counts folder)
@@ -128,8 +127,7 @@ if(length(pregtest_files)>0) {
       # Rate calculation
       pregtest_after_counts <- within(pregtest_after_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       pregtest_after_counts <- merge(x = pregtest_after_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      pregtest_after_counts <- pregtest_after_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      pregtest_after_counts[is.nan(pregtest_after_counts$rates)]$rates <- 0
+      pregtest_after_counts <- pregtest_after_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       pregtest_after_counts <- pregtest_after_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(pregtest_after_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder ) and monthly count files (to pregnancy_counts folder)

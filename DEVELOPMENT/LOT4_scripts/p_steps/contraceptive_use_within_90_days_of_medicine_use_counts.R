@@ -89,8 +89,7 @@ if(length(contra_files)>0) {
       # Rate calculation
       contra_prior_counts <- within(contra_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       contra_prior_counts <- merge(x = contra_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      contra_prior_counts <- contra_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      contra_prior_counts[is.nan(contra_prior_counts$rates)]$rates <- 0
+      contra_prior_counts <- contra_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
       setnames(contra_prior_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to contraceptives folder)
