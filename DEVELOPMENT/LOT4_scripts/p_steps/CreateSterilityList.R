@@ -43,18 +43,11 @@ if(length(events_files)>0){
     df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
     df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transforms to date variables
     # Creates year variable
-    df[,year:=year(Date)]
-    df<-df[!is.na(year)] # Removes records with both dates missing
+    df[,year:=year(Date)] # from the events table (year of event)
+    df<-df[!is.na(year)] # Removes records with dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
     # PHARMO free text
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]
@@ -212,6 +205,7 @@ if(length(proc_files)>0){
     # Data Cleaning
     df<-as.data.table(df[,c("person_id", "procedure_date", "procedure_code", "procedure_code_vocabulary", "meaning_of_procedure")]) # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
+   
     setnames(df,"meaning_of_procedure","Meaning") # Renames column names
     setnames(df,"procedure_date","Date") # Renames column names
     setnames(df,"procedure_code_vocabulary","Vocabulary") # Renames column names
@@ -231,14 +225,9 @@ if(length(proc_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
+
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
@@ -392,11 +381,6 @@ if(length(proc_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column for origin of code i.e. CPRD, PHARMO

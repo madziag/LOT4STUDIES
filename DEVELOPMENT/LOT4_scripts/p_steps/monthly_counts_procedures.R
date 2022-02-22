@@ -50,12 +50,6 @@ if(length(proc_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=entry_date-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    persons_event_prior<-unique(na.omit(df[filter==1,person_id]))
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<entry_date | Date>exit_date), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]	
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     #Prints Message
