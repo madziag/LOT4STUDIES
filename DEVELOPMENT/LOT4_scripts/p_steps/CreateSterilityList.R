@@ -46,6 +46,7 @@ if(length(events_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
+    
     df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
     df[,date_dif:=NULL][,filter:=NULL]
     df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
@@ -417,13 +418,12 @@ if(length(proc_files)>0){
         }
         # Covers PHARMO Codes
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
-        for (i in 1:length(codelist_PHARM0_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
-          # df_subset <- df_subset[,-c("vocab")]
+        for (i in 1:length(codelist_PHARMO_all)){
+          df_subset <- setDT(df)[Code %chin% codelist_PHARMO_all[[i]][,Code]]
           df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_subset[,table_origin:='PROCEDURES']
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
+            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARMO_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
           }
         }
       } else {print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))}
@@ -448,7 +448,7 @@ if (length(list.files(events_tmp_sterility))> 0){
   # Saves records
   saveRDS(sterility_all, paste0(sterility_pop, pop_prefix, "_sterility_all.rds"))
   saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, pop_prefix, "_sterility_all_first_occurrence.rds"))
-  rm(codelist_all, codelist_CPRD_all, codelist_PHARM0_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
+  rm(codelist_all, codelist_CPRD_all, codelist_PHARMO_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
 } else {
   print("There are no Sterility records")
 }

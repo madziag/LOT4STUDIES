@@ -79,14 +79,14 @@ if(length(proc_files)>0){
         }
         # Covers PHARMO Codes
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
-        for (i in 1:length(codelist_PHARM0_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
+        for (i in 1:length(codelist_PHARMO_all)){
+          df_subset <- setDT(df)[Code %chin% codelist_PHARMO_all[[i]][,Code]]
           df_subset <- df_subset[,-c("vocab")]
           df_subset <- df_subset[!duplicated(df_subset),]
           if(nrow(df_subset)>0){
-            saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_",names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
+            saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_",names(codelist_PHARMO_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
             new_file <-c(list.files(events_tmp_PROC, "\\_PHARMO.rds$"))
-            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARM0_all[i])), x))})
+            lapply(new_file, function(x){file.rename( from = file.path(events_tmp_PROC, x), to = file.path(paste0(events_tmp_PROC, names(codelist_PHARMO_all[i])), x))})
           }
         }
       } else {
