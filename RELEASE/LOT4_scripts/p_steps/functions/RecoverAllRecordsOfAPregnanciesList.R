@@ -116,7 +116,7 @@ RecoverAllRecordsOfAPregnanciesList <- function(DatasetInput =  NULL,
   
   #load dataset pregnancies
   load(paste0(dirtemp,"D3_pregnancy_reconciled_valid.RData"))
-  load(paste0(dirtemp,"D3_groups_of_pregnancies_reconciled.Rdata"))
+  load(paste0(dirtemp,"D3_groups_of_pregnancies_reconciled.RData"))
   
   original_sample <- D3_pregnancy_reconciled_valid[pregnancy_id %in% DT_input[, pregnancy_id]]
   

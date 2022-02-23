@@ -43,17 +43,11 @@ if(length(events_files)>0){
     df[,Date:=as.IDate(Date,"%Y%m%d")] # Transforms to date variables
     df[,start_follow_up:=as.IDate(start_follow_up,"%Y%m%d")] # Transforms to date variables
     # Creates year variable
-    df[,year:=year(Date)]
-    df<-df[!is.na(year)] # Removes records with both dates missing
+    df[,year:=year(Date)] # from the events table (year of event)
+    df<-df[!is.na(year)] # Removes records with dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
     # PHARMO free text
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]
@@ -66,6 +60,7 @@ if(length(events_files)>0){
         for(j in 1:length(concept_set_terms[[i]])){
           df_free_text_subset <- df_free_text[grepl(event_free_text, pattern = concept_set_terms[[i]][j], ignore.case = T),]
           df_free_text_subset <- df_free_text_subset[,-c("event_free_text")]
+          df_free_text_subset <- df_free_text_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_free_text_subset[,table_origin:='EVENTS']
           if(nrow(df_free_text_subset)>0){
             saveRDS(df_free_text_subset, paste0(events_tmp_sterility, pop_prefix, "_", names(concept_set_terms[i]), "-", concept_set_terms[[i]][j], "_",events_prefix, "_free_text_dutch.rds"))
@@ -210,6 +205,7 @@ if(length(proc_files)>0){
     # Data Cleaning
     df<-as.data.table(df[,c("person_id", "procedure_date", "procedure_code", "procedure_code_vocabulary", "meaning_of_procedure")]) # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
+   
     setnames(df,"meaning_of_procedure","Meaning") # Renames column names
     setnames(df,"procedure_date","Date") # Renames column names
     setnames(df,"procedure_code_vocabulary","Vocabulary") # Renames column names
@@ -229,14 +225,9 @@ if(length(proc_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
-    
+
     # Adds column with vocabulary main type i.e. start, READ, SNOMED
     df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP"), "start",
                        ifelse(df[,Vocabulary] %chin% c("RCD","RCD2", "READ", "CPRD_Read"), "READ",
@@ -390,11 +381,6 @@ if(length(proc_files)>0){
     df[,year:=year(Date)]
     df<-df[!is.na(year)] # Removes records with both dates missing
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
-    df[,date_dif:=start_follow_up-Date][,filter:=fifelse(date_dif<=365 & date_dif>=1,1,0)] # Identifies persons that have an event before start_of_follow_up
-    df[,date_dif:=NULL][,filter:=NULL]
-    df[(Date<start_follow_up | Date>end_follow_up), obs_out:=1] # Removes records that are outside the obs_period for all subjects
-    df<-df[is.na(obs_out)] # Removes records outside study period
-    df[,obs_out:=NULL]
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
     # Adds column for origin of code i.e. CPRD, PHARMO
@@ -416,13 +402,12 @@ if(length(proc_files)>0){
         }
         # Covers PHARMO Codes
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
-        for (i in 1:length(codelist_PHARM0_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_PHARM0_all[[i]][,Code]]
-          # df_subset <- df_subset[,-c("vocab")]
+        for (i in 1:length(codelist_PHARMO_all)){
+          df_subset <- setDT(df)[Code %chin% codelist_PHARMO_all[[i]][,Code]]
           df_subset <- df_subset[,c("person_id", "Vocabulary", "Code", "Date")]
           df_subset[,table_origin:='PROCEDURES']
           if(nrow(df_subset)>0){
-            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARM0_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
+            saveRDS(data.table(df_subset), paste0(events_tmp_sterility, pop_prefix, "_", names(codelist_PHARMO_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
           }
         }
       } else {print(paste0(unique(df$Vocabulary), " is not part of code list vocabulary"))}
@@ -447,7 +432,7 @@ if (length(list.files(events_tmp_sterility))> 0){
   # Saves records
   saveRDS(sterility_all, paste0(sterility_pop, pop_prefix, "_sterility_all.rds"))
   saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, pop_prefix, "_sterility_all_first_occurrence.rds"))
-  rm(codelist_all, codelist_CPRD_all, codelist_PHARM0_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
+  rm(codelist_all, codelist_CPRD_all, codelist_PHARMO_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
 } else {
   print("There are no Sterility records")
 }
