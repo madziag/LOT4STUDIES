@@ -48,6 +48,8 @@ str(contra_data$assumed_duration)
   suppress.warnings = FALSE,
   return.data.table = FALSE)
 
+  # Remove episodes that end before the start of the study period 
+  my_treat_episode <- my_treat_episode[year(my_treat_episode$episode.end)>2009,]
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix ,"_contraceptives_treatment_episodes.rds")))
   
 summary(my_treat_episode)

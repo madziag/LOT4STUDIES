@@ -21,6 +21,8 @@ study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 
                                              ifelse(study_population[,age_at_entry_date >= 31 & age_at_entry_date < 41],  "31-40.99",
                                                     ifelse(study_population[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
 
+# Medicine records need to be between a persons entry and exit dates 
+study_pop_meds <- study_pop_meds[Date>=entry_date & Date<=exit_date,]
 # Creates new column in Population with Retinoid and/or Valproate use: fu_dur_days 
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
 study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables

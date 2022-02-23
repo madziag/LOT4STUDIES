@@ -59,6 +59,7 @@ if(length(contra_files)>0) {
   for(i in 1:length(med_files)){
     ## Loads the medication record
     med_df <- readRDS(paste0(medications_pop, med_files[i])) # Loads file
+    med_df <- med_df[Date>=entry_date & Date<=exit_date]
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column 
     ### Creates denominator: Total number of Retinoid/Valproate records per month

@@ -31,7 +31,7 @@
 # ********* if exit date from study <= 90 days from treatment episode end date -> DOES NOT COUNT AS A DISCONTINUED USER 
 # ********* if exit date from study > 90 days from treatment episode end date -> COUNTS AS A DISCONTINUED USER 
 # Denominator ->  Number of prevalent (current) users that month 
-# Records needed -> 1. Retinoid/Valproate treatment episode files 2. Prevalent counts (calculated in 1.1)
+# Records needed -> 1. Retinoid/Valproate treatment episode files 2. Prevalent counts (calculated in 1.1) 3. Indication records for valproates only 
 
 ##################################################################################################################################################
 ##################################################################################################################################################
@@ -59,6 +59,14 @@ denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 empty_df <- as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
+
+# 3. Indication records for valproates only
+# indication_file_bipolar  <- list.files(diagnoses_pop, pattern = "ind_bipolar", ignore.case = T, full.names = T)
+# ind_bipolar <- readRDS(indication_file_bipolar)
+# indication_file_epilepsy <- list.files(diagnoses_pop, pattern = "ind_epilepsy", ignore.case = T, full.names = T)
+# ind_epilepsy <- readRDS(indication_file_epilepsy)
+# indication_file_migraine <- list.files(diagnoses_pop, pattern = "ind_migraine", ignore.case = T, full.names = T)
+# ind_migraine <- readRDS(indication_file_migraine)
 
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){

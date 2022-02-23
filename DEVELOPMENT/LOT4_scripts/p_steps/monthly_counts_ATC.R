@@ -40,6 +40,7 @@ if(study_type == "Retinoid"){
 }
 # Creates other lists
 comb_meds <- list()
+comb_meds1 <- list()
 # Loads Medicines files
 med_files <- list.files(path=path_dir, pattern = "MEDICINES", ignore.case = TRUE) 
 # Checks for MEDICINES Tables present
@@ -96,19 +97,20 @@ if(length(med_files)>0){
     # Performs counts per month/year
     if (length(files)>0){
       # Loads files 
-      comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
+      comb_meds[[i]] <- do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
       comb_meds[[i]] <- comb_meds[[i]][!duplicated(comb_meds[[i]]),]
-      # Counts by month-year
-      counts <- comb_meds[[i]][,.N, by = .(year,month(Date))]
+      comb_meds1[[i]] <- comb_meds[[i]][Date>=entry_date & Date<=exit_date]
+      # Counts by month-yearcode
+      counts <- comb_meds1[[i]][,.N, by = .(year,month(Date))]
       # Merges with empty_df
       counts<- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Masking values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      counts[,masked:=ifelse(N<5 & N>0, 1, 0)]
       # Changes values less than 5 and more than 0 to 5
-      if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+      if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
@@ -131,6 +133,7 @@ if(length(med_files)>0){
     for(x in 1:length(ind_files)){
       df_ind <- readRDS(paste0(medications_pop, ind_files[x]))
       df_ind <- df_ind[!duplicated(df_ind),]
+      df_ind <- df_ind[Date>=entry_date & Date<=exit_date]
       for(j in 1:length(unique(codelist_ind[[i]]$Code))){
         sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
         counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
@@ -138,14 +141,13 @@ if(length(med_files)>0){
         counts_ind[is.na(counts_ind[,N]), N:=0]
         # Masking values less than 5
         # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        counts_ind$masked <- ifelse(counts_ind$N<5 & counts_ind$N>0, 1, 0)
+        counts_ind[,masked:=ifelse(N<5 & N>0, 1, 0)]
         # Changes values less than 5 and more than 0 to 5
-        counts_ind[counts_ind$masked == 1,]$N <- 5
+        if(mask==T){counts_ind[masked==1,N:=5]} else {counts_ind[masked==1,N:=N]}
         # Calculates rates
         counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
         counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-        counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
-        counts_ind <-counts_ind[,rates:=rates*1000]
+        counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
         counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked")]
         if(sub_ind[,.N]>0){
           saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_prefix,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))

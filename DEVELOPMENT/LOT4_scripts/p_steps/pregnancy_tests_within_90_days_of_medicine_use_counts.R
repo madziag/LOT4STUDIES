@@ -68,8 +68,10 @@ if(length(pregtest_files)>0) {
   for(i in 1:length(med_files)){
     ## Loads the medication record
     med_df <- readRDS(paste0(medications_pop, med_files[i])) # Loads file
+    med_df <- med_df[Date>=entry_date & Date<=exit_date] # Get med records only between entry and exit dates 
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column 
+    
     ### Creates denominator: Total number of Retinoid/Valproate records per month
     med_counts <- med_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
     med_counts <- as.data.table(merge(x = empty_df, y = med_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_counts

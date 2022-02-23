@@ -188,17 +188,19 @@ if(length(proc_files)>0){
       files <- list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
       comb_meds <- comb_meds[!duplicated(comb_meds),]
+      # Only count records that fall between a patients entry and exit to study date 
+      comb_meds1 <- comb_meds[Date>=entry_date & Date<=exit_date]
       # Counts by month-year
-      counts <- comb_meds[,.N, by = .(year,month(Date))]
+      counts <- comb_meds1[,.N, by = .(year,month(Date))]
       # Merges with empty_df
       counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Masking values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      counts[,masked:=ifelse(N<5 & N>0, 1, 0)]
       # Changes values less than 5 and more than 0 to 5
-      if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+      if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
