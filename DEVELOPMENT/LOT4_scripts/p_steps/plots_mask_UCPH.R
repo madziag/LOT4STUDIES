@@ -15,8 +15,8 @@ library(Rcpp)
 # Extracts denominator and counts files
 FOLDERS<-c("contraceptive_counts", "medicines_counts", "preliminary_counts") 
 
-for (i in length(FOLDERS)){
-  plot_folder <- paste0("Y:/research-ucph/Analysis scripts/g_output_2022.02.15/", FOLDERS[i])
+for (k in length(FOLDERS)){
+  plot_folder <- paste0("Y:/research-ucph/Analysis scripts/g_output_2022.02.15/", FOLDERS[k])
   setwd(plot_folder)
   denom<-read.csv(paste0(plot_folder,"/denominator.csv"))
   count_names_all = list.files(pattern="*.xlsx")
@@ -29,7 +29,7 @@ for (i in length(FOLDERS)){
     pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
     my_data<-as.data.frame(count_files_all[[i]])
     if (length(my_data[!is.finite(my_data$N),]$N)>0) my_data[!is.finite(my_data$N),]$N <- 0
-    my_ymax <- ifelse(max(my_data$rates) < 1, 1, max(my_data$rates))
+    my_ymax <- ifelse(max(my_data$N) < 1, 1, max(my_data$N))
   
     plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,my_ymax), xaxt="n", xlab="", ylab="counts", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
     axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
