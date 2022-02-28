@@ -97,6 +97,49 @@ if(length(contra_files)>0) {
       saveRDS(contra_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before records
       saveRDS(contra_prior_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contraception_prior_counts.rds")) # Saves Contraceptive before counts
 
+      ##### STRATIFICATION BY AGE GROUPS ###
+      # Merge data with study population to get date of birth
+      contra_prior_df_age_groups <- merge(contra_prior_df[,c("person_id", "contraception_record_date")], study_population[,c("person_id", "birth_date")], by = "person_id")
+      # Creates a column with patients age on every day of in the treatment episode
+      contra_prior_df_age_groups[,current_age:= floor((contraception_record_date - birth_date)*10/365.25)/10]
+      # Add column which groups each patient into an age group, for each day of their treatment
+      contra_prior_df_age_groups[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+      contra_prior_df_age_groups[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+      contra_prior_df_age_groups[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+      contra_prior_df_age_groups[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+      
+      # Performs pgtests counts - stratified by age group
+      contra_prior_by_age <- contra_prior_df_age_groups[,.N, by = .(year(contraception_record_date),month(contraception_record_date), age_group)]
+      # Get unique values of age groups - for the for loop
+      age_group_unique <- unique(contra_prior_by_age$age_group)
+      
+      for(group in 1:length(age_group_unique)){
+        # Create a subset of age group
+        each_group <- contra_prior_by_age[age_group==age_group_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Create YM variable 
+        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+        # Masks values less than 5
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+        # Applies masking 
+        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+        # Prepare denominator (all pgtests counts )
+        contra_prior_all_counts_min <- contra_prior_counts[,c("YM", "N")]
+        setnames(contra_prior_all_counts_min, "N", "Freq")
+        # Create counts file
+        contra_prior_age_counts <- merge(x = each_group, y = contra_prior_all_counts_min, by = c("YM"), all.x = TRUE)
+        contra_prior_age_counts <- contra_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        contra_prior_age_counts <- contra_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        # Saves files in medicine counts folder
+        saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraceptives_prior_counts.rds")) # Monthly counts file
+      }   
+      
     } else {
       print(paste0("No contraceptive records were found within 90 days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
     }
@@ -105,5 +148,29 @@ if(length(contra_files)>0) {
 } else {
   print("There are no Contraception records available!")
 }
+
+# Create stratified folders and move files into stratified folders
+if(nrow(contra_prior_df)>0){
+  # Move stratified records into stratified folders
+  # Create stratified folder
+  invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
+  contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
+  # Create stratified by age groups folder
+  invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
+  contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
+  # # Create stratified by tx_duration folder 
+  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","tx_duration")), dir.create(paste0(contraceptives_stratified_dir,"/","tx_duration")), FALSE))
+  # contraceptives_stratified_tx_dur <- paste0(contraceptives_stratified_dir ,"/","tx_duration")
+  # # Create stratified by indication folder 
+  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
+  # contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
+  
+  # Move files 
+  for (file in list.files(path=contraceptive_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_age_groups, "/",file))}
+  # for (file in list.files(path=contraceptive_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_tx_dur, "/",file))}
+  # for (file in list.files(path=contraceptive_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_indication, "/",file))}
+}
+
+
 
 

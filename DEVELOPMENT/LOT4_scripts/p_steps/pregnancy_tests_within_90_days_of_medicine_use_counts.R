@@ -63,7 +63,14 @@ if(length(pregtest_files)>0) {
   pregtest_df[,month:=month(Pregtest_date)][,year:=year(Pregtest_date)] # Creates month/year cols (for the purposes of deduplicating - only 1 pregnancy test record per person_id per month/year is allowed)
   pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
   pregtest_df <- pregtest_df[,-c("month", "year")]
-
+  
+  ### Add rows for testing
+  pregtest_df[person_id=="ConCDM_SIM_200421_00018",person_id:="ConCDM_SIM_200421_00029"]
+  pregtest_df[person_id=="ConCDM_SIM_200421_00079",person_id:="ConCDM_SIM_200421_00092"]
+  pregtest_df[person_id=="ConCDM_SIM_200421_00123",person_id:="ConCDM_SIM_200421_00080"]
+  pregtest_df[person_id=="ConCDM_SIM_200421_00136",person_id:="ConCDM_SIM_200421_00119"]
+  pregtest_df[person_id=="ConCDM_SIM_200421_00225",person_id:="ConCDM_SIM_200421_00661"]
+  
   ##### Loops over medication files to create counts per medication type 
   for(i in 1:length(med_files)){
     ## Loads the medication record
@@ -114,6 +121,50 @@ if(length(pregtest_files)>0) {
       saveRDS(pregtest_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_prior.rds")) # Intermediate file
       saveRDS(pregtest_prior_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pgtests_prior_counts.rds")) # Monthly counts file 
       
+      ##### STRATIFICATION BY AGE GROUPS ###
+      # Merge data with study population to get date of birth
+      pregtest_prior_df_age_groups <- merge(pregtest_prior_df[,c("person_id", "Pregtest_date")], study_population[,c("person_id", "birth_date")], by = "person_id")
+      # Creates a column with patients age on every day of in the treatment episode
+      pregtest_prior_df_age_groups[,current_age:= floor((Pregtest_date - birth_date)*10/365.25)/10]
+      # Add column which groups each patient into an age group, for each day of their treatment
+      pregtest_prior_df_age_groups[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+      pregtest_prior_df_age_groups[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+      pregtest_prior_df_age_groups[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+      pregtest_prior_df_age_groups[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+      
+      # Performs pgtests counts - stratified by age group
+      pgtests_prior_by_age <- pregtest_prior_df_age_groups[,.N, by = .(year(Pregtest_date),month(Pregtest_date), age_group)]
+      # Get unique values of age groups - for the for loop
+      age_group_unique <- unique(pgtests_prior_by_age$age_group)
+      
+      for(group in 1:length(age_group_unique)){
+        # Create a subset of age group
+        each_group <- pgtests_prior_by_age[age_group==age_group_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Create YM variable 
+        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+        # Masks values less than 5
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+        # Applies masking 
+        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+        # Prepare denominator (all pgtests counts )
+        pgtests_prior_all_counts_min <- pregtest_prior_counts[,c("YM", "N")]
+        setnames(pgtests_prior_all_counts_min, "N", "Freq")
+        # Create counts file
+        pgtests_prior_age_counts <- merge(x = each_group, y = pgtests_prior_all_counts_min, by = c("YM"), all.x = TRUE)
+        pgtests_prior_age_counts <- pgtests_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        pgtests_prior_age_counts <- pgtests_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        # Saves files in medicine counts folder
+        saveRDS(pgtests_prior_age_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_pgtests_prior_counts.rds")) # Monthly counts file
+      }
+      
+      
     } else {
       print(paste0("No pregnancy tests were found within 90 days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
     }
@@ -135,6 +186,49 @@ if(length(pregtest_files)>0) {
       ## Saves intermediate (to counts_df folder ) and monthly count files (to pregnancy_counts folder)
       saveRDS(pregtest_after_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_after.rds")) # Intermediate file
       saveRDS(pregtest_after_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_pgtests_after_counts.rds")) # Monthly counts file 
+      
+      ##### STRATIFICATION BY AGE GROUPS ###
+      # Merge data with study population to get date of birth
+      pregtest_after_df_age_groups <- merge(pregtest_after_df[,c("person_id", "Pregtest_date")], study_population[,c("person_id", "birth_date")], by = "person_id")
+      # Creates a column with patients age on every day of in the treatment episode
+      pregtest_after_df_age_groups[,current_age:= floor((Pregtest_date - birth_date)*10/365.25)/10]
+      # Add column which groups each patient into an age group, for each day of their treatment
+      pregtest_after_df_age_groups[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+      pregtest_after_df_age_groups[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+      pregtest_after_df_age_groups[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+      pregtest_after_df_age_groups[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+      
+      # Performs pgtests counts - stratified by age group
+      pgtests_after_by_age <- pregtest_after_df_age_groups[,.N, by = .(year(Pregtest_date),month(Pregtest_date), age_group)]
+      # Get unique values of age groups - for the for loop
+      age_group_unique <- unique(pgtests_after_by_age$age_group)
+      
+      for(group in 1:length(age_group_unique)){
+        # Create a subset of age group
+        each_group <- pgtests_after_by_age[age_group==age_group_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Create YM variable 
+        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+        # Masks values less than 5
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+        # Applies masking 
+        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+        # Prepare denominator (all pgtests counts )
+        pgtests_after_all_counts_min <- pregtest_after_counts[,c("YM", "N")]
+        setnames(pgtests_after_all_counts_min, "N", "Freq")
+        # Create counts file
+        pgtests_after_age_counts <- merge(x = each_group, y = pgtests_after_all_counts_min, by = c("YM"), all.x = TRUE)
+        pgtests_after_age_counts <- pgtests_after_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        pgtests_after_age_counts <- pgtests_after_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        # Saves files in medicine counts folder
+        saveRDS(pgtests_after_age_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_pgtests_after_counts.rds")) # Monthly counts file
+      }
     } else {
       print(paste0("No pregnancy tests were found within 90 days after ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
     }
@@ -143,6 +237,26 @@ if(length(pregtest_files)>0) {
   print("There are no Pregnancy Test records available!")
 }
 
-
+# Create stratified folders and move files into stratified folders
+if(nrow(pregtest_prior_df)>0 | nrow(pregtest_after_df)){
+  # Move stratified records into stratified folders
+  # Create stratified folder
+  invisible(ifelse(!dir.exists(paste0(pregnancy_test_counts_dir,"/","stratified")), dir.create(paste0(pregnancy_test_counts_dir,"/","stratified")), FALSE))
+  pregnancy_test_stratified_dir <- paste0(pregnancy_test_counts_dir,"/","stratified")
+  # Create stratified by age groups folder
+  invisible(ifelse(!dir.exists(paste0(pregnancy_test_stratified_dir,"/","age_group")), dir.create(paste0(pregnancy_test_stratified_dir,"/","age_group")), FALSE))
+  pregnancy_test_stratified_age_groups <- paste0(pregnancy_test_stratified_dir ,"/","age_group")
+  # # Create stratified by tx_duration folder 
+  # invisible(ifelse(!dir.exists(paste0(pregnancy_test_stratified_dir,"/","tx_duration")), dir.create(paste0(pregnancy_test_stratified_dir,"/","tx_duration")), FALSE))
+  # pregnancy_test_stratified_tx_dur <- paste0(pregnancy_test_stratified_dir ,"/","tx_duration")
+  # # Create stratified by indication folder 
+  # invisible(ifelse(!dir.exists(paste0(pregnancy_test_stratified_dir,"/","indication")), dir.create(paste0(pregnancy_test_stratified_dir,"/","indication")), FALSE))
+  # pregnancy_test_stratified_indication <- paste0(pregnancy_test_stratified_dir ,"/","indication")
+  
+  # Move files 
+  for (file in list.files(path=pregnancy_test_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_age_groups, "/",file))}
+  # for (file in list.files(path=pregnancy_test_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_tx_dur, "/",file))}
+  # for (file in list.files(path=pregnancy_test_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_indication, "/",file))}
+}
 
 

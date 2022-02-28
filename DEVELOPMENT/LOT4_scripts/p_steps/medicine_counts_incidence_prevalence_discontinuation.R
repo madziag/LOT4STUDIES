@@ -60,40 +60,68 @@ denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
 
-# # 3. Indication records for valproates only
-# # Bipolar
-# indication_file_bipolar<-list.files(diagnoses_pop,pattern ="ind_bipolar",ignore.case=T,full.names=T)
-# indication_file_bipolar<-indication_file_bipolar[grepl(pop_prefix,indication_file_bipolar)]
-# if(populations[pop]=="PC_study_population.rds"){indication_file_bipolar<-indication_file_bipolar[!grepl("PC_HOSP",indication_file_bipolar)]}
-# ind_bipolar<-readRDS(indication_file_bipolar)[,indication:="bipolar"]
-# # Epilepsy
-# indication_file_epilepsy<-list.files(diagnoses_pop,pattern="ind_epilepsy",ignore.case=T,full.names=T)
-# indication_file_epilepsy<-indication_file_epilepsy[grepl(pop_prefix,indication_file_epilepsy)]
-# if(populations[pop]=="PC_study_population.rds"){indication_file_epilepsy <- indication_file_epilepsy[!grepl("PC_HOSP", indication_file_epilepsy)]}
-# ind_epilepsy<-readRDS(indication_file_epilepsy)[,indication:="epilepsy"]
-# # Migraine
-# indication_file_migraine<-list.files(diagnoses_pop,pattern="ind_migraine",ignore.case=T,full.names=T)
-# indication_file_migraine<-indication_file_migraine[grepl(pop_prefix,indication_file_migraine)]
-# if(populations[pop] == "PC_study_population.rds"){indication_file_migraine <- indication_file_migraine[!grepl("PC_HOSP", indication_file_migraine)]}
-# ind_migraine<-readRDS(indication_file_migraine)[,indication:="migraine"]
-# # Bind all indication records 
-# all_indications<-rbind(ind_bipolar,ind_epilepsy,ind_migraine)
-# all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+# 3. Indication records for valproates only
+# Bipolar
+indication_file_bipolar<-list.files(diagnoses_pop,pattern ="ind_bipolar",ignore.case=T,full.names=T)
+indication_file_bipolar<-indication_file_bipolar[grepl(pop_prefix,indication_file_bipolar)]
+if(populations[pop]=="PC_study_population.rds"){indication_file_bipolar<-indication_file_bipolar[!grepl("PC_HOSP",indication_file_bipolar)]}
+ind_bipolar<-readRDS(indication_file_bipolar)[,indication:="bipolar"]
+# Epilepsy
+indication_file_epilepsy<-list.files(diagnoses_pop,pattern="ind_epilepsy",ignore.case=T,full.names=T)
+indication_file_epilepsy<-indication_file_epilepsy[grepl(pop_prefix,indication_file_epilepsy)]
+if(populations[pop]=="PC_study_population.rds"){indication_file_epilepsy <- indication_file_epilepsy[!grepl("PC_HOSP", indication_file_epilepsy)]}
+ind_epilepsy<-readRDS(indication_file_epilepsy)[,indication:="epilepsy"]
+# Migraine
+indication_file_migraine<-list.files(diagnoses_pop,pattern="ind_migraine",ignore.case=T,full.names=T)
+indication_file_migraine<-indication_file_migraine[grepl(pop_prefix,indication_file_migraine)]
+if(populations[pop] == "PC_study_population.rds"){indication_file_migraine <- indication_file_migraine[!grepl("PC_HOSP", indication_file_migraine)]}
+ind_migraine<-readRDS(indication_file_migraine)[,indication:="migraine"]
+# Bind all indication records
+all_indications<-rbind(ind_bipolar,ind_epilepsy,ind_migraine)
+all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+
+# ### Add rows for testing
+# all_indications[person_id=="ConCDM_SIM_200421_00333",person_id:="ConCDM_SIM_200421_00029"]
+# all_indications[person_id=="ConCDM_SIM_200421_00839",person_id:="ConCDM_SIM_200421_00092"]
+# all_indications[person_id=="ConCDM_SIM_200421_00426",person_id:="ConCDM_SIM_200421_00080"]
+# all_indications[person_id=="ConCDM_SIM_200421_00107",person_id:="ConCDM_SIM_200421_00119"]
+# all_indications[person_id=="ConCDM_SIM_200421_00782",person_id:="ConCDM_SIM_200421_00661"]
+# 
+# all_indications[Date=="2013-05-04", Date:=as.IDate(as.character(20091109), "%Y%m%d")]
+# all_indications[Date=="2014-03-05", Date:=as.IDate(as.character(20091220), "%Y%m%d")]
+# all_indications[Date=="2017-05-05", Date:=as.IDate(as.character(20130320), "%Y%m%d")]
+# all_indications[Date=="2019-07-01", Date:=as.IDate(as.character(20100616), "%Y%m%d")]
+# all_indications[Date=="2020-04-28", Date:=as.IDate(as.character(20170616), "%Y%m%d")]
+
 
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 
   df_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
   # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
-  df_episodes <- merge( df_episodes, study_population[,c("person_id", "birth_date", "entry_date","exit_date")], by = "person_id")
+  df_episodes <- merge(df_episodes, study_population[,c("person_id", "birth_date", "entry_date","exit_date")], by = "person_id")
   # Changes columns to correct data type/add column that indicates rownumber
-  df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)][,nrow:=.I]
+  df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)]
   # Removes unnecessary columns
   df_episodes <- df_episodes[,-c("ATC", "type", "column_label", "end.episode.gap.days", "episode.duration")]
   # Removes records where entry into study date is before episode start date
   df_episodes <- df_episodes[exit_date>=episode.start,]
   # If exit from study date is before end of episode date, then end.episode.day = exit_date
   df_episodes[exit_date<episode.end,episode.end:=exit_date]
+  # Add row numbers to each row 
+  df_episodes[,nrow:=.I]
+  # Merge indications with df_episodes 
+  df_episodes <- all_indications[df_episodes,on=.(person_id)]
+  # Options for indications: bipolar/epilepsy/migraine/multiple/unknown
+  # If no indication is available, then indication is unknown. If indication date is after episode start date then indication == uknown
+  df_episodes[is.na(indication), indication:="unknown"][Date>episode.start, indication:="unknown"]
+  # If there is more than one indication, then indication = 'multiple'
+  df_episodes[,count:= .(count = length(unique(indication))), by = person_id]
+  df_episodes[count>1,indication_group:="multiple"][count==1, indication_group:=indication]
+  # Drop unnecessary columns 
+  df_episodes[,c("count", "indication", "Date", "Code"):=NULL]
+  # Remove duplicates
+  df_episodes<-df_episodes[!duplicated(df_episodes)]
   # Expands data to get every day of treatment per patient (will also be used to add age_groups)
   df_episodes_expanded <- setDT(df_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end, by = "day")), by = 1:nrow(df_episodes)]
   # Merges back with original data to get all columns 
@@ -145,6 +173,7 @@ for (i in 1:length(tx_episodes_files)){
   prevalence_all_counts <- prevalence_all_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
   saveRDS(prevalence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
+  
   ################ STRATIFIED PREVALENCE BY AGE GROUPS ###################
   # Performs prevalence counts - stratified by age group
   prevalence_by_age <- df_prevalence[,.N, by = .(year,month, age_group)]
@@ -179,7 +208,7 @@ for (i in 1:length(tx_episodes_files)){
   }
   
   ################ STRATIFIED PREVALENCE BY TX DURATION ###################
-  # Performs prevalence counts - stratified by age group
+  # Performs prevalence counts - stratified by tx_duration group
   prevalence_by_tx_dur <- df_prevalence[,.N, by = .(year,month, tx_dur_group)]
   # Get unique values of age groups - for the for loop
   tx_dur_group_unique <- unique(prevalence_by_tx_dur$tx_dur_group)
@@ -209,6 +238,39 @@ for (i in 1:length(tx_episodes_files)){
     prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked")]
     # Saves files in medicine counts folder
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
+  }
+  
+  ################ STRATIFIED PREVALENCE BY INDICATION ###################
+  # Performs prevalence counts - stratified by indication
+  prevalence_by_indication <- df_prevalence[,.N, by = .(year,month, indication_group)]
+  # Get unique values of age groups - for the for loop
+  indication_group_unique <- unique(prevalence_by_indication$indication_group)
+  
+  for(group in 1:length(indication_group_unique)){
+    # Create a subset of age group
+    each_group <- prevalence_by_indication[indication_group==indication_group_unique[group]]
+    # Adjust for PHARMO
+    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    # Merge with empty df (for counts that do not have counts for all months and years of study)
+    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    # Fills in missing values with 0
+    each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Create YM variable 
+    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+    # Masks values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+    # Applies masking 
+    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    # Prepare denominator (all prevalence counts )
+    prevalence_all_counts_min <- prevalence_all_counts[,c("YM", "N")]
+    setnames(prevalence_all_counts_min, "N", "Freq")
+    # Create counts file
+    prevalence_indication_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
+    prevalence_indication_counts <- prevalence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+    prevalence_indication_counts <- prevalence_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    # Saves files in medicine counts folder
+    saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_prevalence_counts.rds")))
   }
   
   ##################################################################################################
@@ -274,6 +336,39 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
   
+  ################ STRATIFIED INCIDENCE BY INDICATION ###################
+  # Performs incidence counts - stratified by indication
+  incidence_by_indication <- df_incidence[,.N, by = .(year,month, indication_group)]
+  # Get unique values of age groups - for the for loop
+  indication_group_unique <- unique(incidence_by_indication$indication_group)
+  
+  for(group in 1:length(indication_group_unique)){
+    # Create a subset of age group
+    each_group <- incidence_by_indication[indication_group==indication_group_unique[group]]
+    # Adjust for PHARMO
+    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    # Merge with empty df (for counts that do not have counts for all months and years of study)
+    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    # Fills in missing values with 0
+    each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Create YM variable 
+    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+    # Masks values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+    # Applies masking 
+    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    # Prepare denominator (all prevalence counts )
+    incidence_all_counts_min <- incidence_all_counts[,c("YM", "N")]
+    setnames(incidence_all_counts_min, "N", "Freq")
+    # Create counts file
+    incidence_indication_counts <- merge(x = each_group, y = incidence_all_counts_min, by = c("YM"), all.x = TRUE)
+    incidence_indication_counts <- incidence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+    incidence_indication_counts <- incidence_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    # Saves files in medicine counts folder
+    saveRDS(incidence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_incidence_counts.rds")))
+  }
+  
   # ##################################################################################################
   # ############################# Calculates Discontinuation Rates ###################################
   # ##################################################################################################
@@ -321,6 +416,7 @@ for (i in 1:length(tx_episodes_files)){
   discontinued_all_counts <- discontinued_all_counts[,c("YM", "N", "Freq", "rates", "masked")]
   # Saves files in medicine counts folder
   saveRDS(discontinued_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
+  
   ################ STRATIFIED DISCONTINUED BY AGE GROUPS ###################
   # Performs incidence counts - stratified by age group
   discontinued_by_age <- df_discontinued[,.N, by = .(year,month, age_group)]
@@ -354,7 +450,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(discontinued_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_discontinued_counts.rds")))
   }
   ################ STRATIFIED DISCONTINUED BY TX_DURATION ###################
-  # Performs incidence counts - stratified by age group
+  # Performs incidence counts - stratified by tx_duration
   discontinued_by_tx_dur <- df_discontinued[,.N, by = .(year,month, tx_dur_group)]
   # Get unique values of age groups - for the for loop
   tx_dur_group_unique <- unique(discontinued_by_tx_dur$tx_dur_group)
@@ -386,9 +482,43 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(discontinued_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_discontinued_counts.rds")))
   }
   
+  ################ STRATIFIED DISCONTINUED BY INDICATION ###################
+  # Performs incidence counts - stratified by indication
+  discontinued_by_indication <- df_discontinued[,.N, by = .(year,month, indication_group)]
+  # Get unique values of age groups - for the for loop
+  indication_group_unique <- unique(discontinued_by_indication$indication_group)
+  
+  for(group in 1:length(indication_group_unique)){
+    # Create a subset of age group
+    each_group <- discontinued_by_indication[indication_group==indication_group_unique[group]]
+    # Adjust for PHARMO
+    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    # Merge with empty df (for counts that do not have counts for all months and years of study)
+    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    # Fills in missing values with 0
+    each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Create YM variable 
+    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+    # Masks values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+    # Applies masking 
+    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    # Prepare denominator (all prevalence counts )
+    discontinued_all_counts_min <- discontinued_all_counts[,c("YM", "N")]
+    setnames(discontinued_all_counts_min, "N", "Freq")
+    # Create counts file
+    discontinued_indication_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
+    discontinued_indication_counts <- discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+    discontinued_indication_counts <- discontinued_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    # Saves files in medicine counts folder
+    saveRDS(discontinued_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_discontinued_counts.rds")))
+  }
+  
+  
 }
 
-rm()
+
 
 # Move stratified records into stratified folders
 # Create stratified folder
@@ -400,7 +530,11 @@ medicines_stratified_age_groups <- paste0(medicines_stratified_dir ,"/","age_gro
 # Create stratified by tx_duration folder 
 invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","tx_duration")), dir.create(paste0(medicines_stratified_dir,"/","tx_duration")), FALSE))
 medicines_stratified_tx_dur <- paste0(medicines_stratified_dir ,"/","tx_duration")
+# Create stratified by indication folder 
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
+medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
 
 # Move files 
 for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
 for (file in list.files(path=medicines_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_tx_dur, "/",file))}
+for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
