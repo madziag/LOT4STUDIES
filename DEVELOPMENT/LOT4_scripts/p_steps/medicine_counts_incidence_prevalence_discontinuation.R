@@ -80,20 +80,6 @@ ind_migraine<-readRDS(indication_file_migraine)[,indication:="migraine"]
 all_indications<-rbind(ind_bipolar,ind_epilepsy,ind_migraine)
 all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
 
-# ### Add rows for testing
-# all_indications[person_id=="ConCDM_SIM_200421_00333",person_id:="ConCDM_SIM_200421_00029"]
-# all_indications[person_id=="ConCDM_SIM_200421_00839",person_id:="ConCDM_SIM_200421_00092"]
-# all_indications[person_id=="ConCDM_SIM_200421_00426",person_id:="ConCDM_SIM_200421_00080"]
-# all_indications[person_id=="ConCDM_SIM_200421_00107",person_id:="ConCDM_SIM_200421_00119"]
-# all_indications[person_id=="ConCDM_SIM_200421_00782",person_id:="ConCDM_SIM_200421_00661"]
-# 
-# all_indications[Date=="2013-05-04", Date:=as.IDate(as.character(20091109), "%Y%m%d")]
-# all_indications[Date=="2014-03-05", Date:=as.IDate(as.character(20091220), "%Y%m%d")]
-# all_indications[Date=="2017-05-05", Date:=as.IDate(as.character(20130320), "%Y%m%d")]
-# all_indications[Date=="2019-07-01", Date:=as.IDate(as.character(20100616), "%Y%m%d")]
-# all_indications[Date=="2020-04-28", Date:=as.IDate(as.character(20170616), "%Y%m%d")]
-
-
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 

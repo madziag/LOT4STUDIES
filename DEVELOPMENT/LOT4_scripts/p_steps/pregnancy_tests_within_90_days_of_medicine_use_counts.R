@@ -64,13 +64,6 @@ if(length(pregtest_files)>0) {
   pregtest_df <- pregtest_df[!duplicated(pregtest_df[,c("person_id", "month", "year")]),] # Removes duplicates
   pregtest_df <- pregtest_df[,-c("month", "year")]
   
-  ### Add rows for testing
-  pregtest_df[person_id=="ConCDM_SIM_200421_00018",person_id:="ConCDM_SIM_200421_00029"]
-  pregtest_df[person_id=="ConCDM_SIM_200421_00079",person_id:="ConCDM_SIM_200421_00092"]
-  pregtest_df[person_id=="ConCDM_SIM_200421_00123",person_id:="ConCDM_SIM_200421_00080"]
-  pregtest_df[person_id=="ConCDM_SIM_200421_00136",person_id:="ConCDM_SIM_200421_00119"]
-  pregtest_df[person_id=="ConCDM_SIM_200421_00225",person_id:="ConCDM_SIM_200421_00661"]
-  
   ##### Loops over medication files to create counts per medication type 
   for(i in 1:length(med_files)){
     ## Loads the medication record
