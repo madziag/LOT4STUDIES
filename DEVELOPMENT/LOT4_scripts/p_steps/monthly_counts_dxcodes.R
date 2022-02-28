@@ -14,7 +14,7 @@ source(paste0(pre_dir,"excluded_ICD.R"))
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+if(is_BIFAP){empty_df<-expand.grid(seq(2010, 2020), seq(1, 12))}else{empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))}
 names(empty_df) <- c("year", "month")
 # Loads events files
 events_files <- list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE)

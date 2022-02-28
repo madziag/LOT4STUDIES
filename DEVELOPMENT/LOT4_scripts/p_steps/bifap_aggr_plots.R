@@ -7,53 +7,63 @@
 # aggregated plots per outcome with all regions to analyze the source of trends
 
 #the second section produces pooled plots per outcome
-
-
+#Loads libraries 
 if(!require(viridis)){install.packages("viridis")}
 suppressPackageStartupMessages(library(viridis))
-
 if(!require(RColorBrewer)){install.packages("RColorBrewer")}
 suppressPackageStartupMessages(library(RColorBrewer))
-
-## Path to ALL_regions folder already set -> All_regions_dir
-
-my_folders<- list.files(All_regions_dir, pattern="counts")
-# Excludes pregnancy counts (there are no rates here )
-my_folders<- my_folders[!grepl("_Pregnancy_ALL_counts", my_folders) ]
-
-#plot directory to deposit loop output
+# Set path to
+All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
+#Plot directory to deposit loop output
 invisible(ifelse(!dir.exists(paste0(All_regions_dir,"/plots/")), dir.create(paste0(All_regions_dir,"/plots/")), FALSE))
-bifap_plots<- paste0(All_regions_dir,"/plots/")
+bifap_plots<-paste0(All_regions_dir,"/plots/")
 
-#get dates vector
-
-denominator <- (list.files(paste0(All_regions_dir,"/ALL_denominator/"), pattern = "denominator_Pooled.csv", recursive = TRUE, ignore.case = T))
-
-my_date_df<-fread(paste0(All_regions_dir,"/ALL_denominator/", denominator))
-
+#gets dates vector (doesn't matter which denominator, we just need dates vector, in this case from PC_denominator )
+# Reads in denominator 
+my_date_df<-fread(paste0(All_regions_dir,"/PC_denominator/", list.files(paste0(All_regions_dir,"/PC_denominator/"), pattern = "denominator_Pooled.csv")))
+# Creates a vector of year-month 
 my_dates<-my_date_df$YM
-
-# Get a dynamic list of region names 
-# my_regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
+# Creates a region color key
 my_regions<-c("AR", "AS","CA", "CL","CM","CN","MA","MU","NA")
-
 my_pallette<-RColorBrewer::brewer.pal(n =length(my_regions), name="Set1" )
-
 #bind colors to regions so that the same color will represent each region in all plots, even when not all regions are present
 region_key<-as.data.frame(cbind(my_pallette, my_regions))
 
-for(i in 1:length(my_folders)){
+##########################################################################################################################
+################################################### PLOTS FOR RATES ######################################################
+##########################################################################################################################
+#For preliminary counts, prevalence, incidence, med_use_during_pregnancy, preg_starts 
+my_folders<- list.files(All_regions_dir, pattern="counts")
+# RATES - Multiplied by 1000
+# 1. All preliminary 
+# 2. Prevalence 
+# 3. Incidence 
+# 4. med_use_during_pregnancy
+# 5. Preg_starts
+my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
+# PROPORTIONS 
+# 1. Discontinued
+# 2. switched 
+# 3. pg test prior 
+# 4. pg test after 
+# 5. contraception prior 
+# 6. med_use_during_contraception 
+my_folders_props <- my_folders[grepl(c("discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
+
+# Combined plots 
+for(i in 1:length(my_folders_rates)){
   #read in list of RDS files
-  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='Pooled', invert=TRUE, value=TRUE)
-  my_files <- my_files[!grepl(c("all_pregnancies|discontinued|switched|contraception_prior|med_use_during_pregnancy"), my_files)]
+  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_rates[i])), pattern='Pooled', invert=TRUE, value=TRUE)
   if (length(my_files)>0){
-    main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
-    pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0, 2), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+    main_name<-paste0("Each_region_", substr(my_folders_rates[i], 1,nchar(my_folders_rates[i])-7))
+    pdf((paste0(bifap_plots,main_name,".pdf")), width=8, height=4)
+    plot(x=1:nrow(my_date_df),y=rep(1,nrow(my_date_df)),main=main_name,type ="n",xaxt="n",xlab="",ylab="rates",ylim=c(0,30))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
-      my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files[j]))
+      my_data<-fread(paste0(All_regions_dir,"/",my_folders_rates[i],"/",my_files[j]))
+      my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
+      # my_ymax <- ifelse (max(my_data$rates) < 1, 1, max(my_data$rates))
       my_reg<-substr(my_files[j],1,2)
       my_col<-as.character(region_key$my_pallette[region_key$my_regions==my_reg])
       #jitterred lines so that overlapping regions are distinguishable
@@ -64,39 +74,41 @@ for(i in 1:length(my_folders)){
   }
 }
 
-
-
-#pooled plots for each output- one pooled file per output folder
-my_folders<- list.files(All_regions_dir, pattern="counts")
-my_folders<- my_folders[!grepl(c("all_pregnancies|discontinued|switched|contraception_prior|med_use_during_pregnancy"), my_folders)]
-
-for(i in 1:length(my_folders)){
-  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='counts_Pooled', invert=FALSE, value=TRUE)
-  my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files))
-  main_name<-paste0("Pooled ",substr(my_folders[i], 1,nchar(my_folders[i])-7))
+#Pooled plots for each output- one pooled file per output folder
+for(i in 1:length(my_folders_rates)){
+  if (str_detect(my_folders_rates[i], "_preg_starts_during_tx_episodes")){
+   my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_rates[i])), pattern='final_Pooled', invert=FALSE, value=TRUE)
+  } else {
+   my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_rates[i])), pattern='Pooled', invert=FALSE, value=TRUE)
+  }
+  my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders_rates[i],"/",my_files))
+  my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
+  my_ymax <- ifelse (max(my_data$rates) < 1, 1, max(my_data$rates))
+  main_name<-paste0("Pooled ",substr(my_folders_rates[i], 1,nchar(my_folders_rates[i])-7))
   pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-  plot(x=1:nrow(my_date_df),y=my_data$rates, ylim=c(0,max(my_data$rates)), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates", ylim = c(0,0.03))
+  plot(x=1:nrow(my_date_df),y=my_data$rates, ylim=c(0,my_ymax), main=main_name, type = "n",xaxt="n", xlab="", ylab="rates")
   lines(x=(1:nrow(my_data)), y=my_data$rates, lwd=2)
   axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
   dev.off()
 }
 
+##########################################################################################################################
+############################################## PLOTS FOR PROPORTIONS ######################################################
+##########################################################################################################################
 
-# Proportions: discontinued, switched_to_alt_meds, contraception_prior, med_use_during_pregnancy
-
-for(i in 1:length(my_folders)){
+# Combined plots 
+for(i in 1:length(my_folders_props)){
   #read in list of RDS files
-  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='Pooled', invert=TRUE, value=TRUE)
-  my_files <- my_files[grepl(c("all_pregnancies|discontinued|switched|contraception_prior|med_use_during_pregnancy"), my_files)]
-  my_files <- my_files[!grepl(c("all_pregnancies"), my_files)]
+  my_files <-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_props[i])), pattern='Pooled', invert=TRUE, value=TRUE)
   if (length(my_files)>0){
-    main_name<-substr(my_folders[i], 1,nchar(my_folders[i])-7)
+    main_name<-paste0("Each_region_",substr(my_folders_props[i], 1,nchar(my_folders_props[i])-7))
     pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0,2), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
+    plot(x=1:nrow(my_date_df),y=rep(1, nrow(my_date_df)), ylim=c(0,1), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions")
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
-      my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files[j]))
+      my_data<-fread(paste0(All_regions_dir,"/",my_folders_props[i],"/",my_files[j]))
+      my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
       my_reg<-substr(my_files[j],1,2)
       my_col<-as.character(region_key$my_pallette[region_key$my_regions==my_reg])
       #jitterred lines so that overlapping regions are distinguishable
@@ -107,22 +119,19 @@ for(i in 1:length(my_folders)){
   }
 }
 
-
-
-#pooled plots for each output- one pooled file per output folder
-my_folders<- list.files(All_regions_dir, pattern="counts")
-my_folders<- my_folders[grepl(c("all_pregnancies|discontinued|switched|contraception_prior|med_use_during_pregnancy"), my_folders)]
-my_folders<- my_folders[!grepl(c("all_pregnancies"), my_folders)]
-
-for(i in 1:length(my_folders)){
-  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders[i])), pattern='counts_Pooled', invert=FALSE, value=TRUE)
-  my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders[i],"/",my_files))
-  main_name<-paste0("Pooled ",substr(my_folders[i], 1,nchar(my_folders[i])-7))
+#Pooled plots for each output- one pooled file per output folder
+for(i in 1:length(my_folders_props)){
+  my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_props[i])), pattern='final_Pooled', invert=FALSE, value=TRUE)
+  my_data<-my_data<-fread(paste0(All_regions_dir,"/",my_folders_props[i],"/",my_files))
+  my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
+  main_name<-paste0("Pooled ",substr(my_folders_props[i], 1,nchar(my_folders_props[i])-7))
   pdf((paste0(bifap_plots, main_name,".pdf")), width=8, height=4)
-  plot(x=1:nrow(my_date_df),y=my_data$rates,ylim=c(0,max(my_data$rates)), main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
+  plot(x=1:nrow(my_date_df),y=my_data$rates, main=main_name, type = "n",xaxt="n", xlab="", ylab="proportions", ylim = c(0,1))
   lines(x=(1:nrow(my_data)), y=my_data$rates, lwd=2)
   axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
   dev.off()
 }
+
+
 
 

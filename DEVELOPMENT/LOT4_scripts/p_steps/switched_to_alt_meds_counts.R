@@ -68,7 +68,7 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df <- as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
+if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)

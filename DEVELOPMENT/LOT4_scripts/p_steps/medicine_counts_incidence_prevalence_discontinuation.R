@@ -57,27 +57,43 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df <- as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
+if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
 
-# 3. Indication records for valproates only
-# indication_file_bipolar  <- list.files(diagnoses_pop, pattern = "ind_bipolar", ignore.case = T, full.names = T)
-# ind_bipolar <- readRDS(indication_file_bipolar)
-# indication_file_epilepsy <- list.files(diagnoses_pop, pattern = "ind_epilepsy", ignore.case = T, full.names = T)
-# ind_epilepsy <- readRDS(indication_file_epilepsy)
-# indication_file_migraine <- list.files(diagnoses_pop, pattern = "ind_migraine", ignore.case = T, full.names = T)
-# ind_migraine <- readRDS(indication_file_migraine)
+# # 3. Indication records for valproates only
+# # Bipolar
+# indication_file_bipolar<-list.files(diagnoses_pop,pattern ="ind_bipolar",ignore.case=T,full.names=T)
+# indication_file_bipolar<-indication_file_bipolar[grepl(pop_prefix,indication_file_bipolar)]
+# if(populations[pop]=="PC_study_population.rds"){indication_file_bipolar<-indication_file_bipolar[!grepl("PC_HOSP",indication_file_bipolar)]}
+# ind_bipolar<-readRDS(indication_file_bipolar)[,indication:="bipolar"]
+# # Epilepsy
+# indication_file_epilepsy<-list.files(diagnoses_pop,pattern="ind_epilepsy",ignore.case=T,full.names=T)
+# indication_file_epilepsy<-indication_file_epilepsy[grepl(pop_prefix,indication_file_epilepsy)]
+# if(populations[pop]=="PC_study_population.rds"){indication_file_epilepsy <- indication_file_epilepsy[!grepl("PC_HOSP", indication_file_epilepsy)]}
+# ind_epilepsy<-readRDS(indication_file_epilepsy)[,indication:="epilepsy"]
+# # Migraine
+# indication_file_migraine<-list.files(diagnoses_pop,pattern="ind_migraine",ignore.case=T,full.names=T)
+# indication_file_migraine<-indication_file_migraine[grepl(pop_prefix,indication_file_migraine)]
+# if(populations[pop] == "PC_study_population.rds"){indication_file_migraine <- indication_file_migraine[!grepl("PC_HOSP", indication_file_migraine)]}
+# ind_migraine<-readRDS(indication_file_migraine)[,indication:="migraine"]
+# # Bind all indication records 
+# all_indications<-rbind(ind_bipolar,ind_epilepsy,ind_migraine)
+# all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
 
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 
   df_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
   # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
-  df_episodes <- merge( df_episodes, study_population[,c("person_id", "birth_date", "exit_date")], by = "person_id")
+  df_episodes <- merge( df_episodes, study_population[,c("person_id", "birth_date", "entry_date","exit_date")], by = "person_id")
   # Changes columns to correct data type/add column that indicates rownumber
   df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)][,nrow:=.I]
   # Removes unnecessary columns
   df_episodes <- df_episodes[,-c("ATC", "type", "column_label", "end.episode.gap.days", "episode.duration")]
+  # Removes records where entry into study date is before episode start date
+  df_episodes <- df_episodes[exit_date>=episode.start,]
+  # If exit from study date is before end of episode date, then end.episode.day = exit_date
+  df_episodes[exit_date<episode.end,episode.end:=exit_date]
   # Expands data to get every day of treatment per patient (will also be used to add age_groups)
   df_episodes_expanded <- setDT(df_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end, by = "day")), by = 1:nrow(df_episodes)]
   # Merges back with original data to get all columns 
@@ -92,9 +108,9 @@ for (i in 1:length(tx_episodes_files)){
   # Add column with the duration of tx episode (tx_end -tx_start)
   df_episodes_expanded[,tx_duration:=episode.end-episode.start]
   # Add column which groups each patient into an tx_length group
-  df_episodes_expanded[tx_duration >= 0 & tx_duration<= 182, tx_dur_group:= "0-182 days"]
+  df_episodes_expanded[tx_duration >= 0  & tx_duration <= 182, tx_dur_group:= "0-182"]
   df_episodes_expanded[tx_duration > 182 & tx_duration <= 365, tx_dur_group:= "182-365"]
-  df_episodes_expanded[tx_duration> 365, tx_dur_group:= "365+ days"]
+  df_episodes_expanded[tx_duration > 365, tx_dur_group:= "over365"]
   # Create year-months columns based on episode.day
   df_episodes_expanded[,year:=year(episode.day)][,month:=month(episode.day)]
   # Removes unnecessary columns
