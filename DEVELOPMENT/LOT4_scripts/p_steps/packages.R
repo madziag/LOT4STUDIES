@@ -2,6 +2,10 @@
 
 if(!require(rmarkdown)){install.packages("rmarkdown")}
 suppressPackageStartupMessages(library(rmarkdown))
+if(!require(viridis)){install.packages("viridis")}
+suppressPackageStartupMessages(library(viridis))
+if(!require(RColorBrewer)){install.packages("RColorBrewer")}
+suppressPackageStartupMessages(library(RColorBrewer))
 if(!require(survival)){install.packages("survival")}
 suppressPackageStartupMessages(library(survival))
 if(!require(stringr)){install.packages("stringr")}
