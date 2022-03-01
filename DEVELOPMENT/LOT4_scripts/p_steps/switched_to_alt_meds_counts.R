@@ -67,8 +67,10 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
+min_data_available <- min(denominator$year)
+max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df <- as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
+if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
@@ -83,9 +85,11 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     if(str_detect(tx_episodes_files[i], pattern = "Retinoid_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_retinoid_files, readRDS))}
     if(str_detect(tx_episodes_files[i], pattern = "Valproate_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_valproate_files, readRDS))}
     # Clean up altmed_df
-    alt_med_df <- alt_med_df[,c("person_id", "Code", "Date")]
+    alt_med_df <- alt_med_df[,c("person_id", "Code", "Date", "entry_date", "exit_date")]
     setnames(alt_med_df, "Code", "ATC")
     setnames(alt_med_df, "Date", "record_date")
+    # Remove any records that do not fall between entry and exit into study dates 
+    alt_med_df<-alt_med_df[record_date>=entry_date&record_date<=exit_date,]
     # Merge tx episodes with altmed records 
     alt_med_tx_episodes <- tx_episodes[alt_med_df, on = .(person_id), allow.cartesian = T] 
     # Delete records without alt medicine use
@@ -134,6 +138,8 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # Merge with empty df (for counts that do not have counts for all months and years of study)
       num_1_counts  <- as.data.table(merge(x = empty_df, y = num_1_counts, by = c("year", "month"), all.x = TRUE))
       num_1_counts[is.na(num_1_counts[,N]), N:=0]
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      num_1_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masks values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
       num_1_counts$masked <- ifelse(num_1_counts$N < 5 & num_1_counts$N > 0, 1, 0)
@@ -144,7 +150,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # Get denominator 
       # Load prevalence counts
       prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
-      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked")]
+      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked", "true_value")]
       setnames(prevalent_counts, "N", "Freq")
       # Calculate rates 
       ### Merges numerator file with denominator file
@@ -158,7 +164,52 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       # Saves files 
       saveRDS(alt_med_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_switched_to_alt_meds_counts.rds")))
       # Clean up
-      rm(tx_episodes, alt_med_df, alt_med_tx_episodes_0, alt_med_tx_episodes_1, alt_med_tx_episodes_expanded, denom_0_1_counts, num_1_counts, alt_med_counts)
+      # rm(tx_episodes, alt_med_df, alt_med_tx_episodes_0, alt_med_tx_episodes_1, alt_med_tx_episodes_expanded, denom_0_1_counts, num_1_counts, alt_med_counts)
+      
+      ##### STRATIFICATION BY AGE GROUPS ###
+      # Merge data with study population to get date of birth
+      switched_df_age_groups <- merge(alt_med_tx_episodes_1, study_population[,c("person_id", "birth_date")], by = "person_id")
+      # Creates a column with patients age on every day of in the treatment episode
+      switched_df_age_groups[,current_age:= floor((episode.end.switch - birth_date)*10/365.25)/10]
+      # Add column which groups each patient into an age group, for each day of their treatment
+      switched_df_age_groups[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+      switched_df_age_groups[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+      switched_df_age_groups[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+      switched_df_age_groups[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+      
+      # Performs pgtests counts - stratified by age group
+      switched_by_age <- switched_df_age_groups[,.N, by = .(year(episode.end.switch),month(episode.end.switch), age_group)]
+      # Get unique values of age groups - for the for loop
+      age_group_unique <- unique(switched_by_age$age_group)
+      
+      for(group in 1:length(age_group_unique)){
+        # Create a subset of age group
+        each_group <- switched_by_age[age_group==age_group_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+        # Create YM variable 
+        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+        # Masks values less than 5
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+        # Applies masking 
+        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+        # Prepare denominator (all pgtests counts )
+        switched_all_counts_min <- alt_med_counts[,c("YM", "N")]
+        setnames(switched_all_counts_min, "N", "Freq")
+        # Create counts file
+        switched_age_counts <- merge(x = each_group, y = switched_all_counts_min, by = c("YM"), all.x = TRUE)
+        switched_age_counts <- switched_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        switched_age_counts <- switched_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+        # Saves files in medicine counts folder
+        saveRDS(switched_age_counts, paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group], "_switched_to_alt_meds_counts.rds")) # Monthly counts file
+      }                              
     } else {
       print(paste0("No patients that switched from ", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), " treatment to alternative meds have been found"))
     }
@@ -168,6 +219,8 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
 }
 
 
+# Move files 
+for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
 
 
 

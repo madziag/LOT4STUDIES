@@ -25,7 +25,6 @@ if(multiple_regions == T){
     # Sources folders for each region 
     source(paste0(pre_dir,"info.R"))
     source(paste0(pre_dir,"study_parameters.R"))
-    SUBP <- TRUE
     ## First removes g_intermediate/g_output
     if("g_intermediate" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_intermediate"), recursive = T)}
     if("g_output"       %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output")      , recursive = T)}
@@ -66,7 +65,7 @@ if(multiple_regions == T){
   invisible(ifelse(!dir.exists(paste0(projectFolder, "/ALL_regions")), dir.create(paste0(projectFolder, "/ALL_regions")), FALSE))
   All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
   # Saved as a function
-  source(paste0(pre_dir, "run_pooling_results_BIFAP.R"))
+  # source(paste0(pre_dir, "run_pooling_results_BIFAP.R"))
 
   # Run function
   # run_pooling()

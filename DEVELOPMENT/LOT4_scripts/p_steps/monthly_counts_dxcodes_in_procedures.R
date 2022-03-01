@@ -16,8 +16,10 @@ proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TR
 # Creates empty table for counts 
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
+min_data_available <- min(FUmonths_df$Y)
+max_data_available <- max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+if(is_BIFAP){empty_df<-expand.grid(seq(2010, 2020), seq(1, 12))}else{empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))}
 names(empty_df) <- c("year", "month")
 # Checks for EVENTS Tables present
 if(length(proc_files)>0){
@@ -196,6 +198,8 @@ if(length(proc_files)>0){
       counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
       counts[,masked:=ifelse(N<5 & N>0, 1, 0)]
@@ -205,7 +209,7 @@ if(length(proc_files)>0){
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
       counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-      counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
+      counts <-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
         saveRDS(comb_meds, paste0(procedures_dxcodes_pop ,pop_prefix, "_", names(codelist_all[i]),".rds"))
