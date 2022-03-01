@@ -50,14 +50,18 @@ my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|p
 # 6. med_use_during_contraception 
 my_folders_props <- my_folders[grepl(c("discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
 
+#create ylim max from pooled file
+
 # Combined plots 
 for(i in 1:length(my_folders_rates)){
   #read in list of RDS files
   my_files<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_rates[i])), pattern='Pooled', invert=TRUE, value=TRUE)
+  my_pool<-grep(list.files(path=paste0(All_regions_dir,"/",my_folders_rates[i])), pattern='Pooled', invert=FALSE, value=TRUE)
+  my_max<- (max(my_pool$rates))*2
   if (length(my_files)>0){
     main_name<-paste0("Each_region_", substr(my_folders_rates[i], 1,nchar(my_folders_rates[i])-7))
     pdf((paste0(bifap_plots,main_name,".pdf")), width=8, height=4)
-    plot(x=1:nrow(my_date_df),y=rep(1,nrow(my_date_df)),main=main_name,type ="n",xaxt="n",xlab="",ylab="rates",ylim=c(0,30))
+    plot(x=1:nrow(my_date_df),y=rep(1,nrow(my_date_df)),ylim=c(0,my_max), main=main_name,type ="n",xaxt="n",xlab="",ylab="rates",ylim=c(0,30))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
     for(j in 1:length(my_files)){
