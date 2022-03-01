@@ -64,6 +64,7 @@ for(i in 1:length(my_folders_rates)){
     plot(x=1:nrow(my_date_df),y=rep(1,nrow(my_date_df)),ylim=c(0,my_max), main=main_name,type ="n",xaxt="n",xlab="",ylab="rates",ylim=c(0,30))
     axis(1, at=1:nrow(my_date_df), as.character(my_dates), las=2)
     legend("topright", legend = my_regions, col=my_pallette, lwd=2, bty="n", cex=0.75)
+    legend("topleft", legend=c("true values", "no observations"), bty="n",pch=c(16,3))
     for(j in 1:length(my_files)){
       my_data<-fread(paste0(All_regions_dir,"/",my_folders_rates[i],"/",my_files[j]))
       my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
@@ -72,7 +73,7 @@ for(i in 1:length(my_folders_rates)){
       my_col<-as.character(region_key$my_pallette[region_key$my_regions==my_reg])
       #jitterred lines so that overlapping regions are distinguishable
       my_jit<-sample(x=(seq(0,0.001, by=0.00001)), size = 1)
-      lines(x=(1:nrow(my_data)), y=((my_data$rates)+my_jit), col=my_col, lwd=2)
+      lines(x=(1:nrow(my_data)), y=((my_data$rates)+my_jit), pch=my_data$true_value, type="b", col=my_col, lwd=2)
     }
     dev.off()
   }
