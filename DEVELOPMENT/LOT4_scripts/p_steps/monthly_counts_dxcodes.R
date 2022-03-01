@@ -33,7 +33,7 @@ if(length(events_files)>0){
     # Loads table 
     df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text" )] # Keeps necessary columns
+    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text")] # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_event","Meaning") # Renames column names
     setnames(df,"start_date_record","Date") # Renames column names
@@ -58,6 +58,14 @@ if(length(events_files)>0){
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
+    # Exclusion of meanings ### for BIFAP
+    # PC: Meanings to be limited/restricted to: "primary_care_events_BIFAP" (or "procedure_primary_care", where applicable); 
+    # excludes "primary_care_conditionants_BIFAP", "primary_care_antecedents_BIFAP", "hospitalisation_primary" and "hospitalisation_secundary"
+    if(pop_prefix == "PC"){df<-df[Meaning=="primary_care_events_BIFAP",]}
+    # PC_HOSP: Meanings to be limited/restricted to:  "primary_care_events_BIFAP" and "hospitalisation_primary" (or "procedure_primary_care" and  "procedure_during_hospitalisation" where applicable); 
+    # excludes "primary_care_conditionants_BIFAP", "primary_care_antecedents_BIFAP" and "hospitalisation_secundary".
+    if(pop_prefix == "PC_HOSP"){df<-df[Meaning=="primary_care_events_BIFAP" | Meaning=="hospitalisation_primary",]}
+    
     # PHARMO free text
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]

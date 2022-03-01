@@ -27,37 +27,39 @@ for(file in list.files(path=output_dir, pattern="denominator", ignore.case = T))
 
 
 if (is_Denmark == T){
-  # Loads files with matching pattern 
-  med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
-  # Reads in records of population with indicated study type
-  study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
-  # Loads study population
-  study_population <- readRDS(paste0(populations_dir, populations))
-  # Assign study population prefix name
-  pop_prefix <- gsub("_study_population.rds", "", populations)
-  # Creates baseline tables 
-  source(paste0(pre_dir,"CreateBaselineTables.R"))
-  # Creates Retinoid/Valproate treatment episodes 
-  source(paste0(pre_dir, "treatment_episodes.R"))
-  # Creates KM plots # Doesn't save them yet
-#  source(paste0(pre_dir, "KaplanMeier.R"))
-  # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
-  source(paste0(pre_dir, "contraception_duration.R"))
-  # Creates contraception treatment episodes 
-  source(paste0(pre_dir, "treatment_episodes_contracep.R"))
-  # Counts of prevalence, incidence, discontinuation - medicines use 
-  source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
-  # Counts of contraception records within 90 days before medication record 
-  source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
-  # Counts of medicine records during contraception episodes
-  source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
-  # Counts of patients who switched from Retinoid/Valproate use to alt med use
-  source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
-  # Makes plots of all counts files
-  source(paste0(pre_dir, "plots_mask.R"))
-  # Converts all .rds files into .csv or .xlsx (indicated by user)
-  source(paste0(pre_dir, "write_output.R"))
   
+  for(pop in 1:length(populations)){
+    # Loads files with matching pattern 
+    med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
+    # Reads in records of population with indicated study type
+    study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
+    # Loads study population
+    study_population <- readRDS(paste0(populations_dir, populations))
+    # Assign study population prefix name
+    pop_prefix <- gsub("_study_population.rds", "", populations)
+    # Creates baseline tables 
+    source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # Creates Retinoid/Valproate treatment episodes 
+    source(paste0(pre_dir, "treatment_episodes.R"))
+    # Creates KM plots # Doesn't save them yet
+    #  source(paste0(pre_dir, "KaplanMeier.R"))
+    # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
+    source(paste0(pre_dir, "contraception_duration.R"))
+    # Creates contraception treatment episodes 
+    source(paste0(pre_dir, "treatment_episodes_contracep.R"))
+    # Counts of prevalence, incidence, discontinuation - medicines use 
+    source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
+    # Counts of contraception records within 90 days before medication record 
+    source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
+    # Counts of medicine records during contraception episodes
+    source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
+    # Counts of patients who switched from Retinoid/Valproate use to alt med use
+    source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
+    # Makes plots of all counts files
+    # source(paste0(pre_dir, "plots_mask.R"))
+    # Converts all .rds files into .csv or .xlsx (indicated by user)
+    source(paste0(pre_dir, "write_output.R"))
+  }
 } else {
   # Loops over each subpopulation
   for(pop in 1:length(populations)){
