@@ -39,11 +39,11 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
+min_data_available <- min(denominator$year)
+max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
-# Clean up
-rm(denominator)
 
 # Checks first if there are any contraception episode records found
 if(length(contra_epi_files)>0) {
@@ -60,6 +60,7 @@ if(length(contra_epi_files)>0) {
     med_counts <- med_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
     med_counts <- as.data.table(merge(x = empty_df, y = med_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_counts
     med_counts[is.na(med_counts[,N]), N:=0] # Fills in missing values with 0
+    
     setnames(med_counts, "N", "Freq") # Renames column
     # Masking
     med_counts$masked_den <- ifelse(med_counts$Freq < 5 & med_counts$Freq > 0, 1, 0) # Creates column that indicates if count value will be masked_den if mask = TRUE
@@ -80,6 +81,8 @@ if(length(contra_epi_files)>0) {
       tx_in_episode_counts <- tx_in_episode_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
       tx_in_episode_counts <- as.data.table(merge(x = empty_df, y = tx_in_episode_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with tx_in_episode_counts
       tx_in_episode_counts[is.na(tx_in_episode_counts[,N]), N:=0] # Fills in missing values with 0
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      tx_in_episode_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking
       tx_in_episode_counts$masked_num <- ifelse(tx_in_episode_counts$N < 5 & tx_in_episode_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
       if(mask == T){tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N <- 5} else {tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N <- tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
@@ -87,7 +90,7 @@ if(length(contra_epi_files)>0) {
       tx_in_episode_counts <- within(tx_in_episode_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       tx_in_episode_counts <- merge(x = tx_in_episode_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       tx_in_episode_counts <- tx_in_episode_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+      tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(tx_in_episode_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to medicines counts folder)
       saveRDS(tx_in_episode_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_contra_episodes.rds")) # Saves intermediate file
