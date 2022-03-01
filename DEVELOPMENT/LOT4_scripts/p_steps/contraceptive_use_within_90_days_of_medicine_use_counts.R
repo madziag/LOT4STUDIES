@@ -40,6 +40,8 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
+min_data_available <- min(denominator$year)
+max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
@@ -84,6 +86,8 @@ if(length(contra_files)>0) {
       contra_prior_counts <- contra_prior_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
       contra_prior_counts <- as.data.table(merge(x = empty_df, y = contra_prior_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with contra_prior_counts
       contra_prior_counts[is.na(contra_prior_counts[,N]), N:=0] # Fills in missing values with 0
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      contra_prior_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking
       contra_prior_counts$masked_num <- ifelse(contra_prior_counts$N < 5 & contra_prior_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
       if(mask == T){contra_prior_counts[contra_prior_counts$masked_num == 1,]$N <- 5} else {contra_prior_counts[contra_prior_counts$masked_num == 1,]$N <- contra_prior_counts[contra_prior_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
@@ -91,7 +95,7 @@ if(length(contra_files)>0) {
       contra_prior_counts <- within(contra_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       contra_prior_counts <- merge(x = contra_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       contra_prior_counts <- contra_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+      contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(contra_prior_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to contraceptives folder)
       saveRDS(contra_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before records
@@ -122,6 +126,8 @@ if(length(contra_files)>0) {
         each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
         # Fills in missing values with 0
         each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
         # Masks values less than 5
@@ -135,7 +141,7 @@ if(length(contra_files)>0) {
         # Create counts file
         contra_prior_age_counts <- merge(x = each_group, y = contra_prior_all_counts_min, by = c("YM"), all.x = TRUE)
         contra_prior_age_counts <- contra_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-        contra_prior_age_counts <- contra_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        contra_prior_age_counts <- contra_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
         # Saves files in medicine counts folder
         saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraceptives_prior_counts.rds")) # Monthly counts file
       }   

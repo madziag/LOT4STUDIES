@@ -46,11 +46,11 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
+min_data_available <- min(denominator$year)
+max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
-# Clean up
-rm(denominator)
 
 # Checks first if there are any pregnancy test records found
 if(length(pregtest_files)>0) {
@@ -101,6 +101,8 @@ if(length(pregtest_files)>0) {
       pregtest_prior_counts <- pregtest_prior_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
       pregtest_prior_counts <- as.data.table(merge(x = empty_df, y = pregtest_prior_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with pregtest_prior_counts
       pregtest_prior_counts[is.na(pregtest_prior_counts[,N]), N:=0] # Fills in missing values with 0
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      pregtest_prior_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking
       pregtest_prior_counts$masked_num <- ifelse(pregtest_prior_counts$N < 5 & pregtest_prior_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
       if(mask == T){pregtest_prior_counts[pregtest_prior_counts$masked_num == 1,]$N <- 5} else {pregtest_prior_counts[pregtest_prior_counts$masked_num == 1,]$N <- pregtest_prior_counts[pregtest_prior_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
@@ -108,7 +110,7 @@ if(length(pregtest_files)>0) {
       pregtest_prior_counts <- within(pregtest_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       pregtest_prior_counts <- merge(x = pregtest_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       pregtest_prior_counts <- pregtest_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      pregtest_prior_counts <- pregtest_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+      pregtest_prior_counts <- pregtest_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(pregtest_prior_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to pregnancy_counts folder)
       saveRDS(pregtest_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_prior.rds")) # Intermediate file
@@ -139,6 +141,8 @@ if(length(pregtest_files)>0) {
         each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
         # Fills in missing values with 0
         each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
         # Masks values less than 5
@@ -152,7 +156,7 @@ if(length(pregtest_files)>0) {
         # Create counts file
         pgtests_prior_age_counts <- merge(x = each_group, y = pgtests_prior_all_counts_min, by = c("YM"), all.x = TRUE)
         pgtests_prior_age_counts <- pgtests_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-        pgtests_prior_age_counts <- pgtests_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        pgtests_prior_age_counts <- pgtests_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
         # Saves files in medicine counts folder
         saveRDS(pgtests_prior_age_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_pgtests_prior_counts.rds")) # Monthly counts file
       }
@@ -167,6 +171,8 @@ if(length(pregtest_files)>0) {
       pregtest_after_counts <- pregtest_after_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
       pregtest_after_counts <- as.data.table(merge(x = empty_df, y = pregtest_after_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with pregtest_after_counts
       pregtest_after_counts[is.na(pregtest_after_counts[,N]), N:=0] # Fills in missing values with 0
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      pregtest_after_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking
       pregtest_after_counts$masked_num <- ifelse(pregtest_after_counts$N < 5 & pregtest_after_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
       if(mask == T){pregtest_after_counts[pregtest_after_counts$masked_num == 1,]$N <- 5} else {pregtest_after_counts[pregtest_after_counts$masked_num == 1,]$N <- pregtest_after_counts[pregtest_after_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
@@ -174,7 +180,7 @@ if(length(pregtest_files)>0) {
       pregtest_after_counts <- within(pregtest_after_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       pregtest_after_counts <- merge(x = pregtest_after_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       pregtest_after_counts <- pregtest_after_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      pregtest_after_counts <- pregtest_after_counts[,c("YM", "N", "Freq", "rates", "masked_num")]
+      pregtest_after_counts <- pregtest_after_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(pregtest_after_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder ) and monthly count files (to pregnancy_counts folder)
       saveRDS(pregtest_after_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_pgtests_after.rds")) # Intermediate file
@@ -205,6 +211,8 @@ if(length(pregtest_files)>0) {
         each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
         # Fills in missing values with 0
         each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
         # Masks values less than 5
@@ -218,7 +226,7 @@ if(length(pregtest_files)>0) {
         # Create counts file
         pgtests_after_age_counts <- merge(x = each_group, y = pgtests_after_all_counts_min, by = c("YM"), all.x = TRUE)
         pgtests_after_age_counts <- pgtests_after_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-        pgtests_after_age_counts <- pgtests_after_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+        pgtests_after_age_counts <- pgtests_after_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
         # Saves files in medicine counts folder
         saveRDS(pgtests_after_age_counts, paste0(pregnancy_test_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_pgtests_after_counts.rds")) # Monthly counts file
       }

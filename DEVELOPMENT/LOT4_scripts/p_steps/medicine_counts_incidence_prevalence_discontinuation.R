@@ -56,6 +56,8 @@ denominator <- readRDS(paste0(tmp, denominator_file))
 # Split Y-M variable to year - month columns (for merging later)
 denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
 denominator[,year:=as.integer(year)][,month:=as.integer(month)]
+min_data_available <- min(denominator$year)
+max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
 if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
 names(empty_df) <- c("year", "month")
@@ -144,6 +146,8 @@ for (i in 1:length(tx_episodes_files)){
   prevalence_all <- as.data.table(merge(x = empty_df, y = prevalence_all, by = c("year", "month"), all.x = TRUE))
   # Fills in missing values with 0
   prevalence_all[is.na(N), N:=0]
+  # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+  prevalence_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
   # Masks values less than 5
   # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
   prevalence_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
@@ -156,7 +160,7 @@ for (i in 1:length(tx_episodes_files)){
   # Calculates rates
   prevalence_all_counts <- prevalence_all_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
   # Keeps necessary columns 
-  prevalence_all_counts <- prevalence_all_counts[,c("YM", "N", "Freq", "rates", "masked")]
+  prevalence_all_counts <- prevalence_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(prevalence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
   
@@ -175,6 +179,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -188,7 +194,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     prevalence_age_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
     prevalence_age_counts <- prevalence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    prevalence_age_counts <- prevalence_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    prevalence_age_counts <- prevalence_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_prevalence_counts.rds")))
   }
@@ -208,6 +214,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(tx_dur_group), tx_dur_group:=tx_dur_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -221,7 +229,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     prevalence_tx_dur_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
     prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
   }
@@ -241,6 +249,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -254,7 +264,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     prevalence_indication_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
     prevalence_indication_counts <- prevalence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    prevalence_indication_counts <- prevalence_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    prevalence_indication_counts <- prevalence_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_prevalence_counts.rds")))
   }
@@ -273,6 +283,8 @@ for (i in 1:length(tx_episodes_files)){
   incidence_all <- as.data.table(merge(x = empty_df, y = incidence_all, by = c("year", "month"), all.x = TRUE))
   # Fills in missing values with 0
   incidence_all[is.na(N), N:=0]
+  # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+  incidence_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
   # Masks values less than 5
   # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
   incidence_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
@@ -285,7 +297,7 @@ for (i in 1:length(tx_episodes_files)){
   # Calculates rates
   incidence_all_counts <- incidence_all_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
   # Keeps necessary columns 
-  incidence_all_counts <- incidence_all_counts[,c("YM", "N", "Freq", "rates", "masked")]
+  incidence_all_counts <- incidence_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(incidence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
   
@@ -304,6 +316,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -317,7 +331,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     incidence_age_counts <- merge(x = each_group, y = incidence_all_counts_min, by = c("YM"), all.x = TRUE)
     incidence_age_counts <- incidence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    incidence_age_counts <- incidence_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    incidence_age_counts <- incidence_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
@@ -337,6 +351,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -350,7 +366,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     incidence_indication_counts <- merge(x = each_group, y = incidence_all_counts_min, by = c("YM"), all.x = TRUE)
     incidence_indication_counts <- incidence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    incidence_indication_counts <- incidence_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    incidence_indication_counts <- incidence_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(incidence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_incidence_counts.rds")))
   }
@@ -382,6 +398,8 @@ for (i in 1:length(tx_episodes_files)){
   discontinued_all <- as.data.table(merge(x = empty_df, y = discontinued_all, by = c("year", "month"), all.x = TRUE))
   # Fills in missing values with 0
   discontinued_all[is.na(N), N:=0]
+  # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+  discontinued_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
   # Masks values less than 5
   # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
   discontinued_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
@@ -399,7 +417,7 @@ for (i in 1:length(tx_episodes_files)){
   # Calculates rates
   discontinued_all_counts <- discontinued_all_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
   # Keeps necessary columns 
-  discontinued_all_counts <- discontinued_all_counts[,c("YM", "N", "Freq", "rates", "masked")]
+  discontinued_all_counts <- discontinued_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(discontinued_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
   
@@ -418,6 +436,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -431,7 +451,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     discontinued_age_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
     discontinued_age_counts <- discontinued_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    discontinued_age_counts <- discontinued_age_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    discontinued_age_counts <- discontinued_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(discontinued_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_discontinued_counts.rds")))
   }
@@ -450,6 +470,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(tx_dur_group), tx_dur_group:=tx_dur_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -463,7 +485,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     discontinued_tx_dur_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
     discontinued_tx_dur_counts <- discontinued_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    discontinued_tx_dur_counts <- discontinued_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    discontinued_tx_dur_counts <- discontinued_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(discontinued_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_discontinued_counts.rds")))
   }
@@ -483,6 +505,8 @@ for (i in 1:length(tx_episodes_files)){
     each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
     # Fills in missing values with 0
     each_group[is.na(N), N:=0][is.na(indication_group), indication_group:=indication_group_unique[group]]
+    # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+    each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
     each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
     # Masks values less than 5
@@ -496,7 +520,7 @@ for (i in 1:length(tx_episodes_files)){
     # Create counts file
     discontinued_indication_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
     discontinued_indication_counts <- discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    discontinued_indication_counts <- discontinued_indication_counts[,c("YM", "N", "Freq", "rates", "masked")]
+    discontinued_indication_counts <- discontinued_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
     saveRDS(discontinued_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_group_unique[group],"_discontinued_counts.rds")))
   }
