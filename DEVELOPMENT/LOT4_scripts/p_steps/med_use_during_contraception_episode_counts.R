@@ -42,7 +42,7 @@ denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 min_data_available <- min(denominator$year)
 max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
+empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
 
 # Checks first if there are any contraception episode records found

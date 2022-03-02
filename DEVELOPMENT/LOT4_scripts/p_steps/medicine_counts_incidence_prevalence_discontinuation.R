@@ -59,30 +59,30 @@ denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 min_data_available <- min(denominator$year)
 max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
+empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
 
-if(!is_Denmark){
-  # 3. Indication records for valproates only
-  # Bipolar
-  indication_file_bipolar<-list.files(diagnoses_pop,pattern ="ind_bipolar",ignore.case=T,full.names=T)
-  indication_file_bipolar<-indication_file_bipolar[grepl(pop_prefix,indication_file_bipolar)]
-  if(populations[pop]=="PC_study_population.rds"){indication_file_bipolar<-indication_file_bipolar[!grepl("PC_HOSP",indication_file_bipolar)]}
-  ind_bipolar<-readRDS(indication_file_bipolar)[,indication:="bipolar"]
-  # Epilepsy
-  indication_file_epilepsy<-list.files(diagnoses_pop,pattern="ind_epilepsy",ignore.case=T,full.names=T)
-  indication_file_epilepsy<-indication_file_epilepsy[grepl(pop_prefix,indication_file_epilepsy)]
-  if(populations[pop]=="PC_study_population.rds"){indication_file_epilepsy <- indication_file_epilepsy[!grepl("PC_HOSP", indication_file_epilepsy)]}
-  ind_epilepsy<-readRDS(indication_file_epilepsy)[,indication:="epilepsy"]
-  # Migraine
-  indication_file_migraine<-list.files(diagnoses_pop,pattern="ind_migraine",ignore.case=T,full.names=T)
-  indication_file_migraine<-indication_file_migraine[grepl(pop_prefix,indication_file_migraine)]
-  if(populations[pop] == "PC_study_population.rds"){indication_file_migraine <- indication_file_migraine[!grepl("PC_HOSP", indication_file_migraine)]}
-  ind_migraine<-readRDS(indication_file_migraine)[,indication:="migraine"]
+# 3. Indication records for valproates only
+if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  # Creates a list of indications 
+  indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
+  
+  for(ind in 1:length(indications)){
+    indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
+    indication_file<-indication_file[grepl(pop_prefix,indication_file)]
+    if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
+    if(length(indication_file)>0){
+      df<-readRDS(indication_file)[,indication:=indications[ind]]
+      saveRDS(df, indication_file)
+    }
+  }
+  # Get a list of indication files (with added new column to indicate indication type)
+  indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   # Bind all indication records
-  all_indications<-rbind(ind_bipolar,ind_epilepsy,ind_migraine)
+  all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
 }
+
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 
@@ -237,7 +237,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
   }
   
-  if(!is_Denmark){
+  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED PREVALENCE BY INDICATION ###################
     # Performs prevalence counts - stratified by indication
     prevalence_by_indication <- df_prevalence[,.N, by = .(year,month, indication_group)]
@@ -340,7 +340,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
   
-  if(!is_Denmark){
+  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED INCIDENCE BY INDICATION ###################
     # Performs incidence counts - stratified by indication
     incidence_by_indication <- df_incidence[,.N, by = .(year,month, indication_group)]
@@ -495,7 +495,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(discontinued_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_discontinued_counts.rds")))
   }
   
-  if(!is_Denmark){
+  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED DISCONTINUED BY INDICATION ###################
     # Performs incidence counts - stratified by indication
     discontinued_by_indication <- df_discontinued[,.N, by = .(year,month, indication_group)]

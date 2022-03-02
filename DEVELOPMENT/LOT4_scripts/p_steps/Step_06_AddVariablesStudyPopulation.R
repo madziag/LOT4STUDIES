@@ -44,7 +44,7 @@ for(i in 1:nrow(SCHEME_06)){
   print(paste0("Calculate time differences between ",T0,"/",T1,"/",T2))
   STUDY_POPULATION <- STUDY_POPULATION[,diff_T1_T0_W := floor((get(T1) - get(T0))/7)]
   #STUDY_POPULATION <- STUDY_POPULATION[,diff_T2_T1_M := floor((get(T2) - get(T1))/30.4)]
-  if(nrow(STUDY_POPULATION) > 0){STUDY_POPULATION <- STUDY_POPULATION[,diff_T2_T1_M := floor((min(get(T2),recommended_end_date,date_creation) - get(T1))/30.4), by = row.names(STUDY_POPULATION)]}else{STUDY_POPULATION[,diff_T2_T1_M := NA]}
+  if(nrow(STUDY_POPULATION) > 0){STUDY_POPULATION <- STUDY_POPULATION[,diff_T2_T1_M := floor((min(get(T2),recommended_end_date,date_creation) - get(T1))/30.4), by = list(row.names(STUDY_POPULATION))]}else{STUDY_POPULATION[,diff_T2_T1_M := NA]}
 
   
   rm(T0,T1,T2,vars)

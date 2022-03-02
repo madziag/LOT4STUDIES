@@ -61,7 +61,7 @@ denominator[,year:=as.integer(year)][,month:=as.integer(month)]
 min_data_available <- min(denominator$year)
 max_data_available <- max(denominator$year)
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-if(is_BIFAP){empty_df<-as.data.table(expand.grid(seq(2010, 2020), seq(1,12)))}else{empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))}
+empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
 
 if (nrow(D3_pregnancy_reconciled)>0){
@@ -222,9 +222,29 @@ if (nrow(D3_pregnancy_reconciled)>0){
           preg_starts_age_counts <- preg_starts_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
           # Saves files in medicine counts folder
           saveRDS(preg_starts_age_counts, paste0(preg_med_counts_dir, "/", gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_age_group_", age_group_unique[group], "_preg_starts_during_tx_episodes_counts.rds")) # Monthly counts file
+          # Create stratified folders and move files into stratified folders
+          if(nrow(preg_starts_df_age_groups)>0){
+            # Move stratified records into stratified folders
+            # Create stratified folder
+            invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/","stratified")), dir.create(paste0(preg_med_counts_dir,"/","stratified")), FALSE))
+            pregnancies_stratified_dir <- paste0(preg_med_counts_dir,"/","stratified")
+            # Create stratified by age groups folder
+            invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","age_group")), dir.create(paste0(pregnancies_stratified_dir,"/","age_group")), FALSE))
+            pregnancies_stratified_age_groups <- paste0(pregnancies_stratified_dir ,"/","age_group")
+            # # Create stratified by tx_duration folder 
+            # invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","tx_duration")), dir.create(paste0(pregnancies_stratified_dir,"/","tx_duration")), FALSE))
+            # pregnancies_stratified_tx_dur <- paste0(pregnancies_stratified_dir ,"/","tx_duration")
+            # # Create stratified by indication folder 
+            # invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","indication")), dir.create(paste0(pregnancies_stratified_dir,"/","indication")), FALSE))
+            # pregnancies_stratified_indication <- paste0(pregnancies_stratified_dir ,"/","indication")
+            
+            # Move files 
+            for (file in list.files(path=preg_med_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(preg_med_counts_dir,"/", file),paste0(pregnancies_stratified_age_groups, "/",file))}
+            # for (file in list.files(path=pregnancy_test_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_tx_dur, "/",file))}
+            # for (file in list.files(path=pregnancy_test_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_indication, "/",file))}
+          }
         }
-        
-        }
+      }
     } else {
       print(paste0(gsub("_CMA_treatment_episodes.rds", "",tx_episodes_files[i]), " study: There are no patients with pregnancy start dates that fall between episode start and end dates!"))
     }
@@ -233,26 +253,4 @@ if (nrow(D3_pregnancy_reconciled)>0){
   print("No pregancy records have been found")
 }
 
-
-# Create stratified folders and move files into stratified folders
-if(nrow(preg_starts_df_age_groups)>0){
-  # Move stratified records into stratified folders
-  # Create stratified folder
-  invisible(ifelse(!dir.exists(paste0(preg_med_counts_dir,"/","stratified")), dir.create(paste0(preg_med_counts_dir,"/","stratified")), FALSE))
-  pregnancies_stratified_dir <- paste0(preg_med_counts_dir,"/","stratified")
-  # Create stratified by age groups folder
-  invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","age_group")), dir.create(paste0(pregnancies_stratified_dir,"/","age_group")), FALSE))
-  pregnancies_stratified_age_groups <- paste0(pregnancies_stratified_dir ,"/","age_group")
-  # # Create stratified by tx_duration folder 
-  # invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","tx_duration")), dir.create(paste0(pregnancies_stratified_dir,"/","tx_duration")), FALSE))
-  # pregnancies_stratified_tx_dur <- paste0(pregnancies_stratified_dir ,"/","tx_duration")
-  # # Create stratified by indication folder 
-  # invisible(ifelse(!dir.exists(paste0(pregnancies_stratified_dir,"/","indication")), dir.create(paste0(pregnancies_stratified_dir,"/","indication")), FALSE))
-  # pregnancies_stratified_indication <- paste0(pregnancies_stratified_dir ,"/","indication")
-  
-  # Move files 
-  for (file in list.files(path=preg_med_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(preg_med_counts_dir,"/", file),paste0(pregnancies_stratified_age_groups, "/",file))}
-  # for (file in list.files(path=pregnancy_test_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_tx_dur, "/",file))}
-  # for (file in list.files(path=pregnancy_test_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(pregnancy_test_counts_dir,"/", file),paste0(pregnancy_test_stratified_indication, "/",file))}
-}
 

@@ -17,7 +17,7 @@ FUmonths_df <- as.data.table(FUmonths_df)
 min_data_available <- min(FUmonths_df$Y)
 max_data_available <- max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-if(is_BIFAP){empty_df<-expand.grid(seq(2010, 2020), seq(1, 12))}else{empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))}
+empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_df) <- c("year", "month")
 # Checks for PROCEDURE Tables present
 if(length(proc_files)>0){
@@ -105,6 +105,8 @@ if(length(proc_files)>0){
       comb_meds <- do.call("rbind", lapply(files, readRDS))
       comb_meds <- comb_meds[!duplicated(comb_meds),]
       comb_meds1 <- comb_meds[Date>=entry_date & Date<=exit_date]
+      # Delete all temporary events files - to avoid merging with 2nd subpop
+      for(file in list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
       # Counts by month-year
       counts <- comb_meds1[,.N, by = .(year,month(Date))]
       # Merges with empty_df

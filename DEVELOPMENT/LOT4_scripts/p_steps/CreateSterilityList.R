@@ -447,8 +447,11 @@ if (length(list.files(events_tmp_sterility))> 0){
   # Saves records
   saveRDS(sterility_all, paste0(sterility_pop, pop_prefix, "_sterility_all.rds"))
   saveRDS(sterility_all_first_occurrence, paste0(sterility_pop, pop_prefix, "_sterility_all_first_occurrence.rds"))
-  rm(codelist_all, codelist_CPRD_all, codelist_PHARMO_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
+  # rm(codelist_all, codelist_CPRD_all, codelist_PHARMO_all, codelist_read_all, codelist_snomed_all, codelist_start_all, df, df_subset, df_subset_vocab, sterility_all, sterility_all_first_occurrence)
 } else {
   print("There are no Sterility records")
 }
 
+
+# Delete all files in events_tmp_sterility (so as not to have them merge with the second subpopulation )
+for(file in list.files(events_tmp_sterility, pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
