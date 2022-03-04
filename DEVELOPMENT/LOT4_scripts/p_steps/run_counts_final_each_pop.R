@@ -104,6 +104,8 @@ if (is_Denmark == T){
       source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
       # Counts of medicines used during a pregnancy 
       source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
+      # Alternative medicine counts
+      source(paste0(pre_dir, "altmeds_final_counts.R"))
       # Counts of patients who switched from Retinoid/Valproate use to alt med use
       source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
       # Makes plots of all counts files
@@ -151,9 +153,9 @@ preg_med_counts_plots <- paste0(preg_med_counts_dir,"/","plots")
 # baseline tables
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="baseline", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),baseline_tables_csv_xlsx)}
 # medicine_counts_incidence_prevalence_discontinuation/med_use_during_contraception_episode_counts
-for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
+for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds", "alt_med_retin", "alt_med_valp"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file), medicines_counts_csv_xlsx)}
 #for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds", "kaplan"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
-for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
+for (file in list.files(path=paste0(output_dir,"plots"), pattern=paste0(c("prevalence", "incidence", "discontinued", "med_use_during_contraception_episodes", "switched_to_alt_meds","alt_med_retin", "alt_med_valp"), collapse="|"), ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), medicines_counts_plots)}
 # pregnancy_tests_within_90_days_of_medicine_use_counts
 for (file in list.files(path=paste0(output_dir,my_format,"_files"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,my_format,"_files/", file),pregnancy_test_counts_csv_xlsx)}
 for (file in list.files(path=paste0(output_dir,"plots"), pattern="pgtest", ignore.case = T)){file.copy(paste0(output_dir,"plots/",file), pregnancy_test_counts_plots)}

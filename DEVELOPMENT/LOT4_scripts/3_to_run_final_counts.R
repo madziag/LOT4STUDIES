@@ -55,6 +55,15 @@ mask <- T
 my_format <- "csv"
 # my_format <- "xlsx"
 
+### Sensitivity analysis ###
+# Set discontinuation period
+discontinuation_window <- 90
+# discontinuation_window <- 30
+
+# Set contraceptives look back window
+contraceptives_window <- 90
+# contraceptives_window <- 30
+  
 ################################################
 # Final counts + plots
 #################################################

@@ -110,7 +110,7 @@ CreateSpells <- function(dataset, id, start_date, end_date, category, category_i
     dataset <- dataset[, `:=`(lag_end_date = as.Date(lag_end_date, "1970-01-01"))]
     dataset <- dataset[, `:=`(num_spell = fifelse(row_id > 1 & get(start_date) <= lag_end_date + gap_allowed, 0, 1))]
     dataset<-dataset[, `:=`(num_spell = cumsum(num_spell)), by = grouping_vars]
-    
+
     #group by num spell and compute min and max date for each one
     if(!missing(category)) {
       # dataset<-dataset[, c(entry_spell_category := min(get(start_date)),exit_spell_category := max(get(end_date))), by = c(id, category, "num_spell")]
@@ -127,6 +127,9 @@ CreateSpells <- function(dataset, id, start_date, end_date, category, category_i
     assign("output_spells_category", dataset)
   }
   
+  
+  
+  #########UNTIL HERE ###
   #OPTIONAL SECTION REGARDING OVERLAPS
   
   if(overlap == T || only_overlaps == T){
@@ -210,4 +213,5 @@ CreateSpells <- function(dataset, id, start_date, end_date, category, category_i
     }
     return(output_spells_category)
   }
+
 }

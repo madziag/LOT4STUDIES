@@ -122,7 +122,19 @@ pregnancy_test_counts_dir <- paste0(output_dir, "pregnancy_test_counts")
 # Path to pregnancy records (created by running pregnancy script) 
 preg_dir <-paste0(dir_base, "/ConcePTIONAlgorithmPregnancies-version_2.0/")
 
-
+# Move stratified records into stratified folders
+# Create stratified folder
+invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/","stratified")), dir.create(paste0(medicines_counts_dir,"/","stratified")), FALSE))
+medicines_stratified_dir <- paste0(medicines_counts_dir,"/","stratified")
+# Create stratified by age groups folder
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","age_group")), dir.create(paste0(medicines_stratified_dir,"/","age_group")), FALSE))
+medicines_stratified_age_groups <- paste0(medicines_stratified_dir ,"/","age_group")
+# Create stratified by tx_duration folder 
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","tx_duration")), dir.create(paste0(medicines_stratified_dir,"/","tx_duration")), FALSE))
+medicines_stratified_tx_dur <- paste0(medicines_stratified_dir ,"/","tx_duration")
+# Create stratified by indication folder 
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
+medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
 
 
 
