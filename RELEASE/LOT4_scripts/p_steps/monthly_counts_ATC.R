@@ -13,8 +13,10 @@ source(paste0(pre_dir,"CreateConceptSets_ATC.R"))
 # Creates empty table for counts 
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
+min_data_available <- min(FUmonths_df$Y)
+max_data_available <- max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_df) <- c("year", "month")
 # Creates List of Retinoid and Valproates for individual counts
 codelist_ind <- Filter(function(x) names(codelist_all)== "Valproate" | names(codelist_all) == "Retinoid", codelist_all)
@@ -40,6 +42,7 @@ if(study_type == "Retinoid"){
 }
 # Creates other lists
 comb_meds <- list()
+comb_meds1 <- list()
 # Loads Medicines files
 med_files <- list.files(path=path_dir, pattern = "MEDICINES", ignore.case = TRUE) 
 # Checks for MEDICINES Tables present
@@ -96,25 +99,28 @@ if(length(med_files)>0){
     # Performs counts per month/year
     if (length(files)>0){
       # Loads files 
-      comb_meds[[i]]<-do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
+      comb_meds[[i]] <- do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
       comb_meds[[i]] <- comb_meds[[i]][!duplicated(comb_meds[[i]]),]
-      # Counts by month-year
-      counts <- comb_meds[[i]][,.N, by = .(year,month(Date))]
+      comb_meds1[[i]] <- comb_meds[[i]][Date>=entry_date & Date<=exit_date]
+            
+      # Counts by month-yearcode
+      counts <- comb_meds1[[i]][,.N, by = .(year,month(Date))]
       # Merges with empty_df
       counts<- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      counts[,masked:=ifelse(N<5 & N>0, 1, 0)]
       # Changes values less than 5 and more than 0 to 5
-      if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+      if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      counts <-counts[,rates:=rates*1000]
-      counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
+      counts <- counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      counts <- counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){
         saveRDS(comb_meds[[i]], paste0(medications_pop, pop_prefix, "_", names(codelist_all[i]),".rds"))
@@ -129,36 +135,43 @@ if(length(med_files)>0){
   # Individual counts for Valproates and Retinoids
   for(i in 1:length(codelist_ind)){
     ind_files <- list.files(path=medications_pop, pattern = paste0(names(codelist_ind)[i], ".rds"))
-    for(x in 1:length(ind_files)){
-      df_ind <- readRDS(paste0(medications_pop, ind_files[x]))
-      df_ind <- df_ind[!duplicated(df_ind),]
-      for(j in 1:length(unique(codelist_ind[[i]]$Code))){
-        sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
-        counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
-        counts_ind<- as.data.table(merge(x = empty_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
-        counts_ind[is.na(counts_ind[,N]), N:=0]
-        # Masking values less than 5
-        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        counts_ind$masked <- ifelse(counts_ind$N<5 & counts_ind$N>0, 1, 0)
-        # Changes values less than 5 and more than 0 to 5
-        counts_ind[counts_ind$masked == 1,]$N <- 5
-        # Calculates rates
-        counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
-        counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-        counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)]
-        counts_ind <-counts_ind[,rates:=rates*1000]
-        counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked")]
-        if(sub_ind[,.N]>0){
-          saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_prefix,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
-        } else {
-          print(paste("There are no matching records for", names(codelist_all[i])))
-        }
+    if(length(ind_files)>0){
+      for(x in 1:length(ind_files)){
+        df_ind <- readRDS(paste0(medications_pop, ind_files[x]))
+        df_ind <- df_ind[!duplicated(df_ind),]
+        df_ind <- df_ind[Date>=entry_date & Date<=exit_date]
+        for(j in 1:length(unique(codelist_ind[[i]]$Code))){
+          sub_ind <- setDT(df_ind)[Code %chin% codelist_ind[[i]][j][,Code]]
+          counts_ind<- sub_ind[,.N, by = .(year,month(Date))]
+          counts_ind<- as.data.table(merge(x = empty_df, y = counts_ind, by = c("year", "month"), all.x = TRUE))
+          counts_ind[is.na(counts_ind[,N]), N:=0]
+          # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+          counts_ind[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+          # Masking values less than 5
+          # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+          counts_ind[,masked:=ifelse(N<5 & N>0, 1, 0)]
+          # Changes values less than 5 and more than 0 to 5
+          if(mask==T){counts_ind[masked==1,N:=5]} else {counts_ind[masked==1,N:=N]}
+          # Calculates rates
+          counts_ind <- within(counts_ind, YM<- sprintf("%d-%02d", year, month))
+          counts_ind <- merge(x = counts_ind, y = FUmonths_df, by = c("YM"), all.x = TRUE)
+          counts_ind <-counts_ind[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+          counts_ind <-counts_ind[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+          if(sub_ind[,.N]>0){
+            saveRDS(counts_ind, paste0(monthly_counts_atc,"/",pop_prefix,"_", tolower(names(codelist_ind[i])),"_",codelist_ind[[i]][j][,Medication],codelist_ind[[i]][j][,Code],"_MEDS_counts.rds"))
+          } else {
+            print(paste("There are no matching records for", names(codelist_all[i])))
+          }
+        } 
       }
+    } else {
+      print(paste("There are no matching records for", names(codelist_all[i])))
     }
   }
 } else {
   print("There are no MEDICATIONS tables to analyse!")
 }
 
-
+# Delete all files in events_tmp_ATC (so as not to have them merge with the second subpopulation )
+for(file in list.files(events_tmp_ATC, pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
 

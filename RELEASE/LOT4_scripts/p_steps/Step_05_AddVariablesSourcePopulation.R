@@ -31,7 +31,7 @@ for(i in 1:nrow(SCHEME_05)){
   
   print("Add personyears and year start observation period with op_start_date and op_end_date")
   #SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((op_end_date - op_start_date)/365.25,2) ]
-  SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((min(op_end_date, date_creation,recommended_end_date) - op_start_date)/365.25,2), by = row.names(SOURCE_POPULATION) ]
+  SOURCE_POPULATION <- SOURCE_POPULATION[,PY_OP := round((min(op_end_date, date_creation,recommended_end_date) - op_start_date)/365.25,2), by = list(row.names(SOURCE_POPULATION)) ]
   
   SOURCE_POPULATION <- SOURCE_POPULATION[,Year_op := year(op_start_date)]
   

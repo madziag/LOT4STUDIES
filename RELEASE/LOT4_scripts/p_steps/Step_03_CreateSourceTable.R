@@ -28,9 +28,10 @@ for(i in 1:nrow(SCHEME_03)){
   setkey(PERSONS,"person_id")
   setkey(SPELLS,"person_id")
   
-  SOURCE_POPULATION <- merge(PERSONS,SPELLS,all.x = T)
+  # SOURCE_POPULATION <- merge(PERSONS,SPELLS,all.x = T)
+  SOURCE_POPULATION <- merge(PERSONS, SPELLS, by = "person_id")
   
-  ##Would did be neccesarry?? Maybe some diagnoses are before birth but observation age starts at o year 
+  ##Would did be necessary?? Maybe some diagnoses are before birth but observation age starts at o year 
   print(paste0("If op_start_date is before birth_date replace op_start_date with birth_date ",SCHEME_03[["subpopulations"]][i]))
   SOURCE_POPULATION <- SOURCE_POPULATION[op_start_date < birth_date, op_start_date := birth_date]
   

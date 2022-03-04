@@ -13,9 +13,14 @@ source(paste0(pre_dir,"excluded_ICD.R"))
 # Creates empty table for counts 
 # Gets min and max year from denominator file
 FUmonths_df <- as.data.table(FUmonths_df)
+# Get minimum and maximum year values of denominator
+min_data_available <- min(FUmonths_df$Y)
+max_data_available <- max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
-empty_df <- expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
+
+empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
 names(empty_df) <- c("year", "month")
+
 # Loads events files
 events_files <- list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE)
 # Checks for EVENTS Tables present
@@ -29,7 +34,7 @@ if(length(events_files)>0){
     # Loads table 
     df<-fread(paste(path_dir, events_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text" )] # Keeps necessary columns
+    df<-df[,c("person_id", "start_date_record", "event_code", "event_record_vocabulary", "meaning_of_event", "event_free_text")] # Keeps necessary columns
     df<-df[, lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_event","Meaning") # Renames column names
     setnames(df,"start_date_record","Date") # Renames column names
@@ -54,15 +59,23 @@ if(length(events_files)>0){
     if(is_PHARMO){df<-df[year>2008 & year<2020]} else {df<-df[year>2008 & year<2021]} # Years used in study
     df<-df[!(is.na(Code) | is.na(Vocabulary))]# Removes records with both event code and event record vocabulary missing
     df<-df[sex_at_instance_creation == "M" | sex_at_instance_creation == "F"] # Removes unspecified sex
+    # Exclusion of meanings ### for BIFAP
+    # PC: Meanings to be limited/restricted to: "primary_care_events_BIFAP" (or "procedure_primary_care", where applicable); 
+    # excludes "primary_care_conditionants_BIFAP", "primary_care_antecedents_BIFAP", "hospitalisation_primary" and "hospitalisation_secundary"
+    if(pop_prefix == "PC"){df<-df[Meaning=="primary_care_events_BIFAP",]}
+    # PC_HOSP: Meanings to be limited/restricted to:  "primary_care_events_BIFAP" and "hospitalisation_primary" (or "procedure_primary_care" and  "procedure_during_hospitalisation" where applicable); 
+    # excludes "primary_care_conditionants_BIFAP", "primary_care_antecedents_BIFAP" and "hospitalisation_secundary".
+    if(pop_prefix == "PC_HOSP"){df<-df[Meaning=="primary_care_events_BIFAP" | Meaning=="hospitalisation_primary",]}
+    
     # PHARMO free text
     if(is_PHARMO == T){
       df_free_text <- df[Vocabulary == "free_text_dutch"]
       df <- df[!Vocabulary == "free_text_dutch"]
-    
-    if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
+      
+      if(nrow(df_free_text)>0){source(paste0(pre_dir, "find_PHARMO_free_text.R"))}
     }
     df <- df[,-c("event_free_text")]
-
+    
     # Adds column with Vocabulary main type i.e. start, READ, SNOMED
     if(nrow(df)>0){
       df[,vocab:= ifelse(df[,Vocabulary] %chin% c("ICD9", "ICD9CM", "ICD9PROC", "MTHICD9", "ICD10", "ICD-10", "ICD10CM", "ICD10/CM", "ICD10ES" , "ICPC", "ICPC2", "ICPC2P", "ICPC-2", "CIAP", "ICD9_free_italian_text"), "start",
@@ -77,7 +90,7 @@ if(length(events_files)>0){
     dotted <- ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
     # Prints Message
     print(paste0("Finding matching records in ", events_files[y]))
-
+    
     
     # If more than 1 unique value in vocab column 
     if (length(unique(df$vocab)) > 1){
@@ -195,23 +208,28 @@ if(length(events_files)>0){
       files <- list.files(path=paste0(events_tmp_DX, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
       comb_meds <- do.call("rbind", lapply(files, readRDS))
       comb_meds <- comb_meds[!duplicated(comb_meds),]
+      # Delete all temporary events files - to avoid merging with 2nd subpop
+      for(file in list.files(path=paste0(events_tmp_DX, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
+      # Only count records that fall between a patients entry and exit to study date 
+      comb_meds1 <- comb_meds[Date>=entry_date & Date<=exit_date]
       # Counts by month-year
-      counts <- comb_meds[,.N, by = .(year,month(Date))]
+      counts <- comb_meds1[,.N, by = .(year,month(Date))]
       # Merges with empty_df
       counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
+      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+      counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Masking values less than 5
       # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      counts$masked <- ifelse(counts$N<5 & counts$N>0, 1, 0)
+      counts[,masked:=ifelse(N<5 & N>0, 1, 0)]
       # Changes values less than 5 and more than 0 to 5
-      if (mask == T){counts[counts$masked == 1,]$N <- 5} else {counts[counts$masked == 1,]$N <- counts[counts$masked == 1,]$N }
+      if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
       counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
       counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)]
-      counts <-counts[,rates:=rates*1000]
-      counts <-counts[,c("YM", "N", "Freq", "rates", "masked")]
+      counts <- counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      counts <- counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
         saveRDS(comb_meds, paste0(diagnoses_pop, pop_prefix, "_", names(codelist_all[i]),".rds"))

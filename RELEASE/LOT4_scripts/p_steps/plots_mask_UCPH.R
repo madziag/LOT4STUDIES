@@ -7,59 +7,46 @@
 #input: denominator file for UCPH, excel file counts/rates
 #output: pdf plots
 
-
 if(!require(readxl)){install.packages("readxl")}
 library(readxl)
-
 if(!require(Rcpp)){install.packages("Rcpp")}
 library(Rcpp)
 
-yoda_path <- "Y:/research-ucph/Analysis scripts/g_output_2022.02.15/medicines_counts"
-plot_folder <- yoda_path
-setwd(yoda_path)
-denom<-read.csv(paste0(yoda_path,"/denominator.csv"))
+# Extracts denominator and counts files
+FOLDERS<-c("contraceptive_counts", "medicines_counts", "preliminary_counts") 
 
-# Extracts counts files
-count_names_all = list.files(pattern="*.xlsx")
-count_files_all = lapply(count_names_all, read_excel)
+for (k in length(FOLDERS)){
+  plot_folder <- paste0("Y:/research-ucph/Analysis scripts/g_output_2022.02.15/", FOLDERS[k])
+  setwd(plot_folder)
+  denom<-read.csv(paste0(plot_folder,"/denominator.csv"))
+  count_names_all = list.files(pattern="*.xlsx")
+  count_files_all = lapply(count_names_all, read_excel)
 
-for (i in 1:length(count_files_all)){
-      
-      main_name<-substr(count_names_all[[i]], 1,nchar(count_names_all[[i]])-11)
-      
-      pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
-      
-      my_data<-as.data.frame(count_files_all[[i]])
-      #indicate masked values with stars
-     # my_pch<-count_files_all[[i]]$masked
-    #  my_pch[my_pch=="no"]<-16
-    #  my_pch[my_pch==""]<-8
-      
-      plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,max(my_data$N)), xaxt="n", xlab="", ylab="counts", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
-      axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
-      dev.off()
+# PLOTS
+## COUNTS
+  for (i in 1:length(count_files_all)){
+    main_name<-substr(count_names_all[[i]], 1,nchar(count_names_all[[i]])-11)
+    pdf((paste0(plot_folder,"/", main_name, ".pdf")), width=8, height=4)
+    my_data<-as.data.frame(count_files_all[[i]])
+    if (length(my_data[!is.finite(my_data$N),]$N)>0) my_data[!is.finite(my_data$N),]$N <- 0
+    my_ymax <- ifelse(max(my_data$N) < 1, 1, max(my_data$N))
+  
+    plot(x=1:nrow(my_data), y=my_data$N,ylim=c(0,my_ymax), xaxt="n", xlab="", ylab="counts", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
+    axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
+    dev.off()
+  }
+
+## RATES
+  for (i in 1:length(count_files_all)){
+    main_name<-substr(count_names_all[[i]], 1,nchar(count_names_all[[i]])-11)
+    pdf((paste0(plot_folder,"/", main_name, "rates.pdf")), width=8, height=4)
+    my_data<-as.data.frame(count_files_all[[i]])
+  #Set NA/inf rate values to 0
+    if (length(my_data[!is.finite(my_data$rates),]$rate)>0) my_data[!is.finite(my_data$rates),]$rates <- 0
+    my_ymax <- ifelse (max(my_data$rates) < 1, 1, max(my_data$rates))
+  
+    plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,my_ymax), xaxt="n", xlab="", ylab="rates", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
+    axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
+    dev.off()
+  }
 }
-
-for (i in 1:length(count_files_all)){
-  
-  main_name<-substr(count_names_all[[i]], 1,nchar(count_names_all[[i]])-11)
-  
-  pdf((paste0(plot_folder,"/", main_name, "rates.pdf")), width=8, height=4)
-  
-  my_data<-as.data.frame(count_files_all[[i]])
-  #indicate masked values with stars
- # my_pch<-count_files_all[[i]]$masked
-#  my_pch[my_pch==0]<-16
-#  my_pch[my_pch==1]<-8
-  
-  plot(x=1:nrow(my_data), y=my_data$rates,ylim=c(0,max(my_data$rates)), xaxt="n", xlab="", ylab="rates", main=main_name, pch=16, type="b", lwd=2, cex.main=1.5)
-  axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
-  dev.off()
-}
-
-
-pdf((paste0(plot_folder, "denom.pdf")), width=8, height=4)
-my_data<-as.data.frame(denom)
-plot(x=1:nrow(my_data), y=my_data$Freq,ylim=c(0,max(my_data$Freq)), xaxt="n", xlab="", ylab="counts", main="denominator", type="b", lwd=2, cex.main=1.5)
-axis(1, at=1:nrow(my_data), as.character(my_data$YM), las=2)
-dev.off()

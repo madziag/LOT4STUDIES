@@ -76,7 +76,6 @@ for (i in 1:length(split_data)){
                                                return.data.table = FALSE
   ) 
   
-  
   ###############
   #LOGICAL CHECKS
   #duration is positive
@@ -87,9 +86,9 @@ for (i in 1:length(split_data)){
   if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
   #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-  
+  # Remove episodes that end before the start of the study period 
+  my_treat_episode <- my_treat_episode[year(my_treat_episode$episode.end)>2009,]
   #write data
-  
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
   saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))
 }
