@@ -62,7 +62,7 @@ if(multiple_regions == T){
     conceptsets_PROC_dir<-paste0(tmp, "conceptsets_proc/")
     ## for records from EVENTS TABLES 
     # Creates folders only if events tables are available 
-    if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "EVENTS", ignore.case = TRUE)) > 0){
+    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "EVENTS", ignore.case = TRUE)) > 0){
       # Temporary folder - will be deleted 
       dir.create(paste0(tmp, "events_dx"))
       events_tmp_DX <- paste0(tmp, "events_dx/")
@@ -72,9 +72,9 @@ if(multiple_regions == T){
       # Monthly counts
       dir.create(paste0(output_dir, "monthly_counts_dxcodes"))
       monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes") 
-    }
+    # }
     ## for records from MEDICINES TABLES
-    if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "MEDICINES", ignore.case = TRUE)) > 0){
+    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "MEDICINES", ignore.case = TRUE)) > 0){
       # Temporary folder - will be deleted 
       dir.create(paste0(tmp, "events_atc"))
       events_tmp_ATC <- paste0(tmp, "events_atc/")
@@ -84,9 +84,9 @@ if(multiple_regions == T){
       # Monthly counts
       dir.create(paste0(output_dir, "monthly_counts_atc"))
       monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-    }
+    # }
     ## for records from PROCEDURES TABLES 
-    if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
+    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
       # Temporary folder - will be deleted 
       dir.create(paste0(tmp, "events_proc"))
       events_tmp_PROC <- paste0(tmp, "events_proc/")
@@ -102,7 +102,7 @@ if(multiple_regions == T){
       monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
       dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes"))
       monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
-    }
+    # }
     ## for sterility records
     # Temporary folder - will be deleted 
     dir.create(paste0(tmp, "events_sterility"))

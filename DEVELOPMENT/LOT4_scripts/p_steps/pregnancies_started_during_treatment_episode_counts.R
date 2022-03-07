@@ -49,6 +49,7 @@ if(populations[pop] == "PC_study_population.rds"){
   prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
 }
 
+prevalent_counts_files <- prevalent_counts_files[!grepl("age_group|indication|tx_dur", prevalent_counts_files)]
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 

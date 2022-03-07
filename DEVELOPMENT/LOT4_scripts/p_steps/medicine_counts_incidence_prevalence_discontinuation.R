@@ -62,26 +62,77 @@ max_data_available <- max(denominator$year)
 empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
 names(empty_df) <- c("year", "month")
 
+# Create folder for all indications
+invisible(ifelse(!dir.exists(paste0(tmp,"/","all_indications")), dir.create(paste0(tmp,"/","all_indications")), FALSE))
+all_indications_dir <- paste0(tmp,"all_indications")
+
+all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
 # 3. Indication records for valproates only
-if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+if(length(all_temps)>0){
   # Creates a list of indications 
   indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
   
   for(ind in 1:length(indications)){
-    indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
-    indication_file<-indication_file[grepl(pop_prefix,indication_file)]
-    if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
-    if(length(indication_file)>0){
-      df<-readRDS(indication_file)[,indication:=indications[ind]]
-      saveRDS(df, indication_file)
+    # Indications found in diagnosis folder
+    if(exists("diagnoses_pop")){
+      indication_file_dx<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=F)
+      indication_file_dx<-indication_file_dx[grepl(pop_prefix,indication_file_dx)]
+      if(populations[pop]=="PC_study_population.rds"){indication_file_dx<-indication_file_dx[!grepl("PC_HOSP",indication_file_dx)]}
+      
+      if(length(indication_file_dx)>0){
+        df_dx<-readRDS(paste0(diagnoses_pop, indication_file_dx))[,indication:=indications[ind]]
+        df_dx<-df_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
+        saveRDS(df_dx, paste0(diagnoses_pop, indication_file_dx))
+      }
+    }
+    
+    # Indications found in procedures folder
+    if(exists("procedures_pop")){
+      indication_file_proc<-list.files(procedures_pop,pattern =indications[ind],ignore.case=T,full.names=F)
+      indication_file_proc<-indication_file_proc[grepl(pop_prefix,indication_file_proc)]
+      if(populations[pop]=="PC_study_population.rds"){indication_file_proc<-indication_file_proc[!grepl("PC_HOSP",indication_file_proc)]}
+      
+      if(length(indication_file_proc)>0){
+        df_proc<-readRDS(paste0(procedures_pop,indication_file_proc))[,indication:=indications[ind]]
+        df_proc<-df_proc[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
+        saveRDS(df_proc, paste0(procedures_pop, indication_file_proc))
+      }
+
+    }
+    # Indications found in proc-dx folder 
+    if(exists("procedures_dxcodes_pop")){
+      indication_file_proc_dx<-list.files(procedures_dxcodes_pop, pattern =indications[ind],ignore.case=T,full.names=F)
+      indication_file_proc_dx<-indication_file_proc_dx[grepl(pop_prefix,indication_file_proc_dx)]
+      if(populations[pop]=="PC_study_population.rds"){indication_file_proc_dx<-indication_file_proc_dx[!grepl("PC_HOSP",indication_file_proc_dx)]}
+      
+      if(length(indication_file_proc_dx)>0){
+        df_proc_dx<-readRDS(paste0(procedures_dxcodes_pop,indication_file_proc_dx))[,indication:=indications[ind]]
+        df_proc_dx<-df_proc_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
+        saveRDS(df_proc_dx, paste0(procedures_dxcodes_pop, indication_file_proc_dx))
+      }
     }
   }
+  
+ 
+  if(exists("diagnoses_pop")){for (file in list.files(diagnoses_pop, pattern="ind_")){file.copy(paste0(diagnoses_pop, file), paste0(all_indications_dir, "/from_events_", file))}}
+  if(exists("procedures_pop")){for (file in list.files(procedures_pop, pattern="ind_")){file.copy(paste0(procedures_pop, file), paste0(all_indications_dir, "/from_procedures_", file))}}
+  if(exists("procedures_dxcodes_pop")){for (file in list.files(procedures_dxcodes_pop, pattern="ind_")){file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}}
+  # if(exists("procedures_dxcodes_pop")){for (file in list.files(procedures_dxcodes_pop, pattern="ind_")){
+  #   file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}
+  #   }
+  
+  
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
+  if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
+  
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
   all_indications<-all_indications[!duplicated(all_indications),]
+  # TEST for BIFAP#
+  print(paste0("INDICATIONS LIST", indications_list))
 }
 
 
@@ -103,9 +154,9 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes[,nrow:=.I]
   
   # Checks if there are indication files and performs action only for DAPs with indication files 
-  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Merge indications with df_episodes 
-    df_episodes <- all_indications[df_episodes,on=.(person_id)]
+    df_episodes <- all_indications[df_episodes,on=.(person_id), allow.cartesian = T]
     # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
     df_episodes[indication=="ind_bipolar", ind_bipolar_date:=Date]
     df_episodes[indication=="ind_epilepsy", ind_epilepsy_date:=Date]
@@ -145,7 +196,7 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes_expanded <- df_episodes_expanded[,-c("nrow", "birth_date", "idnum", "episode.ID", "current_age", "tx_duration", "year_month")]
   
   # Checks if there are indication files and performs action only for DAPs with indication files 
-  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Merge indications with df_episodes 
     # Adding indication column 
     # If indication happened after episode day, then it does not count
@@ -261,7 +312,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
   }
   ################ STRATIFIED PREVALENCE BY INDICATION ###################
-  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     
     # Performs prevalence counts - stratified by indication
     prevalence_by_indication <- df_prevalence[,.N, by = .(year,month, indication)]
@@ -364,7 +415,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
   
-  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED INCIDENCE BY INDICATION ###################
     # Performs incidence counts - stratified by indication
     incidence_by_indication <- df_incidence[,.N, by = .(year,month, indication)]
@@ -520,7 +571,7 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(discontinued_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_discontinued_counts.rds")))
   }
   ################ STRATIFIED DISCONTINUED BY INDICATION ###################
-  if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     
     # Performs incidence counts - stratified by indication
     discontinued_by_indication <- df_discontinued[,.N, by = .(year,month, indication)]

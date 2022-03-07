@@ -52,6 +52,35 @@ if(multiple_regions == T){
     # Creates new plot folder
     invisible(ifelse(!dir.exists(paste0(output_dir, "plots")), dir.create(paste0(output_dir, "plots")), FALSE))
     plot_folder <- paste0(output_dir, "plots")
+    
+    invisible(ifelse(!dir.exists(paste0(medicines_counts_dir,"/","stratified")), dir.create(paste0(medicines_counts_dir,"/","stratified")), FALSE))
+    medicines_stratified_dir <- paste0(medicines_counts_dir,"/","stratified")
+    # Create stratified by age groups folder
+    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","age_group")), dir.create(paste0(medicines_stratified_dir,"/","age_group")), FALSE))
+    medicines_stratified_age_groups <- paste0(medicines_stratified_dir ,"/","age_group")
+    # Create stratified by tx_duration folder 
+    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","tx_duration")), dir.create(paste0(medicines_stratified_dir,"/","tx_duration")), FALSE))
+    medicines_stratified_tx_dur <- paste0(medicines_stratified_dir ,"/","tx_duration")
+    # Create stratified by indication folder 
+    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
+    medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
+    
+    # Move stratified records into stratified folders
+    # Create stratified folder
+    invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
+    contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
+    # Create stratified by age groups folder
+    invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
+    contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
+    # Create stratified by indication folder
+    invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
+    contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
+    
+    
+    # Path to diagnosis pop 
+    diagnoses_pop <- paste0(projectFolder,"/g_intermediate/tmp/diagnoses/")
+    procedures_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures/")
+    procedures_dxcodes_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures_dxcodes/")
     # Sources run_counts_final_each_pop.R 
     source(paste0(pre_dir,"run_counts_final_each_pop.R"))
     # Delete g_intermediate/g_output folders before moving the modified ones back 
