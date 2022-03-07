@@ -33,7 +33,7 @@ source(paste0(pre_dir,"set_DAP_params.R"))
 
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
-study_type <- "Both"
+# study_type <- "Both"
 
 #user input parameter
 ## Turn statement to T if multiple regions #BIFAP

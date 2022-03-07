@@ -46,28 +46,18 @@ empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$y
 names(empty_df) <- c("year", "month")
 
 # 3. Indication records for valproates only
-if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+if(length(all_temps)>0){
   # Creates a list of indications 
-  indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
-  
-  for(ind in 1:length(indications)){
-    indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
-    indication_file<-indication_file[grepl(pop_prefix,indication_file)]
-    if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
-    if(length(indication_file)>0){
-      df<-readRDS(indication_file)[,indication:=indications[ind]]
-      saveRDS(df, indication_file)
-    }
-  }
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
+  if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
   all_indications<-all_indications[!duplicated(all_indications),]
-  setnames(all_indications,"Date","indication_date")
+  setnames(all_indications, "Date", "indication_date")
 }
-
 
 # Checks first if there are any contraception episode records found
 if(length(contra_epi_files)>0) {
@@ -168,9 +158,9 @@ if(length(contra_epi_files)>0) {
       ##### STRATIFICATION BY INDICATION ###
       
       # Checks if there are indication files and performs action only for DAPs with indication files 
-      if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+      if(str_detect(med_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
         # Merge data with study population to get date of birth
-        tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id)]
+        tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id), allow.cartesian = T]
         # tx_in_episode_df_indications <- tx_in_episode_df_indications[Date>indication_date,]
         tx_in_episode_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
         tx_in_episode_df_indications_missing<- tx_in_episode_df_indications[is.na(indication),]

@@ -136,6 +136,15 @@ medicines_stratified_tx_dur <- paste0(medicines_stratified_dir ,"/","tx_duration
 invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
 medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
 
-
+# Move stratified records into stratified folders
+# Create stratified folder
+invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
+contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
+# Create stratified by age groups folder
+invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
+contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
+# Create stratified by indication folder
+invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
+contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
 
 

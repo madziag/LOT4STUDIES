@@ -48,29 +48,43 @@ names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
 
+# # 3. Indication records for valproates only
+# if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+#   # Creates a list of indications 
+#   indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
+#   
+#   for(ind in 1:length(indications)){
+#     indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
+#     indication_file<-indication_file[grepl(pop_prefix,indication_file)]
+#     if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
+#     if(length(indication_file)>0){
+#       df<-readRDS(indication_file)[,indication:=indications[ind]]
+#       saveRDS(df, indication_file)
+#     }
+#   }
+#   # Get a list of indication files (with added new column to indicate indication type)
+#   indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+#   # Bind all indication records
+#   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
+#   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+#   all_indications<-all_indications[!duplicated(all_indications),]
+#   setnames(all_indications,"Date","indication_date")
+# }
+# 1. Indication records for valproates only
+all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
 # 3. Indication records for valproates only
-if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+if(length(all_temps)>0){
   # Creates a list of indications 
-  indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
-  
-  for(ind in 1:length(indications)){
-    indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
-    indication_file<-indication_file[grepl(pop_prefix,indication_file)]
-    if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
-    if(length(indication_file)>0){
-      df<-readRDS(indication_file)[,indication:=indications[ind]]
-      saveRDS(df, indication_file)
-    }
-  }
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
+  if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
   all_indications<-all_indications[!duplicated(all_indications),]
   setnames(all_indications,"Date","indication_date")
 }
-
 # Checks first if there are any contraception records found
 if(length(contra_files)>0) {
   # Loads files + clean up
@@ -126,7 +140,7 @@ if(length(contra_files)>0) {
       
       ##### STRATIFICATION BY AGE GROUPS ###
       # Merge data with study population to get date of birth
-      contra_prior_df_age_groups <- merge(contra_prior_df[,c("person_id", "contraception_record_date")], study_population[,c("person_id", "birth_date")], by = "person_id")
+      contra_prior_df_age_groups <- merge(contra_prior_df[,c("person_id", "contraception_record_date", "Date")], study_population[,c("person_id", "birth_date")], by = "person_id")
       # Creates a column with patients age on every day of in the treatment episode
       contra_prior_df_age_groups[,current_age:= floor((contraception_record_date - birth_date)*10/365.25)/10]
       # Add column which groups each patient into an age group, for each day of their treatment
@@ -136,7 +150,7 @@ if(length(contra_files)>0) {
       contra_prior_df_age_groups[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
       
       # Performs pgtests counts - stratified by age group
-      contra_prior_by_age <- contra_prior_df_age_groups[,.N, by = .(year(contraception_record_date),month(contraception_record_date), age_group)]
+      contra_prior_by_age <- contra_prior_df_age_groups[,.N, by = .(year(Date),month(Date), age_group)]
       # Get unique values of age groups - for the for loop
       age_group_unique <- unique(contra_prior_by_age$age_group)
       
@@ -166,15 +180,15 @@ if(length(contra_files)>0) {
         contra_prior_age_counts <- contra_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
         contra_prior_age_counts <- contra_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
         # Saves files in medicine counts folder
-        saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraceptives_prior_counts.rds")) # Monthly counts file
+        saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
       }   
 
       ##### STRATIFICATION BY INDICATION ###
       
       # Checks if there are indication files and performs action only for DAPs with indication files 
-      if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+      if(str_detect(med_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
         # Merge data with study population to get date of birth
-        contra_prior_df_indications <- all_indications[contra_prior_df,on=.(person_id)]
+        contra_prior_df_indications <- all_indications[contra_prior_df,on=.(person_id), allow.cartesian = T]
         # contra_prior_df_indications <- contra_prior_df_indications[Date>indication_date,]
         contra_prior_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
         contra_prior_df_indications_missing<- contra_prior_df_indications[is.na(indication),]
@@ -185,7 +199,7 @@ if(length(contra_files)>0) {
         contra_prior_df_indications_notmissing[,indication_count:=NULL]
         contra_prior_df_indications<-rbind(contra_prior_df_indications_missing,contra_prior_df_indications_notmissing)
         # Performs pgtests counts - stratified by age group
-        contra_prior_by_indication <- contra_prior_df_indications[,.N, by = .(year(contraception_record_date),month(contraception_record_date), final_indication)]
+        contra_prior_by_indication <- contra_prior_df_indications[,.N, by = .(year(Date),month(Date), final_indication)]
         # Get unique values of age groups - for the for loop
         indication_unique <- unique(contra_prior_by_indication$final_indication)
         
@@ -215,7 +229,7 @@ if(length(contra_files)>0) {
           contra_prior_indication_counts <- contra_prior_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
           contra_prior_indication_counts <- contra_prior_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
           # Saves files in medicine counts folder
-          saveRDS(contra_prior_indication_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group], "_contraceptives_prior_counts.rds")) # Monthly counts file
+          saveRDS(contra_prior_indication_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
         }   
       }
     } else {
@@ -229,16 +243,16 @@ if(length(contra_files)>0) {
 
 # Create stratified folders and move files into stratified folders
 if(nrow(contra_prior_df)>0){
-  # Move stratified records into stratified folders
-  # Create stratified folder
-  invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
-  contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
-  # Create stratified by age groups folder
-  invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
-  contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
-  # Create stratified by indication folder
-  invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
-  contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
+  # # Move stratified records into stratified folders
+  # # Create stratified folder
+  # invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
+  # contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
+  # # Create stratified by age groups folder
+  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
+  # contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
+  # # Create stratified by indication folder
+  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
+  # contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
   
   # Move files 
   for (file in list.files(path=contraceptive_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_age_groups, "/",file))}

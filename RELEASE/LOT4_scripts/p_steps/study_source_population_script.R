@@ -86,7 +86,8 @@ if (subpopulations_present=="No"){
 #############################################################
 
 #Load functions
-source(paste0(pre_dir,"functions/", "CreateSpells.R"))
+# source(paste0(pre_dir,"functions/", "CreateSpells.R"))
+source(paste0(pre_dir,"functions/", "CreateSpells_v15.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV12.5.R"))
 source(paste0(pre_dir,"functions/", "CountPersonTimeV13.6.R"))
 source(paste0(pre_dir,"functions/", "DRECountThresholdV3.R"))

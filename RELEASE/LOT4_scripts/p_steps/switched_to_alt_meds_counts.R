@@ -59,6 +59,7 @@ if(populations[pop] == "PC_study_population.rds"){
   prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
 }
 
+prevalent_counts_files <- prevalent_counts_files[!grepl("age_group|indication|tx_dur", prevalent_counts_files)]
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
@@ -75,22 +76,14 @@ names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
 
-# 5. Indication records for valproates only
-if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
+# 3. Indication records for valproates only
+if(length(all_temps)>0){
   # Creates a list of indications 
-  indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
-  
-  for(ind in 1:length(indications)){
-    indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
-    indication_file<-indication_file[grepl(pop_prefix,indication_file)]
-    if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
-    if(length(indication_file)>0){
-      df<-readRDS(indication_file)[,indication:=indications[ind]]
-      saveRDS(df, indication_file)
-    }
-  }
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
+  if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
@@ -234,62 +227,63 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
         # Saves files in medicine counts folder
         saveRDS(switched_age_counts, paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group], "_switched_to_alt_meds_counts.rds")) # Monthly counts file
       }    
-      
-      ##### STRATIFICATION BY AGE GROUPS ###
-      # Merge data with study population to get date of birth
-      # Merge data with study population to get date of birth
-      switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id)]
-      # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
-      switched_df_indications[indication=="ind_bipolar", ind_bipolar_date:=indication_date]
-      switched_df_indications[indication=="ind_epilepsy", ind_epilepsy_date:=indication_date]
-      switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
-      switched_df_indications[,Date:=NULL][,Code:=NULL]
-      setnames(switched_df_indications, "indication", "temp_indication")
-      switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
-      
-      switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]
-      switched_df_indications[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
-      switched_df_indications <- switched_df_indications[,num_obs:=rowSums(!is.na(switched_df_indications[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
-      switched_df_indications[num_obs==0, indication:="unknown"]
-      switched_df_indications[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
-      switched_df_indications[num_obs>1, indication:="multiple"]
-      drop.cols <- grep("diff|ind_", colnames(switched_df_indications))
-      switched_df_indications[, (drop.cols) := NULL]
-      
-    # Performs pgtests counts - stratified by indication group
-      switched_by_indication <- switched_df_indications[,.N, by = .(year(episode.end.switch),month(episode.end.switch), indication)]
-      # Get unique values of indication groups - for the for loop
-      indication_group_unique <- unique(switched_by_indication$indication)
-      
-      for(group in 1:length(indication_group_unique)){
-        # Create a subset of indication group
-        each_group <- switched_by_indication[indication==indication_group_unique[group]]
-        # Adjust for PHARMO
-        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
-        # Merge with empty df (for counts that do not have counts for all months and years of study)
-        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
-        # Fills in missing values with 0
-        each_group[is.na(N), N:=0][is.na(indication), indication:=indication_group_unique[group]]
-        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
-        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-        # Create YM variable 
-        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-        # Masks values less than 5
-        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-        # Applies masking 
-        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
-        # Prepare denominator (all pgtests counts )
-        switched_all_counts_min <- alt_med_counts[,c("YM", "N")]
-        setnames(switched_all_counts_min, "N", "Freq")
-        # Create counts file
-        switched_indication_counts <- merge(x = each_group, y = switched_all_counts_min, by = c("YM"), all.x = TRUE)
-        switched_indication_counts <- switched_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-        switched_indication_counts <- switched_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
-        # Saves files in medicine counts folder
-        saveRDS(switched_indication_counts, paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_group_unique[group], "_switched_to_alt_meds_counts.rds")) # Monthly counts file
-      }                              
-      
+      ##### STRATIFICATION BY INDICATIONS ###
+      # Checks if there are indication files and performs action only for DAPs with indication files 
+      if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+
+        # Merge data with study population to get date of birth
+        switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id), allow.cartesian = T]
+        # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
+        switched_df_indications[indication=="ind_bipolar", ind_bipolar_date:=indication_date]
+        switched_df_indications[indication=="ind_epilepsy", ind_epilepsy_date:=indication_date]
+        switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
+        switched_df_indications[,Date:=NULL][,Code:=NULL]
+        setnames(switched_df_indications, "indication", "temp_indication")
+        switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
+        
+        switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]
+        switched_df_indications[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
+        switched_df_indications <- switched_df_indications[,num_obs:=rowSums(!is.na(switched_df_indications[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
+        switched_df_indications[num_obs==0, indication:="unknown"]
+        switched_df_indications[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
+        switched_df_indications[num_obs>1, indication:="multiple"]
+        drop.cols <- grep("diff|ind_", colnames(switched_df_indications))
+        switched_df_indications[, (drop.cols) := NULL]
+        
+        # Performs pgtests counts - stratified by indication group
+        switched_by_indication <- switched_df_indications[,.N, by = .(year(episode.end.switch),month(episode.end.switch), indication)]
+        # Get unique values of indication groups - for the for loop
+        indication_group_unique <- unique(switched_by_indication$indication)
+        
+        for(group in 1:length(indication_group_unique)){
+          # Create a subset of indication group
+          each_group <- switched_by_indication[indication==indication_group_unique[group]]
+          # Adjust for PHARMO
+          if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+          # Merge with empty df (for counts that do not have counts for all months and years of study)
+          each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+          # Fills in missing values with 0
+          each_group[is.na(N), N:=0][is.na(indication), indication:=indication_group_unique[group]]
+          # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+          each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+          # Create YM variable 
+          each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+          # Masks values less than 5
+          # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+          each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+          # Applies masking 
+          if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+          # Prepare denominator (all pgtests counts )
+          switched_all_counts_min <- alt_med_counts[,c("YM", "N")]
+          setnames(switched_all_counts_min, "N", "Freq")
+          # Create counts file
+          switched_indication_counts <- merge(x = each_group, y = switched_all_counts_min, by = c("YM"), all.x = TRUE)
+          switched_indication_counts <- switched_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+          switched_indication_counts <- switched_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+          # Saves files in medicine counts folder
+          saveRDS(switched_indication_counts, paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_group_unique[group], "_switched_to_alt_meds_counts.rds")) # Monthly counts file
+        }                              
+      }
     } else {
       print(paste0("No patients that switched from ", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), " treatment to alternative meds have been found"))
     }
