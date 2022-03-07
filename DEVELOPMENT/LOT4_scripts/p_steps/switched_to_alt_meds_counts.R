@@ -239,6 +239,11 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
         switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
         switched_df_indications[,Date:=NULL][,Code:=NULL]
         setnames(switched_df_indications, "indication", "temp_indication")
+        
+        switched_df_indications<-switched_df_indications[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+        
+        switched_df_indications <- switched_df_indications[!duplicated(switched_df_indications[,c("person_id", "episode.start", "episode.end", "temp_indication")])]
+        
         switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
         
         switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]

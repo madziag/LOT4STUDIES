@@ -131,8 +131,6 @@ if(length(all_temps)>0){
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
   all_indications<-all_indications[!duplicated(all_indications),]
-  # TEST for BIFAP#
-  print(paste0("INDICATIONS LIST", indications_list))
 }
 
 
@@ -152,7 +150,6 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes[exit_date<episode.end,episode.end:=exit_date]
   # Add row numbers to each row 
   df_episodes[,nrow:=.I]
-  
   # Checks if there are indication files and performs action only for DAPs with indication files 
   if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Merge indications with df_episodes 
@@ -161,9 +158,12 @@ for (i in 1:length(tx_episodes_files)){
     df_episodes[indication=="ind_bipolar", ind_bipolar_date:=Date]
     df_episodes[indication=="ind_epilepsy", ind_epilepsy_date:=Date]
     df_episodes[indication=="ind_migraine", ind_migraine_date:=Date]
-    df_episodes[,Date:=NULL][,Code:=NULL]
-    setnames(df_episodes, "indication", "temp_indication")
-    df_episodes <- setDT(df_episodes)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
+    df_episodes<-df_episodes[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+    
+    df_episodes <- df_episodes[!duplicated(df_episodes[,c("person_id", "episode.start", "episode.end", "birth_date", "indication")])]
+    df_episodes[,Date:=NULL][,Code:=NULL][,indication:=NULL]
+    df_episodes <- df_episodes[!duplicated(df_episodes)]
+    df_episodes <- setDT(df_episodes)[, lapply(.SD, function(x) unique(na.omit(x))), by = c("person_id", "episode.ID", "episode.start", "episode.end", "birth_date", "entry_date","exit_date")]
   }
   # Remove duplicates
   df_episodes<-df_episodes[!duplicated(df_episodes)]
@@ -204,7 +204,9 @@ for (i in 1:length(tx_episodes_files)){
     df_episodes_expanded[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
     df_episodes_expanded <- df_episodes_expanded[,num_obs:=rowSums(!is.na(df_episodes_expanded[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
     df_episodes_expanded[num_obs==0, indication:="unknown"]
-    df_episodes_expanded[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
+    df_episodes_expanded[num_obs==1 & !is.na(epilepsy_diff), indication:="epilepsy"]
+    df_episodes_expanded[num_obs==1 & !is.na(bipolar_diff), indication:="bipolar"]
+    df_episodes_expanded[num_obs==1 & !is.na(migraine_diff), indication:="migraine"]
     df_episodes_expanded[num_obs>1, indication:="multiple"]
     drop.cols <- grep("diff|ind_", colnames(df_episodes_expanded))
     df_episodes_expanded[, (drop.cols) := NULL]
