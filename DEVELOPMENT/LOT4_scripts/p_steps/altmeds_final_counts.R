@@ -17,9 +17,19 @@ if(length(all_temps)>0){
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+  all_indications<-all_indications[order(person_id,indication, Date)]
+  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   setnames(all_indications, "Date", "indication_date")
   setnames(all_indications, "Code", "indication_Code")
-  all_indications<-all_indications[!duplicated(all_indications),]
+  
+  # all_indications[person_id=="ConCDM_SIM_200421_00107", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00333", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00170", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00030", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00426", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00782", person_id:="ConCDM_SIM_200421_00641"]
+  # all_indications[person_id=="ConCDM_SIM_200421_00726", person_id:="ConCDM_SIM_200421_00641"]
+
   # indications <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine")
   # 
   # if(pop_prefix == "PC"){indications <- indications[!grepl("PC_HOSP",indications)]}
@@ -121,7 +131,7 @@ if(length(altmeds_valproates)>0){
   all_altmed_valproates <- do.call(rbind,lapply(paste0(medications_pop,altmeds_valproates), readRDS))
   alt_med_valproates_df <- all_altmed_valproates[,c("person_id", "Code", "Date","birth_date", "entry_date", "exit_date", "alt_med_type")]
   # Check that you only have records between the patients entry and exit into study dates
-  alt_med_valproates_df <- alt_med_valproates_df[Date>=entry_date&Date<=exit_date,]
+  alt_med_valproates_df <-alt_med_valproates_df[Date>=entry_date&Date<=exit_date,]
   alt_med_valproates_df <-alt_med_valproates_df [!duplicated(alt_med_valproates_df),]
   
   # Creates a column with patients age on every day of in the treatment episode
@@ -131,27 +141,24 @@ if(length(altmeds_valproates)>0){
   alt_med_valproates_df[age_at_dispensing >= 21 & age_at_dispensing < 31, age_group:= "21-30.99"]
   alt_med_valproates_df[age_at_dispensing >= 31 & age_at_dispensing < 41, age_group:= "31-40.99"]
   alt_med_valproates_df[age_at_dispensing >= 41 & age_at_dispensing < 56, age_group:= "41-55.99"]
-  
+  # 922 -> 1167
   if(length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ## Add indications ###
     # Merge data with study population to get date of birth
     alt_med_valproates_df <- all_indications[alt_med_valproates_df ,on=.(person_id), allow.cartesian=T]
-    # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
-    alt_med_valproates_df[indication=="ind_bipolar", ind_bipolar_date:=Date]
-    alt_med_valproates_df[indication=="ind_epilepsy", ind_epilepsy_date:=Date]
-    alt_med_valproates_df[indication=="ind_migraine", ind_migraine_date:=Date]
-    setnames(alt_med_valproates_df, "indication", "temp_indication")
-    alt_med_valproates_df <- setDT(alt_med_valproates_df)[, lapply(.SD, na.omit), by = c("person_id", "Date")]
+    alt_med_valproates_df <- alt_med_valproates_df[!duplicated(alt_med_valproates_df),]
+    alt_med_valproates_df[is.na(indication)|indication_date>Date, indication:=NA]
     
-    alt_med_valproates_df[,bipolar_diff:=Date-ind_bipolar_date][,epilepsy_diff:=Date-ind_epilepsy_date][,migraine_diff:=Date-ind_migraine_date]
-    alt_med_valproates_df[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
-    alt_med_valproates_df <- alt_med_valproates_df[,num_obs:=rowSums(!is.na(alt_med_valproates_df[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
-    alt_med_valproates_df[num_obs==0, indication:="unknown"]
-    alt_med_valproates_df[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
-    alt_med_valproates_df[num_obs>1, indication:="multiple"]
-    drop.cols <- grep("diff|ind_", colnames(alt_med_valproates_df))
-    alt_med_valproates_df[, (drop.cols) := NULL]
-    
+    alt_med_valproates_df_missing<- alt_med_valproates_df[is.na(indication),]
+    alt_med_valproates_df_missing[,final_indication:="unknown"]
+    alt_med_valproates_df_notmissing<- alt_med_valproates_df[!is.na(indication),]
+    alt_med_valproates_df_notmissing[,indication_count:=length(unique(indication)), by = .(person_id, Date)]
+    alt_med_valproates_df_notmissing[indication_count==1, final_indication:=indication][indication_count>1,final_indication:="multiple"]
+    alt_med_valproates_df_notmissing[,indication_count:=NULL]
+    alt_med_valproates_df<-rbind(alt_med_valproates_df_missing,alt_med_valproates_df_notmissing)
+    alt_med_valproates_df[,indication_date:=NULL][,indication_Code:=NULL][,indication:=NULL]
+    alt_med_valproates_df<-alt_med_valproates_df[!duplicated(alt_med_valproates_df),]
+  
   }
 }
 
@@ -395,19 +402,19 @@ if(length(altmeds_valproates)>0){
     
     
     ### STRATIFICATION BY INDICATION ####
-    altmeds_by_indication <- each_alt_type_df[,.N, by = .(year(Date),month(Date),indication)]
+    altmeds_by_indication <- each_alt_type_df[,.N, by = .(year(Date),month(Date),final_indication)]
     # Get unique values of age groups - for the for loop
-    indication_unique <- unique( altmeds_by_indication$indication)
+    indication_unique <- unique( altmeds_by_indication$final_indication)
     
     for(group_1 in 1:length(indication_unique)){
       # Create a subset of age group
-      each_group_1 <- altmeds_by_indication[indication==indication_unique[group_1]]
+      each_group_1 <- altmeds_by_indication[final_indication==indication_unique[group_1]]
       # Adjust for PHARMO
       if(is_PHARMO){each_group_1 <- each_group_1[year < 2020,]} else {each_group_1 <- each_group_1[year < 2021,]}
       # Merge with empty df (for counts that do not have counts for all months and years of study)
       each_group_1 <- as.data.table(merge(x = empty_df, y = each_group_1, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
-      each_group_1[is.na(N), N:=0][is.na(indication), indication:=indication_unique[group_1]]
+      each_group_1[is.na(N), N:=0][is.na(final_indication), final_indication:=indication_unique[group_1]]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       each_group_1[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Create YM variable 

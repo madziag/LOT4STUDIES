@@ -9,7 +9,7 @@
 #the second section produces pooled plots per outcome
 
 # Set path to
-All_regions_dir<-paste0(projectFolder, "/ALL_regions/ALL_regions/")
+All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
 #Plot directory to deposit loop output
 invisible(ifelse(!dir.exists(paste0(All_regions_dir,"/plots/")), dir.create(paste0(All_regions_dir,"plots/")), FALSE))
 bifap_plots<-paste0(All_regions_dir,"plots/")
@@ -25,7 +25,7 @@ region_key<-as.data.frame(cbind(my_pallette, my_regions))
 ################################################### PLOTS FOR RATES ######################################################
 ##########################################################################################################################
 #For preliminary counts, prevalence, incidence, med_use_during_pregnancy, preg_starts 
-my_folders<- list.files(All_regions_dir, pattern="counts")
+my_folders <- list.files(All_regions_dir, pattern="counts")
 # RATES - Multiplied by 1000
 # 1. All preliminary 
 # 2. Prevalence 
@@ -33,6 +33,8 @@ my_folders<- list.files(All_regions_dir, pattern="counts")
 # 4. med_use_during_pregnancy
 # 5. Preg_starts
 my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
+my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|ATC"), my_folders_rates)]
+
 # PROPORTIONS 
 # 1. Discontinued
 # 2. switched 
@@ -41,16 +43,23 @@ my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|p
 # 5. contraception prior 
 # 6. med_use_during_contraception 
 my_folders_props <- my_folders[grepl(c("discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
-
+my_folders_props <- my_folders_props[!grepl(c("age_group|indication|tx_dur|ATC"), my_folders_props)]
 #create ylim max from pooled file
 
 # Combined plots 
 for(i in 1:length(my_folders_rates)){
   #read in list of RDS files
   my_files<-grep(list.files(path=paste0(All_regions_dir,my_folders_rates[i])), pattern='Pooled', invert=TRUE, value=TRUE)
-  pool_file<-list.files(path=paste0(All_regions_dir,my_folders_rates[i]), pattern='counts_Pooled')
+  my_files
+  if (str_detect(my_folders_rates[i], "_preg_starts_during_tx_episodes")){
+    pool_file<-grep(list.files(path=paste0(All_regions_dir,my_folders_rates[i])), pattern='final_Pooled', invert=FALSE, value=TRUE)
+  } else {
+    pool_file<-grep(list.files(path=paste0(All_regions_dir,my_folders_rates[i])), pattern='counts_Pooled', invert=FALSE, value=TRUE)
+  }
+  
   my_pool<-fread(paste0(All_regions_dir, my_folders_rates[i],"/", pool_file ))
   my_max<- (max(my_pool$rates))*2
+  
   if (length(my_files)>0){
     main_name<-paste0("Each_region_rate_", substr(my_folders_rates[i], 1,nchar(my_folders_rates[i])-7))
     pdf((paste0(bifap_plots,main_name,".pdf")), width=8, height=4)

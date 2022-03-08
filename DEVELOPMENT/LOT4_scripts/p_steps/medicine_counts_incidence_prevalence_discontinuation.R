@@ -82,7 +82,8 @@ if(length(all_temps)>0){
       if(length(indication_file_dx)>0){
         df_dx<-readRDS(paste0(diagnoses_pop, indication_file_dx))[,indication:=indications[ind]]
         df_dx<-df_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        saveRDS(df_dx, paste0(diagnoses_pop, indication_file_dx))
+        saveRDS(df_dx, paste0(all_indications_dir, "/from_events_", indication_file_dx))
+        
       }
     }
     
@@ -95,7 +96,7 @@ if(length(all_temps)>0){
       if(length(indication_file_proc)>0){
         df_proc<-readRDS(paste0(procedures_pop,indication_file_proc))[,indication:=indications[ind]]
         df_proc<-df_proc[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        saveRDS(df_proc, paste0(procedures_pop, indication_file_proc))
+        saveRDS(df_proc, paste0(all_indications_dir, "/from_procedures_", indication_file_proc))
       }
 
     }
@@ -108,15 +109,15 @@ if(length(all_temps)>0){
       if(length(indication_file_proc_dx)>0){
         df_proc_dx<-readRDS(paste0(procedures_dxcodes_pop,indication_file_proc_dx))[,indication:=indications[ind]]
         df_proc_dx<-df_proc_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        saveRDS(df_proc_dx, paste0(procedures_dxcodes_pop, indication_file_proc_dx))
+        saveRDS(df_proc_dx, paste0(all_indications_dir, "/from_procedures_dx_", indication_file_proc_dx))
       }
     }
   }
   
  
-  if(exists("diagnoses_pop")){for (file in list.files(diagnoses_pop, pattern="ind_")){file.copy(paste0(diagnoses_pop, file), paste0(all_indications_dir, "/from_events_", file))}}
-  if(exists("procedures_pop")){for (file in list.files(procedures_pop, pattern="ind_")){file.copy(paste0(procedures_pop, file), paste0(all_indications_dir, "/from_procedures_", file))}}
-  if(exists("procedures_dxcodes_pop")){for (file in list.files(procedures_dxcodes_pop, pattern="ind_")){file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}}
+  # if(exists("diagnoses_pop")){for (file in indication_file_dx){file.copy(paste0(diagnoses_pop, file), paste0(all_indications_dir, "/from_events_", file))}}
+  # if(exists("procedures_pop")){for (file in indication_file_proc){file.copy(paste0(procedures_pop, file), paste0(all_indications_dir, "/from_procedures_", file))}}
+  # if(exists("procedures_dxcodes_pop")){for (file in indication_file_proc_dx){file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}}
   # if(exists("procedures_dxcodes_pop")){for (file in list.files(procedures_dxcodes_pop, pattern="ind_")){
   #   file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}
   #   }
@@ -130,7 +131,8 @@ if(length(all_temps)>0){
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[!duplicated(all_indications),]
+  all_indications<-all_indications[order(person_id,indication, Date)]
+  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
 }
 
 

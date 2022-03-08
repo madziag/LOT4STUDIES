@@ -87,7 +87,8 @@ if(length(all_temps)>0){
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[!duplicated(all_indications),]
+  all_indications<-all_indications[order(person_id,indication, Date)]
+  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   setnames(all_indications,"Date","indication_date")
 }
 
