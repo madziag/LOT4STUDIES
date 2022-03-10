@@ -92,24 +92,8 @@ for (i in 1:length(split_data)){
   my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
   my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
   my_treat_episode <- my_treat_episode1
-  #LOGICAL CHECKS
-  #duration is positive
-  if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
-  #person id merged, but no one lost
-  original_ids<-unique(cma_data$person_id)
-  treat_epi_ids<-unique(my_treat_episode$person_id)
-<<<<<<< HEAD
-  if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
-  #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
-  if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-  
+
   if (nrow(my_treat_episode)>0){
-=======
-  if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as medicines dataset")}
-
-#if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-
->>>>>>> 594647216f7fc441a1b50d37e1c23dbde7598158
   #write data
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
   saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))

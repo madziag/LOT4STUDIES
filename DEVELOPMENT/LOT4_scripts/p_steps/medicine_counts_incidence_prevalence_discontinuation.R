@@ -145,10 +145,9 @@ for (i in 1:length(tx_episodes_files)){
   # Changes columns to correct data type/add column that indicates rownumber
   df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)]
   # Removes unnecessary columns
-  df_episodes <- df_episodes[,-c("column_label", "end.episode.gap.days", "episode.duration")]
+  df_episodes <- df_episodes[,-c("end.episode.gap.days", "episode.duration")]
   
   df_episodes_for_incidence <- df_episodes
-  df_episodes_for_incidence
   # # Removes records where entry into study date is before episode start date
   # df_episodes <- df_episodes[exit_date>=episode.start,]
   # # If exit from study date is before end of episode date, then end.episode.day = exit_date
@@ -531,6 +530,7 @@ for (i in 1:length(tx_episodes_files)){
   df_discontinued[,last.tx.episode_per_pt := ifelse(is.na(next.episode.start), 1, 0)]
   # If last.tx.episode_per_pt == 1, then get the difference between exit from the study date and episode.end date
   # If last.tx.episode_per_pt == 0, then get the difference between next.episode.start and previous episode.end dates
+  df_discontinued[,exit_date:= as.IDate(exit_date,"%Y%m%d")][,episode.end:= as.IDate(episode.end,"%Y%m%d")][,next.episode.start:= as.IDate(next.episode.start,"%Y%m%d")]
   df_discontinued[, date_diff := ifelse(last.tx.episode_per_pt == 1, exit_date - episode.end, next.episode.start - episode.end)]
   # If the values are > 90 then consider this a discontinuation
   # df_discontinued[,tx_discontinued := ifelse(date_diff > 90, 1, 0)]

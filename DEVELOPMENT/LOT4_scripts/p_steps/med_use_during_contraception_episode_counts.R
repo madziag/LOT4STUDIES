@@ -52,11 +52,13 @@ if(length(all_temps)>0){
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
-  # Bind all indication records
-  all_indications<- do.call(rbind,lapply(indications_list, readRDS))
-  all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[!duplicated(all_indications),]
-  setnames(all_indications, "Date", "indication_date")
+  if(length(indications_list)>0){
+    # Bind all indication records
+    all_indications<- do.call(rbind,lapply(indications_list, readRDS))
+    all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+    all_indications<-all_indications[!duplicated(all_indications),]
+    setnames(all_indications, "Date", "indication_date")
+  }
 }
 
 # Checks first if there are any contraception episode records found
@@ -70,7 +72,7 @@ if(length(contra_epi_files)>0) {
     med_df <- med_df[Date>=entry_date & Date<exit_date]
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column
-     ### Creates denominator: Total number of Retinoid/Valproate records per month
+    ### Creates denominator: Total number of Retinoid/Valproate records per month
     med_counts <- med_df[,.N, by = .(year(Date),month(Date))] # Performs counts grouped by year, month of medicine prescription date
     med_counts <- as.data.table(merge(x = empty_df, y = med_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_counts
     med_counts[is.na(med_counts[,N]), N:=0] # Fills in missing values with 0
@@ -156,54 +158,55 @@ if(length(contra_epi_files)>0) {
       }
       
       ##### STRATIFICATION BY INDICATION ###
-      
-      # Checks if there are indication files and performs action only for DAPs with indication files 
-      if(str_detect(med_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
-        # Merge data with study population to get date of birth
-        tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id), allow.cartesian = T]
-        # tx_in_episode_df_indications <- tx_in_episode_df_indications[Date>indication_date,]
-        tx_in_episode_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
-        tx_in_episode_df_indications_missing<- tx_in_episode_df_indications[is.na(indication),]
-        tx_in_episode_df_indications_missing[,final_indication:="unknown"]
-        tx_in_episode_df_indications_notmissing<- tx_in_episode_df_indications[!is.na(indication),]
-        tx_in_episode_df_indications_notmissing[,indication_count:=length(unique(indication)), by = .(person_id, Date)]
-        tx_in_episode_df_indications_notmissing[indication_count==1, final_indication:=indication][indication_count>1,final_indication:="multiple"]
-        tx_in_episode_df_indications_notmissing[,indication_count:=NULL]
-        tx_in_episode_df_indications<-rbind(tx_in_episode_df_indications_missing,tx_in_episode_df_indications_notmissing)
-        # Performs pgtests counts - stratified by age group
-        tx_in_episode_by_indication <- tx_in_episode_df_indications[,.N, by = .(year(Date),month(Date), final_indication)]
-        # Get unique values of age groups - for the for loop
-        indication_unique <- unique(tx_in_episode_by_indication$final_indication)
-        
-        for(group in 1:length(indication_unique)){
-          # Create a subset of age group
-          each_group <- tx_in_episode_by_indication[final_indication==indication_unique[group]]
-          # Adjust for PHARMO
-          if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
-          # Merge with empty df (for counts that do not have counts for all months and years of study)
-          each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
-          # Fills in missing values with 0
-          each_group[is.na(N), N:=0][is.na(final_indication), final_indication:=indication_unique[group]]
-          # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
-          each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-          # Create YM variable 
-          each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-          # Masks values less than 5
-          # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-          each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-          # Applies masking 
-          if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
-          # Prepare denominator (all pgtests counts )
-          tx_in_episode_all_counts_min <- tx_in_episode_counts[,c("YM", "N")]
-          setnames(tx_in_episode_all_counts_min, "N", "Freq")
-          # Create counts file
-          tx_in_episode_indication_counts <- merge(x = each_group, y = tx_in_episode_all_counts_min, by = c("YM"), all.x = TRUE)
-          tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-          tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
-          # Saves files in medicine counts folder
-          saveRDS(tx_in_episode_age_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
-          for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
-        }   
+      if (str_detect(med_files[i],"Valproate")){
+        # Checks if there are indication files and performs action only for DAPs with indication files 
+        if(length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+          # Merge data with study population to get date of birth
+          tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id), allow.cartesian = T]
+          # tx_in_episode_df_indications <- tx_in_episode_df_indications[Date>indication_date,]
+          tx_in_episode_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
+          tx_in_episode_df_indications_missing<- tx_in_episode_df_indications[is.na(indication),]
+          tx_in_episode_df_indications_missing[,final_indication:="unknown"]
+          tx_in_episode_df_indications_notmissing<- tx_in_episode_df_indications[!is.na(indication),]
+          tx_in_episode_df_indications_notmissing[,indication_count:=length(unique(indication)), by = .(person_id, Date)]
+          tx_in_episode_df_indications_notmissing[indication_count==1, final_indication:=indication][indication_count>1,final_indication:="multiple"]
+          tx_in_episode_df_indications_notmissing[,indication_count:=NULL]
+          tx_in_episode_df_indications<-rbind(tx_in_episode_df_indications_missing,tx_in_episode_df_indications_notmissing)
+          # Performs pgtests counts - stratified by age group
+          tx_in_episode_by_indication <- tx_in_episode_df_indications[,.N, by = .(year(Date),month(Date), final_indication)]
+          # Get unique values of age groups - for the for loop
+          indication_unique <- unique(tx_in_episode_by_indication$final_indication)
+          
+          for(group in 1:length(indication_unique)){
+            # Create a subset of age group
+            each_group <- tx_in_episode_by_indication[final_indication==indication_unique[group]]
+            # Adjust for PHARMO
+            if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+            # Merge with empty df (for counts that do not have counts for all months and years of study)
+            each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+            # Fills in missing values with 0
+            each_group[is.na(N), N:=0][is.na(final_indication), final_indication:=indication_unique[group]]
+            # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+            each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+            # Create YM variable 
+            each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+            # Masks values less than 5
+            # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+            each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+            # Applies masking 
+            if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+            # Prepare denominator (all pgtests counts )
+            tx_in_episode_all_counts_min <- tx_in_episode_counts[,c("YM", "N")]
+            setnames(tx_in_episode_all_counts_min, "N", "Freq")
+            # Create counts file
+            tx_in_episode_indication_counts <- merge(x = each_group, y = tx_in_episode_all_counts_min, by = c("YM"), all.x = TRUE)
+            tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+            tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
+            # Saves files in medicine counts folder
+            saveRDS(tx_in_episode_age_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+            for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
+          }   
+        }
       }
     } else {
       print(paste0("No record of ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use during a contraceptive episode." ))
