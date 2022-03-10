@@ -81,14 +81,14 @@ for (i in 1:length(split_data)){
   my_treat_episode <- as.data.table(my_treat_episode)
   my_treat_episode[,episode.start:= as.IDate(episode.start,"%Y%m%d")][,episode.end:= as.IDate(episode.end,"%Y%m%d")]
   
-  # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
+  # Merges with study population to get entry and exit dates (study population has been loaded in the wrapper script)
   my_treat_episode1 <- as.data.table(merge(my_treat_episode, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id"))
   # Exclude rows where episode.end is before entry.date-90
   # Therefore, keep records that have a episode.start < entry.date, unless the above exclusion criterion is met  
   my_treat_episode1 <- my_treat_episode1[episode.end > entry_date - 90,]
   #  IF (episode.end > exit.date) {episode.end <- exit.date}
   my_treat_episode1 <- my_treat_episode1[episode.end>exit_date, episode.end:=exit_date]
-  #  ??? IF (episode.start >= exit.date) EXCLUDE row
+  #  IF (episode.start >= exit.date) EXCLUDE row
   my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
   my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
   my_treat_episode <- my_treat_episode1
@@ -98,9 +98,9 @@ for (i in 1:length(split_data)){
   #person id merged, but no one lost
   original_ids<-unique(cma_data$person_id)
   treat_epi_ids<-unique(my_treat_episode$person_id)
-  if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
-  #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
-  if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
+  if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as medicines dataset")}
+
+#if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
 
   #write data
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
