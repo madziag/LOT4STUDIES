@@ -382,7 +382,7 @@ for (i in 1:length(tx_episodes_files)){
     }
   }
   ##################################################################################################
-  ################################## Calculates Incidence ##########################################
+  ################################## Calculates Number and rate of incident users ##########################################
   ##################################################################################################
   ### Numerator = Number of female subjects in cohort with a valproate/retinoid episode start in the month 
   # Deduplicate df_episodes_expanded to only include records patients with the first start date 
