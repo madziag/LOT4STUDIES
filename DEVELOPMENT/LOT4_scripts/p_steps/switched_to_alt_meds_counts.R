@@ -98,7 +98,6 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
   for (i in 1:length(tx_episodes_files)){ 
     # Reads in the treatment episodes file 
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
-    tx_episodes <- tx_episodes[,-c("ATC", "type")]
     # Reads in the altmed files (corresponding to the medication)
     if(str_detect(tx_episodes_files[i], pattern = "Retinoid_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_retinoid_files, readRDS))}
     if(str_detect(tx_episodes_files[i], pattern = "Valproate_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_valproate_files, readRDS))}

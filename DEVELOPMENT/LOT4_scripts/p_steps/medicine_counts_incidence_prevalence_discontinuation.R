@@ -98,7 +98,7 @@ if(length(all_temps)>0){
         df_proc<-df_proc[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
         saveRDS(df_proc, paste0(all_indications_dir, "/from_procedures_", indication_file_proc))
       }
-
+      
     }
     # Indications found in proc-dx folder 
     if(exists("procedures_dxcodes_pop")){
@@ -114,7 +114,7 @@ if(length(all_temps)>0){
     }
   }
   
- 
+  
   # if(exists("diagnoses_pop")){for (file in indication_file_dx){file.copy(paste0(diagnoses_pop, file), paste0(all_indications_dir, "/from_events_", file))}}
   # if(exists("procedures_pop")){for (file in indication_file_proc){file.copy(paste0(procedures_pop, file), paste0(all_indications_dir, "/from_procedures_", file))}}
   # if(exists("procedures_dxcodes_pop")){for (file in indication_file_proc_dx){file.copy(paste0(procedures_dxcodes_pop, file), paste0(all_indications_dir, "/from_procedures_dx_", file))}}
@@ -145,7 +145,10 @@ for (i in 1:length(tx_episodes_files)){
   # Changes columns to correct data type/add column that indicates rownumber
   df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)]
   # Removes unnecessary columns
-  df_episodes <- df_episodes[,-c("ATC", "type", "column_label", "end.episode.gap.days", "episode.duration")]
+  df_episodes <- df_episodes[,-c("column_label", "end.episode.gap.days", "episode.duration")]
+  
+  df_episodes_for_incidence <- df_episodes
+  df_episodes_for_incidence
   # # Removes records where entry into study date is before episode start date
   # df_episodes <- df_episodes[exit_date>=episode.start,]
   # # If exit from study date is before end of episode date, then end.episode.day = exit_date
@@ -173,6 +176,48 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes_expanded <- setDT(df_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end, by = "day")), by = 1:nrow(df_episodes)]
   # Merges back with original data to get all columns 
   df_episodes_expanded <-  merge(df_episodes, df_episodes_expanded, by = "nrow")
+  # # Creates a column with patients age on every day of in the treatment episode
+  # df_episodes_expanded[,current_age:= floor((episode.day - birth_date)*10/365.25)/10]
+  # # Add column which groups each patient into an age group, for each day of their treatment
+  # df_episodes_expanded[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+  # df_episodes_expanded[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+  # df_episodes_expanded[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+  # df_episodes_expanded[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+  # # Add column with the duration of tx episode (tx_end -tx_start)
+  # df_episodes_expanded[,tx_duration:=episode.day-episode.start]
+  # # df_episodes_expanded[,tx_duration:=episode.end-episode.start]
+  # # Add column which groups each patient into an tx_length group
+  # df_episodes_expanded[,year_month:=paste0(year(episode.day),"-",month(episode.day))]
+  # max_tx_df <- setDT(df_episodes_expanded)[, .SD[which.max(tx_duration)], by=c("person_id","year_month")]
+  # df_episodes_expanded[,tx_duration:=NULL]
+  # df_episodes_expanded<-merge(df_episodes_expanded, max_tx_df[,c("person_id", "year_month", "tx_duration")], by = c("person_id", "year_month"))
+  # 
+  # df_episodes_expanded[tx_duration >= 0  & tx_duration <= 182, tx_dur_group:= "0-182"]
+  # df_episodes_expanded[tx_duration > 182 & tx_duration <= 365, tx_dur_group:= "182-365"]
+  # df_episodes_expanded[tx_duration > 365, tx_dur_group:= "over365"]
+  # # # Create year-months columns based on episode.day
+  # df_episodes_expanded[,year:=year(episode.day)][,month:=month(episode.day)]
+  # # Removes unnecessary columns
+  # df_episodes_expanded <- df_episodes_expanded[,-c("nrow", "birth_date", "idnum", "episode.ID", "current_age", "tx_duration", "year_month")]
+  
+  # Checks if there are indication files and performs action only for DAPs with indication files 
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+    # Merge indications with df_episodes 
+    # Adding indication column 
+    # If indication happened after episode day, then it does not count
+    df_episodes_expanded[,bipolar_diff:=episode.day-ind_bipolar_date][,epilepsy_diff:=episode.day-ind_epilepsy_date][,migraine_diff:=episode.day-ind_migraine_date]
+    df_episodes_expanded[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
+    df_episodes_expanded <- df_episodes_expanded[,num_obs:=rowSums(!is.na(df_episodes_expanded[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
+    df_episodes_expanded[num_obs==0, indication:="unknown"]
+    df_episodes_expanded[num_obs==1 & !is.na(epilepsy_diff), indication:="epilepsy"]
+    df_episodes_expanded[num_obs==1 & !is.na(bipolar_diff), indication:="bipolar"]
+    df_episodes_expanded[num_obs==1 & !is.na(migraine_diff), indication:="migraine"]
+    df_episodes_expanded[num_obs>1, indication:="multiple"]
+    drop.cols <- grep("diff|ind_", colnames(df_episodes_expanded))
+    df_episodes_expanded[, (drop.cols) := NULL]
+    df_episodes_expanded<- df_episodes_expanded[!duplicated(df_episodes_expanded[,c("nrow")])]
+  }
+  
   # Creates a column with patients age on every day of in the treatment episode
   df_episodes_expanded[,current_age:= floor((episode.day - birth_date)*10/365.25)/10]
   # Add column which groups each patient into an age group, for each day of their treatment
@@ -197,22 +242,6 @@ for (i in 1:length(tx_episodes_files)){
   # Removes unnecessary columns
   df_episodes_expanded <- df_episodes_expanded[,-c("nrow", "birth_date", "idnum", "episode.ID", "current_age", "tx_duration", "year_month")]
   
-  # Checks if there are indication files and performs action only for DAPs with indication files 
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
-    # Merge indications with df_episodes 
-    # Adding indication column 
-    # If indication happened after episode day, then it does not count
-    df_episodes_expanded[,bipolar_diff:=episode.day-ind_bipolar_date][,epilepsy_diff:=episode.day-ind_epilepsy_date][,migraine_diff:=episode.day-ind_migraine_date]
-    df_episodes_expanded[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
-    df_episodes_expanded <- df_episodes_expanded[,num_obs:=rowSums(!is.na(df_episodes_expanded[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
-    df_episodes_expanded[num_obs==0, indication:="unknown"]
-    df_episodes_expanded[num_obs==1 & !is.na(epilepsy_diff), indication:="epilepsy"]
-    df_episodes_expanded[num_obs==1 & !is.na(bipolar_diff), indication:="bipolar"]
-    df_episodes_expanded[num_obs==1 & !is.na(migraine_diff), indication:="migraine"]
-    df_episodes_expanded[num_obs>1, indication:="multiple"]
-    drop.cols <- grep("diff|ind_", colnames(df_episodes_expanded))
-    df_episodes_expanded[, (drop.cols) := NULL]
-  }
   ##################################################################################################
   ################################## Calculates Prevalence #########################################
   ##################################################################################################
@@ -357,7 +386,10 @@ for (i in 1:length(tx_episodes_files)){
   ##################################################################################################
   ### Numerator = Number of female subjects in cohort with a valproate/retinoid episode start in the month 
   # Deduplicate df_episodes_expanded to only include records patients with the first start date 
-  df_incidence <- df_episodes_expanded[!duplicated(df_episodes_expanded[,c("person_id", "episode.start")])]
+  df_incidence <- df_episodes_for_incidence[!duplicated(df_episodes_for_incidence)]
+  # Creates year and month columns
+  df_incidence[,year:=year(episode.start)][,month:=month(episode.start)]
+  # df_incidence <- df_episodes_expanded[!duplicated(df_episodes_expanded[,c("person_id", "episode.start")])]
   # Performs incidence counts 
   incidence_all <- df_incidence[,.N, by = .(year,month)]
   # Adjust for PHARMO
@@ -386,6 +418,14 @@ for (i in 1:length(tx_episodes_files)){
   
   ################ STRATIFIED INCIDENCE BY AGE GROUPS ###################
   # Performs incidence counts - stratified by age group
+  # Creates a column with patients age on every day of in the treatment episode
+  df_incidence[,current_age:= floor((episode.start - birth_date)*10/365.25)/10]
+  # Add column which groups each patient into an age group, for each day of their treatment
+  df_incidence[current_age >= 12 & current_age < 21, age_group:= "12-20.99"]
+  df_incidence[current_age >= 21 & current_age < 31, age_group:= "21-30.99"]
+  df_incidence[current_age >= 31 & current_age < 41, age_group:= "31-40.99"]
+  df_incidence[current_age >= 41 & current_age < 56, age_group:= "41-55.99"]
+  
   incidence_by_age <- df_incidence[,.N, by = .(year,month, age_group)]
   # Get unique values of age groups - for the for loop
   age_group_unique <- unique(incidence_by_age$age_group)
@@ -419,8 +459,32 @@ for (i in 1:length(tx_episodes_files)){
     saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
   
+  
   if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED INCIDENCE BY INDICATION ###################
+    # Merge indications with df_incidence 
+    df_incidence <- all_indications[df_incidence,on=.(person_id), allow.cartesian = T]
+    # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
+    df_incidence[indication=="ind_bipolar", ind_bipolar_date:=Date]
+    df_incidence[indication=="ind_epilepsy", ind_epilepsy_date:=Date]
+    df_incidence[indication=="ind_migraine", ind_migraine_date:=Date]
+    df_incidence<-df_incidence[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+    
+    df_incidence <- df_incidence[!duplicated(df_incidence[,c("person_id", "episode.start", "episode.end", "birth_date", "indication")])]
+    df_incidence[,Date:=NULL][,Code:=NULL][,indication:=NULL]
+    df_incidence <- df_incidence[!duplicated(df_incidence)]
+    df_incidence <- setDT(df_incidence)[, lapply(.SD, function(x) unique(na.omit(x))), by = c("person_id", "episode.ID", "episode.start", "episode.end", "birth_date", "entry_date","exit_date")]
+    df_incidence[,bipolar_diff:=episode.start-ind_bipolar_date][,epilepsy_diff:=episode.start-ind_epilepsy_date][,migraine_diff:=episode.start-ind_migraine_date]
+    df_incidence[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
+    df_incidence <- df_incidence[,num_obs:=rowSums(!is.na(df_incidence[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
+    df_incidence[num_obs==0, indication:="unknown"]
+    df_incidence[num_obs==1 & !is.na(epilepsy_diff), indication:="epilepsy"]
+    df_incidence[num_obs==1 & !is.na(bipolar_diff), indication:="bipolar"]
+    df_incidence[num_obs==1 & !is.na(migraine_diff), indication:="migraine"]
+    df_incidence[num_obs>1, indication:="multiple"]
+    drop.cols <- grep("diff|ind_", colnames(df_incidence))
+    df_incidence[, (drop.cols) := NULL]
+    
     # Performs incidence counts - stratified by indication
     incidence_by_indication <- df_incidence[,.N, by = .(year,month, indication)]
     # Get unique values of age groups - for the for loop

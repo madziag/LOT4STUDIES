@@ -70,7 +70,6 @@ if (nrow(D3_pregnancy_reconciled)>0){
   for (i in 1:length(tx_episodes_files)){ 
     # Reads in the treatment episodes file 
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
-    tx_episodes <- tx_episodes[,-c("ATC", "type")]
     # Merge tx episodes with pregnancy records 
     tx_episodes_preg <- D3_pregnancy_reconciled[tx_episodes, on = .(person_id), allow.cartesian = T] # Left join
     # Delete records without pregnancy records

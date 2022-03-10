@@ -109,7 +109,7 @@ if (is_Denmark == T){
       # Counts of medicines used during a pregnancy 
 #      source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
       # Alternative medicine counts
-#      source(paste0(pre_dir, "altmeds_final_counts.R"))
+      source(paste0(pre_dir, "altmeds_final_counts.R"))
       # Counts of patients who switched from Retinoid/Valproate use to alt med use
       source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
       # Makes plots of all counts files

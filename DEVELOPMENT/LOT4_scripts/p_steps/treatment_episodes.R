@@ -101,10 +101,12 @@ for (i in 1:length(split_data)){
   if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
   #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-
+  
+  if (nrow(my_treat_episode)>0){
   #write data
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
   saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))
+  }
 }
 
 # rm(my_data, my_treat_episode, all_data)
@@ -112,28 +114,21 @@ for (i in 1:length(split_data)){
 #make "all_retinoid" and "all_valproate"
 
 my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+# Load files 
+retinoid_files <- my_files[grepl(c("D05BB02|D11AH04|D10BA01"), my_files)]
 
-my_data<-  lapply(paste0(g_intermediate, "treatment_episodes/",my_files), readRDS)
+if(pop_prefix == "PC"){retinoid_files <- retinoid_files[!grepl("PC_HOSP",retinoid_files)]}
+if(pop_prefix == "PC_HOSP"){retinoid_files <- retinoid_files[grepl("PC_HOSP",retinoid_files)]}
+all_ret_list <- lapply(paste0(g_intermediate, "treatment_episodes/", retinoid_files), readRDS)
+all_ret <- rbindlist(all_ret_list)
 
-my_names<-as.data.frame(matrix(ncol = 2, nrow=5))
-colnames(my_names)<-c("Code", "Drug")
-my_names$Code<-c("D05BB02", "D11AH04","D10BA01", "N03AG01", "N03AG02")
-my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
+valproate_files <- my_files[grepl(c("N03AG01|N03AG02"), my_files)]
+if(pop_prefix == "PC"){valproate_files <- valproate_files[!grepl("PC_HOSP",valproate_files)]}
+if(pop_prefix == "PC_HOSP"){valproate_files <- valproate_files[grepl("PC_HOSP",valproate_files)]}
+all_valp_list <- lapply(paste0(g_intermediate, "treatment_episodes/", valproate_files), readRDS)
 
-for(i in 1:length(my_data)){
-  my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
-  
-  my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
-  my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
+all_valp <- rbindlist(all_valp_list)
 
-
-all_data<-bind_rows(my_data, .id = "column_label")
-
-all_ret<- as.data.table(all_data[all_data$type=="Retinoid",])
-all_valp<- as.data.table(all_data[all_data$type=="Valproate",])
-
-# Suppresses warnings 
-options(warn=-1)
 
 if(nrow(all_ret>0)){
   saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Retinoid_CMA_treatment_episodes.rds")))
@@ -144,5 +139,27 @@ if(nrow(all_valp>0)){
   saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
 }
 
-rm(my_data, my_treat_episode)
+# rm(my_data, my_treat_episode)
 
+
+
+# my_names<-as.data.frame(matrix(ncol = 2, nrow=5))
+# colnames(my_names)<-c("Code", "Drug")
+# my_names$Code<-c("D05BB02", "D11AH04","D10BA01", "N03AG01", "N03AG02")
+# my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
+# 
+# for(i in 1:length(my_data)){
+#   my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
+# 
+#   my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
+#   my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
+# 
+# 
+# all_data<-bind_rows(my_data, .id = "column_label")
+# 
+# all_ret<- as.data.table(all_data[all_data$type=="Retinoid",])
+# all_valp<- as.data.table(all_data[all_data$type=="Valproate",])
+# 
+# # Suppresses warnings
+# options(warn=-1)
+# 
