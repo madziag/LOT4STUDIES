@@ -49,7 +49,21 @@ str(contra_data$assumed_duration)
   return.data.table = FALSE)
 
   # Remove episodes that end before the start of the study period 
-  my_treat_episode <- my_treat_episode[year(my_treat_episode$episode.end)>2009,]
+  my_treat_episode <- as.data.table(my_treat_episode)
+  my_treat_episode[,episode.start:= as.IDate(episode.start,"%Y%m%d")][,episode.end:= as.IDate(episode.end,"%Y%m%d")]
+  
+  # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
+  my_treat_episode1 <- as.data.table(merge(my_treat_episode, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id"))
+  # Exclude rows where episode.end is before entry.date-90
+  # Therefore, keep records that have a episode.start < entry.date, unless the above exclusion criterion is met  
+  my_treat_episode1 <- my_treat_episode1[episode.end > entry_date - 90,]
+  #  IF (episode.end > exit.date) {episode.end <- exit.date}
+  my_treat_episode1 <- my_treat_episode1[episode.end>exit_date, episode.end:=exit_date]
+  #  ??? IF (episode.start >= exit.date) EXCLUDE row
+  my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
+  my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
+  my_treat_episode <- my_treat_episode1
+  
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix ,"_contraceptives_treatment_episodes.rds")))
   
 summary(my_treat_episode)

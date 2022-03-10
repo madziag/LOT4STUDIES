@@ -146,10 +146,10 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes[,episode.start:=as.IDate(episode.start)][,episode.end:=as.IDate(episode.end)]
   # Removes unnecessary columns
   df_episodes <- df_episodes[,-c("ATC", "type", "column_label", "end.episode.gap.days", "episode.duration")]
-  # Removes records where entry into study date is before episode start date
-  df_episodes <- df_episodes[exit_date>=episode.start,]
-  # If exit from study date is before end of episode date, then end.episode.day = exit_date
-  df_episodes[exit_date<episode.end,episode.end:=exit_date]
+  # # Removes records where entry into study date is before episode start date
+  # df_episodes <- df_episodes[exit_date>=episode.start,]
+  # # If exit from study date is before end of episode date, then end.episode.day = exit_date
+  # df_episodes[exit_date<episode.end,episode.end:=exit_date]
   # Add row numbers to each row 
   df_episodes[,nrow:=.I]
   # Checks if there are indication files and performs action only for DAPs with indication files 

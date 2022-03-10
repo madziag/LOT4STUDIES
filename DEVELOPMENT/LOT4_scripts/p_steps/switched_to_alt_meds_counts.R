@@ -107,7 +107,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     setnames(alt_med_df, "Code", "ATC")
     setnames(alt_med_df, "Date", "record_date")
     # Remove any records that do not fall between entry and exit into study dates 
-    alt_med_df<-alt_med_df[record_date>=entry_date&record_date<=exit_date,]
+    alt_med_df<-alt_med_df[record_date>=entry_date&record_date<exit_date,]
     # Merge tx episodes with altmed records 
     alt_med_tx_episodes <- tx_episodes[alt_med_df, on = .(person_id), allow.cartesian = T] 
     # Delete records without alt medicine use

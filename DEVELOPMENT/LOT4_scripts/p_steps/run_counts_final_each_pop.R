@@ -53,6 +53,8 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
     # Counts of medicine records during contraception episodes
     source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
+    # Alternative medicine counts
+    source(paste0(pre_dir, "altmeds_final_counts.R"))
     # Counts of patients who switched from Retinoid/Valproate use to alt med use
     source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
     # Makes plots of all counts files

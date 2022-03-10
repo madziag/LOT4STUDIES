@@ -24,7 +24,8 @@ my_valproate<-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, 
 if(study_type=="Retinoid") {my_data<-readRDS(paste0(tmp, "medications/",my_retinoid))
 all_data<-my_data
 my_name<-levels(factor(my_data$Code))
-split_data<-split(all_data, all_data$Code)}
+split_data<-split(all_data, all_data$Code)
+}
 
 if(study_type=="Valproate"){my_data<-readRDS(paste0(tmp, "medications/",my_valproate))
 my_name<-levels(factor(my_data$Code))
@@ -77,6 +78,20 @@ for (i in 1:length(split_data)){
   ) 
   
   ###############
+  my_treat_episode <- as.data.table(my_treat_episode)
+  my_treat_episode[,episode.start:= as.IDate(episode.start,"%Y%m%d")][,episode.end:= as.IDate(episode.end,"%Y%m%d")]
+  
+  # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
+  my_treat_episode1 <- as.data.table(merge(my_treat_episode, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id"))
+  # Exclude rows where episode.end is before entry.date-90
+  # Therefore, keep records that have a episode.start < entry.date, unless the above exclusion criterion is met  
+  my_treat_episode1 <- my_treat_episode1[episode.end > entry_date - 90,]
+  #  IF (episode.end > exit.date) {episode.end <- exit.date}
+  my_treat_episode1 <- my_treat_episode1[episode.end>exit_date, episode.end:=exit_date]
+  #  ??? IF (episode.start >= exit.date) EXCLUDE row
+  my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
+  my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
+  my_treat_episode <- my_treat_episode1
   #LOGICAL CHECKS
   #duration is positive
   if(all((my_treat_episode$episode.end-my_treat_episode$episode.start)>0)==FALSE){print("WARNING negative durations detected")}else{print("durations all positive")}
@@ -86,8 +101,7 @@ for (i in 1:length(split_data)){
   if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contraception data present in treatment episodes")}else{print("WARNING person id in treatment episodes are not the same as contraception dataset")}
   #HOW IS THERE A DURATION LESS THAN THE SHORTEST ASSUMED DURATION?
   if(all(my_treat_episode$episode.duration>=30)==T){print("OK: minimum treatment episode equal or greater than assumed duration")}else(print("WARNING treatment episodes shorter than assumed duration"))
-  # Remove episodes that end before the start of the study period 
-  my_treat_episode <- my_treat_episode[year(my_treat_episode$episode.end)>2009,]
+
   #write data
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))
   saveRDS(summary(my_treat_episode), (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_summary_treatment_episodes.rds")))
@@ -108,7 +122,7 @@ my_names$Drug<-c("Retinoid", "Retinoid", "Retinoid", "Valproate", "Valproate")
 
 for(i in 1:length(my_data)){
   my_label<-my_names[(str_detect(my_files[i], my_names$Code)),]
-
+  
   my_data[[i]]$ATC<-rep(my_label[1], nrow(my_data[[i]]))
   my_data[[i]]$type<-rep(my_label[2], nrow(my_data[[i]]))}
 
@@ -127,7 +141,7 @@ if(nrow(all_ret>0)){
 
 
 if(nrow(all_valp>0)){
-   saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
+  saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))
 }
 
 rm(my_data, my_treat_episode)

@@ -42,7 +42,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
   for (i in 1:length(med_files)){ 
     ## Loads the medication record
     med_df <- as.data.table(readRDS(paste0(medications_pop, med_files[i]))) # Loads file
-    med_df <- med_df[Date>=entry_date & Date<=exit_date]
+    med_df <- med_df[Date>=entry_date & Date<exit_date]
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column
     # Merge med file with pregnancy records 

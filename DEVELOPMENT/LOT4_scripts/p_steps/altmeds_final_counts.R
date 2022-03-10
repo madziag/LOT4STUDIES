@@ -59,7 +59,7 @@ if(length(all_temps)>0){
 ### RETINOIDS ###
 altmeds_retinoids <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T)
 if(pop_prefix == "PC"){altmeds_retinoids <- altmeds_retinoids[!grepl("PC_HOSP",altmeds_retinoids)]}
-if(pop_prefix == "PC_HOSP"){altmeds_retinoids <- altmeds_retinoids[!grepl("PC",altmeds_retinoids)]}
+if(pop_prefix == "PC_HOSP"){altmeds_retinoids <- altmeds_retinoids[grepl("PC_HOSP",altmeds_retinoids)]}
 
 if(length(altmeds_retinoids)>0){
   for(med in 1:length(altmeds_retinoids)){
@@ -78,7 +78,7 @@ if(length(altmeds_retinoids)>0){
   all_altmed_retinoids <- do.call(rbind,lapply(paste0(medications_pop,altmeds_retinoids), readRDS))
   alt_med_retinoids_df <- all_altmed_retinoids[,c("person_id", "Code", "Date","birth_date", "entry_date", "exit_date", "alt_med_type")]
   # Check that you only have records between the patients entry and exit into study dates
-  alt_med_retinoids_df <- alt_med_retinoids_df[Date>=entry_date&Date<=exit_date,]
+  alt_med_retinoids_df <- alt_med_retinoids_df[Date>=entry_date&Date<exit_date,]
   alt_med_retinoids_df <-alt_med_retinoids_df [!duplicated(alt_med_retinoids_df),]
   # Creates a column with patients age on every day of in the treatment episode
   alt_med_retinoids_df[,age_at_dispensing:= floor((Date- birth_date)*10/365.25)/10]
@@ -113,7 +113,7 @@ if(length(altmeds_retinoids)>0){
 ### VALPROATES ### 
 altmeds_valproates <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T)
 if(pop_prefix == "PC"){altmeds_valproates <- altmeds_valproates[!grepl("PC_HOSP",altmeds_valproates)]}
-if(pop_prefix == "PC_HOSP"){altmeds_valproates <- altmeds_valproates[!grepl("PC",altmeds_valproates)]}
+if(pop_prefix == "PC_HOSP"){altmeds_valproates <- altmeds_valproates[grepl("PC_HOSP",altmeds_valproates)]}
 
 if(length(altmeds_valproates)>0){
   for(med in 1:length(altmeds_valproates)){
@@ -131,7 +131,7 @@ if(length(altmeds_valproates)>0){
   all_altmed_valproates <- do.call(rbind,lapply(paste0(medications_pop,altmeds_valproates), readRDS))
   alt_med_valproates_df <- all_altmed_valproates[,c("person_id", "Code", "Date","birth_date", "entry_date", "exit_date", "alt_med_type")]
   # Check that you only have records between the patients entry and exit into study dates
-  alt_med_valproates_df <-alt_med_valproates_df[Date>=entry_date&Date<=exit_date,]
+  alt_med_valproates_df <-alt_med_valproates_df[Date>=entry_date&Date<exit_date,]
   alt_med_valproates_df <-alt_med_valproates_df [!duplicated(alt_med_valproates_df),]
   
   # Creates a column with patients age on every day of in the treatment episode
