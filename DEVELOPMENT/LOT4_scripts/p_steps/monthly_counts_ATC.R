@@ -54,7 +54,7 @@ if(length(med_files)>0){
     # Loads table
     df<-fread(paste(path_dir, med_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record")] # Keep necessary columns
+    df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record", "presc_duration_days", "disp_number_medicinal_product", "presc_quantity_per_day")] # Keep necessary columns
     df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_drug_record","Meaning") # Renames column names
     setnames(df,"medicinal_product_atc_code", "Code") # Renames column names
