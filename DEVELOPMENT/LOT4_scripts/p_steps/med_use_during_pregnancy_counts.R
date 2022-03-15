@@ -71,7 +71,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       ############################
       med_use_during_preg_counts <- within(med_use_during_preg_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       med_use_during_preg_counts <- merge(x = med_use_during_preg_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
-      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
       med_use_during_preg_counts <- med_use_during_preg_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(med_use_during_preg_counts, "masked_num", "masked")
       # Save files 

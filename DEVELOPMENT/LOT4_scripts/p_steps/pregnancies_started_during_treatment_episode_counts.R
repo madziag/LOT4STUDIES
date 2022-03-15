@@ -24,31 +24,16 @@ D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
 D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
 D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
 
-D3_pregnancy_reconciled[pregnancy_start_date=="2003-08-21", pregnancy_start_date:=as.IDate(as.character(20171212), "%Y%m%d")]
-D3_pregnancy_reconciled[pregnancy_start_date=="2009-11-03", pregnancy_start_date:=as.IDate(as.character(20160120), "%Y%m%d")]
-D3_pregnancy_reconciled[pregnancy_start_date=="2012-07-26", pregnancy_start_date:=as.IDate(as.character(20180831), "%Y%m%d")]
-D3_pregnancy_reconciled[pregnancy_start_date=="2019-02-23", pregnancy_start_date:=as.IDate(as.character(20190630), "%Y%m%d")]
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
-# Filters by current subpopulation 
-tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
-
-if(populations[pop] == "PC_study_population.rds"){
-  tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
-  tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
-}
+if(pop_prefix == "PC"){tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP",tx_episodes_files)]}
+if(pop_prefix == "PC_HOSP"){tx_episodes_files <- tx_episodes_files[grepl("PC_HOSP",tx_episodes_files)]}
 
 # 3. Prevalent user counts 
 prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-# Filters by current subpopulation 
-prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
-
-if(populations[pop] == "PC_study_population.rds"){
-  prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-  prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
-}
-
+if(pop_prefix == "PC"){prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP",prevalent_counts_files)]}
+if(pop_prefix == "PC_HOSP"){prevalent_counts_files <- prevalent_counts_files[grepl("PC_HOSP",prevalent_counts_files)]}
 prevalent_counts_files <- prevalent_counts_files[!grepl("age_group|indication|tx_dur", prevalent_counts_files)]
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
@@ -72,6 +57,11 @@ if (nrow(D3_pregnancy_reconciled)>0){
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
     # Merge tx episodes with pregnancy records 
     tx_episodes_preg <- D3_pregnancy_reconciled[tx_episodes, on = .(person_id), allow.cartesian = T] # Left join
+    # Merge records with study population to get entry and exit date 
+    # Merges with study population to get birth_date (study population has been loaded in the wrapper script)
+    tx_episodes_preg <- merge(tx_episodes_preg, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id")
+    # Remove pregnancies that started outside study period
+    tx_episodes_preg <- tx_episodes_preg[pregnancy_start_date>=entry_date & pregnancy_start_date<exit_date,]
     # Delete records without pregnancy records
     tx_episodes_preg <- tx_episodes_preg[!is.na(pregnancy_start_date),]
     # Remove duplicates
@@ -103,7 +93,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked", "true_value")]
       setnames(prevalent_counts, "N", "Freq")
       preg_start_during_tx_counts <- merge(x = preg_start_during_tx_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE) # Merge with med counts
-      preg_start_during_tx_counts <- preg_start_during_tx_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      preg_start_during_tx_counts <- preg_start_during_tx_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
       preg_start_during_tx_counts <- preg_start_during_tx_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(preg_start_during_tx_counts, "masked_num", "masked")
       # Save files 

@@ -4,58 +4,45 @@
 #Date: 05/01/2022
 
 #this section finds files matching any contraception vocabulary from the three possible folders: medications, procedures and diagnoses
+# Lists all contraception files (depending on population )
+### From Medications folder 
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
-contracep_med_list <- contracep_med_list[grepl(pop_prefix, contracep_med_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
-  contracep_med_list<- contracep_med_list[!grepl("PC_HOSP", contracep_med_list)]
-}
+if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
+### From procedures folder 
+contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud") 
+if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
+### From diagnoses folder 
+contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")   
+if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
+### From procedures_dxcodes folder 
+contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = T, pattern="iud")   
+if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
 
-contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud")    
-contracep_proc_list <- contracep_proc_list[grepl(pop_prefix, contracep_proc_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T, pattern="iud") 
-  contracep_proc_list<- contracep_proc_list[!grepl("PC_HOSP", contracep_proc_list)]
-}
-
-contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")                               
-contracep_diag_list <- contracep_diag_list[grepl(pop_prefix, contracep_diag_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")
-  contracep_diag_list<- contracep_diag_list[!grepl("PC_HOSP", contracep_diag_list)]
-}
-
-
-contracep_tables<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list))
+contracep_tables<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
 
 contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = F,pattern="contracep")
-contracep_med_list <- contracep_med_list[grepl(pop_prefix, contracep_med_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = F,pattern="contracep")
-  contracep_med_list<- contracep_med_list[!grepl("PC_HOSP", contracep_med_list)]
-}
+if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
+### From procedures folder 
+contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud") 
+if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
+### From diagnoses folder 
+contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")   
+if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
+### From procedures_dxcodes folder 
+contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = F, pattern="iud")   
+if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
+if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
 
-contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud")
-contracep_proc_list <- contracep_proc_list[grepl(pop_prefix, contracep_proc_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud")
-  contracep_proc_list<- contracep_proc_list[!grepl("PC_HOSP", contracep_proc_list)]
-}
-
-contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")
-contracep_diag_list <- contracep_diag_list[grepl(pop_prefix, contracep_diag_list)]
-if(populations[pop] == "PC_study_population.rds"){
-  contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")
-  contracep_diag_list<- contracep_diag_list[!grepl("PC_HOSP", contracep_diag_list)]
-}
-
-
-
-contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list))
+contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
 
 # In each dataset, create a new column called assumed_duration.
-
-
 # diagnoses\iud_diag.rds: assumed_duration = 1095
 # procedures\iud.rds: assumed_duration = 1095
 
@@ -96,19 +83,14 @@ for (i in 1:length(contracep_tables)){
   #get data
   my_contra<-readRDS(contracep_tables[i])
   my_rows[i]<-nrow(my_contra)
-  
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
-  
   #directly impute the duration of contraception
   my_contra$assumed_duration<-rep(my_dur$duration_contra,nrow(my_contra))
-
   #standardize start date of contraception
   # event_date is a composite variable indicating the onset of treatment --> rename to contraception_record_date
   #IUD does not have event_date, but procedure_date  ### event_date and procedure_dates have been changed to Date for uniformity's sake
   if("Date" %in%names(my_contra)) {names(my_contra)[names(my_contra)=="Date"]<-"contraception_record_date"}
-  # } else {(names(my_contra)[names(my_contra)=="procedure_date"]<-"contraception_record_date")}
-  
   ###################################################################################
   # rename meaning column to contraception_meaning,
   ###################################################################################
@@ -117,7 +99,7 @@ for (i in 1:length(contracep_tables)){
   ##warning message not relevant, suppressed
   names(my_contra)[names(my_contra)==meaning_contra]<-"contraception_meaning"
   # Save record
-  saveRDS(my_contra,(paste0(contra_folder,contracep_names[i] )))
+  saveRDS(my_contra,(paste0(contra_folder,contracep_names[i])))
   #make "master" contraception dataframe for treatment episodes 
   new_df<-my_contra[,c("person_id","contraception_record_date", "assumed_duration", "Code", "contraception_meaning")]
   all_contra<-rbind(all_contra, new_df)

@@ -113,12 +113,12 @@ for(i in 1:length(my_folders_rates)){
 for(i in 1:length(my_folders_props)){
   #read in list of RDS files
   my_files <-grep(list.files(path=paste0(All_regions_dir,my_folders_props[i])), pattern='Pooled', invert=TRUE, value=TRUE)
-  if(str_detect(list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern='Pooled')[1], "final") |
-     str_detect(list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern='Pooled')[2], "final")){
-    pool_file<-list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern='final_Pooled')
-  } else {
+  if(length(list.files(paste0(All_regions_dir,my_folders_props[i]), pattern='Pooled')) == 1){
     pool_file<-list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern='counts_Pooled')
+  } else {
+    pool_file<-list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern='final_Pooled')
   }
+
   my_pool<-fread(paste0(All_regions_dir, my_folders_props[i],"/", pool_file ))
   my_max<- (max(my_pool$rates))*2
   if (length(my_files)>0){
@@ -144,7 +144,9 @@ for(i in 1:length(my_folders_props)){
 
 
 for(i in 1:length(my_folders_props)){
-  my_files<-grep(list.files(path=paste0(All_regions_dir,my_folders_props[i])), pattern='final_Pooled', invert=FALSE, value=TRUE)
+  if(length(list.files(paste0(All_regions_dir,my_folders_props[i]), pattern='Pooled')) == 1){pattern1<-"counts_Pooled"}else{pattern1<-"final_Pooled"}
+  pool_file<-list.files(path=paste0(All_regions_dir,my_folders_props[i]), pattern=pattern1)
+  my_files<-grep(list.files(path=paste0(All_regions_dir,my_folders_props[i])), pattern=pattern1, invert=FALSE, value=TRUE)
   my_data<-my_data<-fread(paste0(All_regions_dir,my_folders_props[i],"/",my_files))
   my_data[!is.finite(my_data$rates),]$rates <- 0  #Set NA/inf rate values to 0
   my_max <- (max(my_data$rates))*1.1

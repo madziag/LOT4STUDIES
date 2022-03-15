@@ -20,16 +20,8 @@
 # 1. Contraception episode records 
 # Looks for Contraception episode files in treatment episodes folder 
 contra_epi_files <- list.files(paste0(g_intermediate,"treatment_episodes/"), pattern = paste0(pop_prefix, "_contraceptive"), recursive = T, full.names = T)
-# Filters by current subpopulation 
-contra_epi_files <- contra_epi_files[grepl(pop_prefix, contra_epi_files )]
-
-if(populations[pop] == "PC_study_population.rds"){
-  contra_epi_files <- list.files(paste0(g_intermediate,"treatment_episodes/"), pattern = paste0(pop_prefix, "_contraceptive"), recursive = T, full.names = T)
-  contra_epi_files <- contra_epi_files[!grepl("PC_HOSP", contra_epi_files)]
-}
-# 2. Retinoid/Valproate records 
-# Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
-# name of variable with list of medicines available -> med_files
+if(pop_prefix == "PC"){contra_epi_files <- contra_epi_files[!grepl("PC_HOSP",contra_epi_files)]}
+if(pop_prefix == "PC_HOSP"){contra_epi_files <- contra_epi_files[grepl("PC_HOSP",contra_epi_files)]}
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
@@ -113,7 +105,7 @@ if(length(contra_epi_files)>0) {
       # Rate calculation
       tx_in_episode_counts <- within(tx_in_episode_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       tx_in_episode_counts <- merge(x = tx_in_episode_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      tx_in_episode_counts <- tx_in_episode_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+      tx_in_episode_counts <- tx_in_episode_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
       tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(tx_in_episode_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to medicines counts folder)
@@ -165,13 +157,24 @@ if(length(contra_epi_files)>0) {
           tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id), allow.cartesian = T]
           # tx_in_episode_df_indications <- tx_in_episode_df_indications[Date>indication_date,]
           tx_in_episode_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
+          # Creates subset with missing indications, assigns final_indication value as unknown
           tx_in_episode_df_indications_missing<- tx_in_episode_df_indications[is.na(indication),]
           tx_in_episode_df_indications_missing[,final_indication:="unknown"]
+          # Creates subset without missing indications
           tx_in_episode_df_indications_notmissing<- tx_in_episode_df_indications[!is.na(indication),]
+          # Counts the number of unique indications per person, date of medication
+          # If length = 1, then final indication is the name in the indication column
+          # If length > 1, then final indication = multiple
           tx_in_episode_df_indications_notmissing[,indication_count:=length(unique(indication)), by = .(person_id, Date)]
           tx_in_episode_df_indications_notmissing[indication_count==1, final_indication:=indication][indication_count>1,final_indication:="multiple"]
+          # Removes no longer needed columns 
           tx_in_episode_df_indications_notmissing[,indication_count:=NULL]
+          # Binds missing and non missing dfs
           tx_in_episode_df_indications<-rbind(tx_in_episode_df_indications_missing,tx_in_episode_df_indications_notmissing)
+          # Remove no longer needed columns
+          tx_in_episode_df_indications[,indication_date:=NULL][,Code:=NULL][,indication:=NULL][,tx_in_episode:=NULL]
+          # Remove duplicates
+          tx_in_episode_df_indications <- tx_in_episode_df_indications[!duplicated(tx_in_episode_df_indications),]
           # Performs pgtests counts - stratified by age group
           tx_in_episode_by_indication <- tx_in_episode_df_indications[,.N, by = .(year(Date),month(Date), final_indication)]
           # Get unique values of age groups - for the for loop

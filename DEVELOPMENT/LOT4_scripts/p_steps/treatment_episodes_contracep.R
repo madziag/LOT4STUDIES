@@ -61,6 +61,9 @@ str(contra_data$assumed_duration)
   my_treat_episode1 <- my_treat_episode1[episode.end>exit_date, episode.end:=exit_date]
   #  IF (episode.start >= exit.date) EXCLUDE row
   my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
+  # Episode end must be > than episode.start
+  my_treat_episode1 <- my_treat_episode1[episode.end>episode.start,]
+  # Drops columns 
   my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
   my_treat_episode <- my_treat_episode1
   
@@ -81,7 +84,5 @@ if(all(original_ids%in%treat_epi_ids==T)){print("all person ids from contracepti
 all(my_treat_episode$episode.duration>=28)
 table(contra_data$assumed_duration)
 table(my_treat_episode$episode.duration)
-
-#if(length(weird_ID<-my_treat_episode$person_id[my_treat_episode$episode.duration<28])>0){print(my_treat_episode[my_treat_episode$person_id%in%weird_ID,])}else{print("durations> minimum assumed duration")}
 
 rm(my_treat_episode, contra_data)
