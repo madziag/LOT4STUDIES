@@ -72,7 +72,6 @@ DAP_specific_DOT <- F   #### assumed treatment duration for creating treatment e
 ############[PLEASE NOTE] ############################################
 # THERE ARE NO DAP SPECIFIC ASSUMED DURATION VALUES FOR:
 # - ARS (use default 30 days) 
-# - CASERTA (pending external file to calculate DAP specific values)
 ############[PLEASE NOTE] ###########################################
 
 ################################################

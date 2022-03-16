@@ -36,7 +36,7 @@ my_folders <- list.files(All_regions_dir, pattern="counts") # 508 (excluded: 2 b
 # 5. Preg_starts
 my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
 #351
-my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|ATC"), my_folders_rates)]
+my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|ATC|reason|contra_type"), my_folders_rates)]
 #171
 # PROPORTIONS 
 # 1. Discontinued
@@ -51,7 +51,7 @@ my_folders_props <- my_folders_props[!grepl(c("age_group|indication|tx_dur|ATC")
 #24
 #create ylim max from pooled file
 ### Strtaified records 
-my_folders_stratified <- my_folders[grepl(c("age_group|indication|tx_dur|ATC"), my_folders)]
+my_folders_stratified <- my_folders[grepl(c("age_group|indication|tx_dur|ATC|reason|contra_type"), my_folders)]
 
 # Combined plots 
 for(i in 1:length(my_folders_rates)){

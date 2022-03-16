@@ -110,7 +110,10 @@ if(length(discontinued_all_files)>1){
       # Merge discontinued with folic acid records # LEFT JOIN
       df_discontinued <- df_folic_acid[df_discontinued,on=.(person_id), allow.cartesian = T] 
       # ignore folic acid values if date is 90+ days before discontinuation date or if folic acid date is after disconinuation date
-      df_discontinued[discontinued_date-folic_acid_date>=90|discontinued_date<folic_acid_date, folic_acid_date:=NA]
+      df_discontinued[folic_acid_date>discontinued_date, folic_acid_date:=NA]
+      df_discontinued[,diff:=discontinued_date-folic_acid_date]
+      # If difference between discontinued and folic acid date > than 90, ignore folic acid values
+      df_discontinued[diff>=90, folic_acid_date:=NA][,diff:=NULL]
       # Order data 
       df_discontinued <- df_discontinued[order(person_id,discontinued_date, folic_acid_date)]
       # Deduplicate records
@@ -123,8 +126,11 @@ if(length(discontinued_all_files)>1){
     # Pregnancy records loaded outside the for loop
     # Merge study population with pregnancy records
     df_discontinued <- D3_pregnancy_reconciled[df_discontinued,on=.(person_id), allow.cartesian = T] 
-    # ignore pregnancies if date is 90+ days before discontinuation date or if folic acid date is after disconinuation date
-    df_discontinued[discontinued_date-pregnancy_start_date>=90|discontinued_date<pregnancy_start_date, pregnancy_start_date:=NA]
+    # ignore pregnancy start date if date is 90+ days before discontinuation date or if pregnany start date is after disconinuation date
+    df_discontinued[pregnancy_start_date>discontinued_date, pregnancy_start_date:=NA]
+    df_discontinued[,diff:=discontinued_date-pregnancy_start_date]
+    # If difference between discontinued and pregnancy start date > than 90, ignore folic acid values
+    df_discontinued[diff>=90, pregnancy_start_date:=NA][,diff:=NULL]
     # Order data 
     df_discontinued <- df_discontinued[order(person_id,discontinued_date, pregnancy_start_date)]
     # Deduplicate records
@@ -142,7 +148,10 @@ if(length(discontinued_all_files)>1){
           # Merge with discontinued file
           df_discontinued <- adr_record[df_discontinued,on=.(person_id), allow.cartesian = T] 
           # ignore adrs if date is 90+ days before discontinuation date or if folic acid date is after disconinuation date
-          df_discontinued[discontinued_date-adr_date>=90|discontinued_date<adr_date, adr_date:=NA]
+          df_discontinued[adr_date>discontinued_date, adr_date:=NA]
+          df_discontinued[,diff:=discontinued_date-adr_date]
+          # If difference between discontinued and adr date > than 90, ignore folic acid values
+          df_discontinued[diff>=90, adr_date:=NA][,diff:=NULL]
           # Order data 
           df_discontinued <- df_discontinued[order(person_id,discontinued_date, adr_date)]
           # Deduplicate records
@@ -157,7 +166,10 @@ if(length(discontinued_all_files)>1){
           # Merge with discontinued file
           df_discontinued <- adr_record[df_discontinued,on=.(person_id), allow.cartesian = T] 
           # ignore adrs if date is 90+ days before discontinuation date or if folic acid date is after disconinuation date
-          df_discontinued[discontinued_date-adr_date>=90|discontinued_date<adr_date, adr_date:=NA]
+          df_discontinued[adr_date>discontinued_date, adr_date:=NA]
+          df_discontinued[,diff:=discontinued_date-adr_date]
+          # If difference between discontinued and adr date > than 90, ignore folic acid values
+          df_discontinued[diff>=90, adr_date:=NA][,diff:=NULL]
           # Order data 
           df_discontinued <- df_discontinued[order(person_id,discontinued_date, adr_date)]
           # Deduplicate records

@@ -59,12 +59,16 @@ if(is_CPRD){
 }
 # 7.   CASERTA	Calculation	Retin: For every retinoid record, calculate the value
 # - If missing(disp_number_medicinal_product) disp_number_medicinal_product <- 1
-# - days_treated = disp_number_medicinal_product (MEDICINES) *  coverage per box 
-#### PENDING!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-# if(is_CASERTA){
-#   cma_data[is.na(disp_number_medicinal_product), disp_number_medicinal_product:=1]
-#   cma_data[,assumed_duration:=disp_number_medicinal_product * coverage_per_box] ### where do we get this value from?
-#   cma_data[is.na(assumed_duration), assumed_duration:=30]
-# }
-# 
+# - days_treated = disp_number_medicinal_product (MEDICINES) *  coverage per box (days)
+### THE ABOVE CALCULATIONS ARE DONE IN MONTHLY COUNTS ATC, AND VALUES ASSIGNED TO THE COLUMN PRESC_DURATION_DAYS ###
+if(is_CASERTA){
+  cma_data[,assumed_duration:=presc_duration_days][,assumed_duration:=as.numeric(assumed_duration)]
+  # If any NA's, we take the value of 30 days 
+  cma_data[is.na(assumed_duration), assumed_duration:=30]
+  if(sum(is.na(cma_data$presc_duration_days))>0){
+    print("Missing values for duration of treatment detected.")
+    print(paste0(sum(is.na(cma_data$presc_duration_days)), " missing values were imputed with a value of 30 days"))
+  }
+}
+
 

@@ -40,6 +40,8 @@ if(study_type == "Retinoid"){
 } else {
   print("Please indicate study type")
 }
+
+
 # Creates other lists
 comb_meds <- list()
 comb_meds1 <- list()
@@ -54,7 +56,7 @@ if(length(med_files)>0){
     # Loads table
     df<-fread(paste(path_dir, med_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
-    df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record", "presc_duration_days", "disp_number_medicinal_product", "presc_quantity_per_day")] # Keep necessary columns
+    df<-df[,c("person_id", "medicinal_product_atc_code", "date_dispensing", "date_prescription", "meaning_of_drug_record", "presc_duration_days", "disp_number_medicinal_product", "presc_quantity_per_day", "medicinal_product_id")] # Keep necessary columns
     df<-df[,lapply(.SD, FUN=function(x) gsub("^$|^ $", NA, x))] # Makes sure missing data is read appropriately
     setnames(df,"meaning_of_drug_record","Meaning") # Renames column names
     setnames(df,"medicinal_product_atc_code", "Code") # Renames column names
@@ -63,6 +65,7 @@ if(length(med_files)>0){
     colnames_events<-names(df)
     std_names_events<-names(study_population)
     colnames_events<-colnames_events[!colnames_events %in% "person_id"]
+    df[,medicinal_product_id:=as.integer(medicinal_product_id)][,Code:=as.character(Code)][,disp_number_medicinal_product:=as.integer(disp_number_medicinal_product)][,presc_duration_days:=as.numeric(presc_duration_days)]
     # Merges medicine table with study population table (there is no missing data in this table)
     df[,person_id:=as.character(person_id)]
     study_population[,person_id:=as.character(person_id)]
@@ -102,7 +105,6 @@ if(length(med_files)>0){
       comb_meds[[i]] <- do.call(rbind,lapply(paste0(events_tmp_ATC, files), readRDS))
       comb_meds[[i]] <- comb_meds[[i]][!duplicated(comb_meds[[i]]),]
       comb_meds1[[i]] <- comb_meds[[i]][Date>=entry_date & Date<=exit_date]
-            
       # Counts by month-yearcode
       counts <- comb_meds1[[i]][,.N, by = .(year,month(Date))]
       # Merges with empty_df
@@ -174,6 +176,34 @@ if(length(med_files)>0){
 
 # Delete all files in events_tmp_ATC (so as not to have them merge with the second subpopulation )
 for(file in list.files(events_tmp_ATC, pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
+
+### LOAD ddd coverage for CASERTA ###
+if(is_CASERTA){
+  # Load external file
+  ddd <- fread(paste0(pre_dir, "/CodeLists/ddd_coverage.csv"))
+  # Filter for Retinoid codes only 
+  ddd <-ddd[atc5== "D05BB02"|atc5=="D10BA01"|atc5=="D11AH04",]
+  # If days = 0, then change to days = 30
+  ddd[days==0,days:=30]
+  # Rename columns 
+  setnames(ddd, "atc5", "Code")
+  setnames(ddd, "minsan", "medicinal_product_id")
+  # Load Retinoid file from medications pop
+  retinoids <- readRDS(paste0(medications_pop, "ALL_Retinoid.rds"))
+  # Change to correct column format
+  ddd[,medicinal_product_id:=as.integer(medicinal_product_id)][,Code:=as.character(Code)]
+  # Merge the 2 files to get DAP specific durations
+  retinoids <- ddd[retinoids,on=.(Code,medicinal_product_id)] 
+  # 7.   CASERTA	Calculation	Retin: For every retinoid record, calculate the value
+  # - If missing(disp_number_medicinal_product) disp_number_medicinal_product <- 1
+  # - days_treated = disp_number_medicinal_product (MEDICINES) *  coverage per box (days)
+  # If disp_number_med_product is missing, assign it the value of 1
+  retinoids[is.na(disp_number_medicinal_product), disp_number_medicinal_product:=1]
+  
+  retinoids[,presc_duration_days:=as.numeric(disp_number_medicinal_product*days)][,days:=NULL]
+  # Saves file over the previous version
+  saveRDS(retinoids, paste0(medications_pop, pop_prefix, "_Retinoid.rds"))
+}
 
 # Cleanup
 rm(list = grep("^codelist|^comb|^count|^df|^sub", ls(), value = TRUE))
