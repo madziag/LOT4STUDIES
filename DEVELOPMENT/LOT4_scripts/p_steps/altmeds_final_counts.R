@@ -127,7 +127,8 @@ if(length(altmeds_valproates )>0){
   }
 }
 
-
+# Clean up
+rm(list = grep("^altmed_|denominator1", ls(), value = TRUE))
 
 
 

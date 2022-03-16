@@ -175,3 +175,5 @@ if(length(med_files)>0){
 # Delete all files in events_tmp_ATC (so as not to have them merge with the second subpopulation )
 for(file in list.files(events_tmp_ATC, pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
 
+# Cleanup
+rm(list = grep("^codelist|^comb|^count|^df|^sub", ls(), value = TRUE))

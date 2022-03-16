@@ -140,4 +140,4 @@ if (nrow(D3_pregnancy_reconciled)>0){
   print("No pregancy records have been found")
 }
 
-
+rm(list = grep("^tx_episode", ls(), value = TRUE))

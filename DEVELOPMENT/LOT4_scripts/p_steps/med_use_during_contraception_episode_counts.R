@@ -38,7 +38,7 @@ empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$y
 names(empty_df) <- c("year", "month")
 
 # 3. Indication records for valproates only
-if(length(all_temps)>0){
+if(length(list.files(all_indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
@@ -209,6 +209,43 @@ if(length(contra_epi_files)>0) {
             saveRDS(tx_in_episode_age_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
             for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
           }   
+          
+          ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY AGE GROUPS ###################
+          # Performs medicine counts during contraceptive episode - stratified by contraceptive type
+          tx_in_episode_by_contra_type <- tx_in_episode_df[,.N, by = .(year(Date),month(Date),contra_type)]
+          # Get unique values of age groups - for the for loop
+          contra_type_unique <- unique(tx_in_episode_by_contra_type$contra_type)
+          
+          for(group in 1:length(contra_type_unique)){
+            # Create a subset of age group
+            each_group <- tx_in_episode_by_contra_type[contra_type==contra_type_unique[group]]
+            # Adjust for PHARMO
+            if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+            # Merge with empty df (for counts that do not have counts for all months and years of study)
+            each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+            # Fills in missing values with 0
+            each_group[is.na(N), N:=0][is.na(contra_type), contra_type:=contra_type_unique[group]]
+            # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+            each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+            # Create YM variable 
+            each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+            # Masks values less than 5
+            # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+            each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
+            # Applies masking 
+            if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+            # Prepare denominator (all prevalence counts )
+            tx_in_episode_counts_min <- tx_in_episode_counts[,c("YM", "N")]
+            setnames(tx_in_episode_counts_min, "N", "Freq")
+            # Create counts file
+            tx_in_episode_contra_type_counts <- merge(x = each_group, y = tx_in_episode_counts_min, by = c("YM"), all.x = TRUE)
+            tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+            tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+            # Saves files in medicine counts folder
+            saveRDS(tx_in_episode_contra_type_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contra_type_", contra_type_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+            # Move files 
+            for (file in list.files(path=medicines_counts_dir, pattern="contra_type", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_contra_type, "/",file))}
+          }
         }
       }
     } else {
@@ -219,4 +256,5 @@ if(length(contra_epi_files)>0) {
   print("There are no Contraception records available!")
 }
 
-
+# Clean up
+rm(list = grep("^tx_in_episode|^contra_epi_|each_group|med_df", ls(), value = TRUE))

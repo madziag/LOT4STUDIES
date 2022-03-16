@@ -42,21 +42,21 @@ names(empty_df) <- c("year", "month")
 rm(denominator)
 
 # 3. Indication records for valproates only
-# Gets list of folders that could have indications 
-all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures_dxcodes")
-# If at least one of these folders exist: 
-if(length(all_temps)>0){
+# Check if any indications are present in the all_indications folder 
+if(length(list.files(all_indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
+  if(length(indications_list)>0){
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
   all_indications<-all_indications[order(person_id,indication, Date)]
   all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   setnames(all_indications,"Date","indication_date")
+  }
 }
 # Checks first if there are any contraception records found
 if(length(contra_files)>0) {
@@ -215,7 +215,7 @@ if(length(contra_files)>0) {
         }   
       }
     } else {
-      print(paste0("No contraceptive records were found within", contraceptives_window, "days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
+      print(paste0("No contraceptive records were found within ", contraceptives_window, " days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
     }
   }
 } else {
@@ -229,6 +229,6 @@ if(nrow(contra_prior_df)>0){
   for (file in list.files(path=contraceptive_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_indication, "/",file))}
 }
 
-
-
+# Clean up
+rm(list = grep("^contra_|each_group|med_df", ls(), value = TRUE))
 

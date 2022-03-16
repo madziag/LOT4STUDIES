@@ -112,4 +112,5 @@ if (nrow(D3_pregnancy_reconciled)>0){
   print("No pregnancy records have been found")
 }
 
-
+# Cleanup
+rm(list = grep("^med_use_during_|med_preg|med_df", ls(), value = TRUE))

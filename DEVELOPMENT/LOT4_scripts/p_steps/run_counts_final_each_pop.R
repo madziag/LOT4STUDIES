@@ -51,8 +51,10 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "treatment_episodes_contracep.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
     source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
+    # Counts of discontinuation, stratified by reason for discontinuation
+    source(paste0(pre_dir, "reasons_for_discontinuation.R"))
     # Counts of contraception records within 90 days before medication record 
-     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
+    source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
     # Counts of medicine records during contraception episodes
     source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
     # Alternative medicine counts
@@ -73,11 +75,8 @@ if (is_Denmark == T){
     pop_prefix <- gsub("_study_population.rds", "", populations[pop])
     # Loads files with matching pattern 
     med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
-    med_files <- med_files[grepl(pop_prefix, med_files)]
-    if(populations[pop] == "PC_study_population.rds"){
-      med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
-      med_files <- med_files[!grepl("PC_HOSP", med_files)]
-    }
+    if(pop_prefix == "PC"){med_files <- med_files[!grepl("PC_HOSP",med_files)]}
+    if(pop_prefix == "PC_HOSP"){med_files <- med_files[grepl("PC_HOSP",med_files)]}
     
     if(length(med_files)>0){
       # Reads in records of population with indicated study type
@@ -87,24 +86,26 @@ if (is_Denmark == T){
       # Creates Retinoid/Valproate treatment episodes #
       source(paste0(pre_dir, "treatment_episodes.R"))
       # Creates KM plots # This needs to be "uncommented" in a later run to generate this separately for DAPs who are getting errors with the KaplanMeier.R script
-      # source(paste0(pre_dir, "KaplanMeier.R"))
+#     # source(paste0(pre_dir, "KaplanMeier.R"))
       # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
       source(paste0(pre_dir, "contraception_duration.R"))
       # Creates contraception treatment episodes 
       source(paste0(pre_dir, "treatment_episodes_contracep.R"))
-      # Counts of prevalence, incidence, discontinuation - medicines use # Rates rounded up to decimal 5 (does not include stratified analysis)
+      # Counts of prevalence, incidence, discontinuation - medicines use 
       source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
-      # Counts of pregnancy tests within 90 days before/after medication record  # Rates rounded up to decimal 5
+      # Counts of discontinuation, stratified by reason for discontinuation
+      source(paste0(pre_dir, "reasons_for_discontinuation.R"))
+      # Counts of pregnancy tests within 90 days before/after medication record 
       source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
-      # Counts of contraception records within 90 days before medication record # Rates rounded up to decimal 5 (does not include stratified analysis)
+      # Counts of contraception records within 90 days before medication record 
       source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
-      # Counts of medicine records during contraception episodes # Rates rounded up to decimal 5 (does not include stratified analysis)
+      # Counts of medicine records during contraception episodes 
       source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
       # Counts of all pregnancies # No rates, only counts, not stratified by subpops
       source(paste0(pre_dir, "all_pregnancies_counts.R")) 
-      # Counts of pregnancies started during a treatment episode # Rates rounded up to decimal 5 (does not include stratified analysis)
+      # Counts of pregnancies started during a treatment episode 
       source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
-      # Counts of medicines used during a pregnancy # Rates rounded up to decimal 5 (does not include stratified analysis)
+      # Counts of medicines used during a pregnancy
       source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
       # Alternative medicine counts
       source(paste0(pre_dir, "altmeds_final_counts.R")) # Rates rounded up to decimal 5

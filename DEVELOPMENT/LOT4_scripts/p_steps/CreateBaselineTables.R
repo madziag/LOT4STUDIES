@@ -229,4 +229,6 @@ for (i in 1:length(all_dfs_meds)){
   }
 }
 
+# Clean up
+rm(list = grep("^study_pop_first|^study_pop_ret|^study_pop_val|all_dfs_meds|^age_at_ID|^fu_", ls(), value = TRUE))
 

@@ -99,10 +99,9 @@ source(paste0(pre_dir,"Step_00_SetParameters.R"))
 #Preparation of analyses input tables
 source(paste0(pre_dir,"Step_01_CreateSpells.R"))
 source(paste0(pre_dir,"Step_02_PreparePersonsTable.R"))
-source(paste0(pre_dir, "Step_03_CreateSourceTable.R"))
+source(paste0(pre_dir,"Step_03_CreateSourceTable.R"))
 source(paste0(pre_dir,"Step_04_CreateStudyPopulation.R"))
 
-#
 source(paste0(pre_dir,"Step_05_AddVariablesSourcePopulation.R"))
 source(paste0(pre_dir,"Step_06_AddVariablesStudyPopulation.R"))
 source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
@@ -118,4 +117,4 @@ source(paste0(pre_dir,"Step_07_RunCountPersonTime.R"))
 # source(paste0(pre_dir,"Step_Report_01_13_LifeStyle.R"))
 #source(paste0(pre_dir,"Step_Report_01_Mask.R"))
 
-rm(actual_tables, METADATA_subp, SelectionCriteria, SOURCE)
+rm(list = grep("^actual|^FlowChart|METADATA_subp|^OBSERVATION|^op_meaning|SOURCE|SelectionCriteria|subpopulation_meanings", ls(), value = TRUE))

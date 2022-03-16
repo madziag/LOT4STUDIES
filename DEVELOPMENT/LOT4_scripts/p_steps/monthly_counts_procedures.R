@@ -140,7 +140,8 @@ if(length(proc_files)>0){
   print("There are no PROCEDURES tables to analyse!")
 }
 
-
+# cleanup
+rm(list = grep("^codelist", ls(), value = TRUE))
 
 
 

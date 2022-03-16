@@ -64,7 +64,14 @@ str(contra_data$assumed_duration)
   # Episode end must be > than episode.start
   my_treat_episode1 <- my_treat_episode1[episode.end>episode.start,]
   # Drops columns 
-  my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
+  my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL] # 70
+
+  # Add column with contraception type
+  # Merge episodes with contra_data to get column 
+  # In contra data rename columns (column will be used to merge with episodes)
+  setnames(contra_data, "contraception_record_date", "episode.start")
+  # Merge contra_data with treatment episodes to get column contra_type
+  my_treat_episode1<- contra_data[my_treat_episode1,on=.(person_id, episode.start), allow.cartesian = T] 
   my_treat_episode <- my_treat_episode1
   
   saveRDS(my_treat_episode, (paste0(g_intermediate, "treatment_episodes/", pop_prefix ,"_contraceptives_treatment_episodes.rds")))
@@ -85,4 +92,4 @@ all(my_treat_episode$episode.duration>=28)
 table(contra_data$assumed_duration)
 table(my_treat_episode$episode.duration)
 
-rm(my_treat_episode, contra_data)
+rm(my_treat_episode, my_treat_episode1, contra_data)

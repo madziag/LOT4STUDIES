@@ -62,3 +62,4 @@ study_population <- study_population[study_population$exit_date > study_populati
 print("save study_population.rds with entry, exit and spells start and end")
 saveRDS(study_population, paste0(populations_dir, populations[pop]))
 
+rm(OBS_SPELLS)

@@ -146,3 +146,8 @@ if(length(pregtest_files)>0) {
 } else {
   print("There are no Pregnancy Test records available!")
 }
+
+
+# Clean up 
+rm(list = grep("^pregtest", ls(), value = TRUE))
+rm(med_df)

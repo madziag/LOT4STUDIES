@@ -25,12 +25,16 @@ if(multiple_regions == T){
     # Sources folders for each region 
     source(paste0(pre_dir,"info.R"))
     source(paste0(pre_dir,"study_parameters.R"))
+    rm(actual_tables, METADATA_subp)
     ## First removes g_intermediate/g_output
     if("g_intermediate" %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_intermediate"), recursive = T)}
     if("g_output"       %in% list.files(projectFolder)){unlink(paste0(projectFolder,"/g_output")      , recursive = T)}
     # Moves g_intermediate and g_output folders from corresponding region folder into LOT4_scripts folder
     file.move(paste0(projectFolder, "/", regions[reg], "/g_intermediate"), paste0(projectFolder,"/g_intermediate"))
     file.move(paste0(projectFolder, "/", regions[reg], "/g_output"), paste0(projectFolder,"/g_output"))
+    ## Create g_output folder if not there (e.g. for sensitivity analysis it has been taken out)
+    invisible(ifelse(!dir.exists(paste0(projectFolder, "/g_output")), dir.create(paste0(projectFolder, "/g_output")), FALSE))
+    output_dir <- paste0(projectFolder, "/g_output/")
     # Baseline tables folders
     invisible(ifelse(!dir.exists(paste0(output_dir, "baseline_tables")), dir.create(paste0(output_dir, "baseline_tables")), FALSE))
     baseline_tables_dir <- paste0(output_dir, "baseline_tables")
@@ -64,7 +68,12 @@ if(multiple_regions == T){
     # Create stratified by indication folder 
     invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
     medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
-    
+    # Create stratified by reason folder
+    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), dir.create(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), FALSE))
+    medicines_stratified_reasons <- paste0(medicines_stratified_dir ,"/","reasons_for_discontinuation")
+    # Create stratified by contraception type folder
+    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","contra_type")), dir.create(paste0(medicines_stratified_dir,"/","contra_type")), FALSE))
+    medicines_stratified_contra_type <- paste0(medicines_stratified_dir ,"/","contra_type")
     # Move stratified records into stratified folders
     # Create stratified folder
     invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
@@ -76,11 +85,11 @@ if(multiple_regions == T){
     invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
     contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
     
-    
-    # Path to diagnosis pop 
+    # Path to diagnosis, procedures and procedures_dx folders 
     diagnoses_pop <- paste0(projectFolder,"/g_intermediate/tmp/diagnoses/")
     procedures_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures/")
     procedures_dxcodes_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures_dxcodes/")
+    medications_pop <- paste0(projectFolder,"/g_intermediate/tmp/medications/")
     # Sources run_counts_final_each_pop.R 
     source(paste0(pre_dir,"run_counts_final_each_pop.R"))
     # Delete g_intermediate/g_output folders before moving the modified ones back 
@@ -90,15 +99,6 @@ if(multiple_regions == T){
     file.move(paste0(projectFolder,"/g_intermediate"), paste0(projectFolder, "/", regions[reg], "/g_intermediate"))
     file.move(paste0(projectFolder,"/g_output"), paste0(projectFolder, "/", regions[reg], "/g_output"))
   }
-  # Creates ALL_regions folder 
-  invisible(ifelse(!dir.exists(paste0(projectFolder, "/ALL_regions")), dir.create(paste0(projectFolder, "/ALL_regions")), FALSE))
-  All_regions_dir<-paste0(projectFolder, "/ALL_regions/")
-  # Saved as a function
-  # source(paste0(pre_dir, "run_pooling_results_BIFAP.R"))
-
-  # Run function
-  # run_pooling()
-  
 } else {
   # Sources files 
   source(paste0(pre_dir,"info.R"))

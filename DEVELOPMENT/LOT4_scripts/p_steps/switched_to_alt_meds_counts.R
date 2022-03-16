@@ -56,20 +56,21 @@ names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
 
-all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
 # 3. Indication records for valproates only
-if(length(all_temps)>0){
+if(length(list.files(all_indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
-  # Bind all indication records
-  all_indications<- do.call(rbind,lapply(indications_list, readRDS))
-  all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[order(person_id,indication, Date)]
-  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
-  setnames(all_indications,"Date","indication_date")
+  if(length(indications_list>0)){
+    # Bind all indication records
+    all_indications<- do.call(rbind,lapply(indications_list, readRDS))
+    all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+    all_indications<-all_indications[order(person_id,indication, Date)]
+    all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
+    setnames(all_indications,"Date","indication_date")
+  }
 }
 
 if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
@@ -209,7 +210,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       ##### STRATIFICATION BY INDICATIONS ###
       # Checks if there are indication files and performs action only for DAPs with indication files 
       if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
-
+        
         # Merge data with study population to get date of birth
         switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id), allow.cartesian = T]
         # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
@@ -280,7 +281,8 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
 for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
 for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
 
-
+# Clean up 
+rm(list = grep("^alt_med_|each_group|num_1_counts|^switched_|prevalent_counts|tx_episodes", ls(), value = TRUE))
 
 
 

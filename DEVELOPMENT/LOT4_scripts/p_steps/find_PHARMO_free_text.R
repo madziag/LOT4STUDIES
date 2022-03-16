@@ -51,5 +51,5 @@ if(nrow(df_free_text_subset)>0){
   file.move(paste0(events_tmp_DX, list.files(events_tmp_DX, pattern = ".rds")), paste0(events_tmp_DX, "ind_epilepsy/", list.files(events_tmp_DX, pattern = ".rds")))
 }
 
-
+rm(list = grep("^concept_set", ls(), value = TRUE))
 

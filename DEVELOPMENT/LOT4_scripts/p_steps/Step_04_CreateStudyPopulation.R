@@ -44,11 +44,6 @@ for(i in 1:nrow(SCHEME_04)){
     attrition<-before-after
     crit_name<-names(SelectionCriteria)[j]
     
-    # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$step <- "04_CreateStudyPopulation"
-    # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$population <- SCHEME_04[["subpopulations"]][i]
-    # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$before <- before
-    # FlowChartSourcetoStudy[[paste0(names(SelectionCriteria[j]),"_",SCHEME_04[["subpopulations"]][i])]]$after <- after
-    
     FlowChartSourcetoStudy$selection_criteria[j]<- crit_name
     FlowChartSourcetoStudy$before[j] <- before
     FlowChartSourcetoStudy$after[j] <- after

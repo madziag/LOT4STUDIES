@@ -98,10 +98,13 @@ for (i in 1:length(contracep_tables)){
   meaning_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),"Meaning")))]
   ##warning message not relevant, suppressed
   names(my_contra)[names(my_contra)==meaning_contra]<-"contraception_meaning"
+  contra_name <- gsub(".rds", "", contracep_names[i])
+  contra_name <- gsub(paste0(pop_prefix, "_"), "", contra_name)
+  my_contra[,contra_type:=contra_name]
   # Save record
   saveRDS(my_contra,(paste0(contra_folder,contracep_names[i])))
   #make "master" contraception dataframe for treatment episodes 
-  new_df<-my_contra[,c("person_id","contraception_record_date", "assumed_duration", "Code", "contraception_meaning")]
+  new_df<-my_contra[,c("person_id","contraception_record_date", "assumed_duration", "Code", "contraception_meaning", "contra_type")]
   all_contra<-rbind(all_contra, new_df)
  
 }
@@ -111,4 +114,4 @@ if(nrow(all_contra)==sum(my_rows)){print("all_contra OK")}else{print("all contra
 saveRDS(all_contra,(paste0(contra_folder, pop_prefix, "_all_contra.rds" )))
 
 # Clean up 
-rm(new_df, my_dur, all_contra, my_contra, contra_type_dur, contracep_diag_list, contracep_med_list, contracep_names, contracep_proc_list, contracep_tables, duration_contra, meaning_contra, types_contra)
+rm(list = grep("^all_|^my_rows|^my_contra|contra_type_dur|new_df|my_dur", ls(), value = TRUE))

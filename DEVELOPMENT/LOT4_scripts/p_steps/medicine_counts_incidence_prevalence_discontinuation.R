@@ -136,9 +136,7 @@ if(length(all_temps)>0){
     all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   }
 }
-##### FOR TESTING ####
-# all_indications[person_id=="ConCDM_SIM_200421_00170", indication:="ind_bipolar"]
-# all_indications[person_id=="ConCDM_SIM_200421_00170", person_id:="ConCDM_SIM_200421_00641"]
+
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
   # Reads in the treatment episodes file 
@@ -264,6 +262,8 @@ for (i in 1:length(tx_episodes_files)){
   prevalence_all_counts <- prevalence_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(prevalence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
+  # Saves df in counts_df folder 
+  saveRDS(df_prevalence, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
   
   ################ STRATIFIED PREVALENCE BY AGE GROUPS ###################
   # Performs prevalence counts - stratified by age group
@@ -406,7 +406,8 @@ for (i in 1:length(tx_episodes_files)){
   incidence_all_counts <- incidence_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(incidence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
-  
+  # Saves incidence dfs
+  saveRDS(df_incidence, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
   ################ STRATIFIED INCIDENCE BY AGE GROUPS ###################
   # Performs incidence counts - stratified by age group
   # Creates a column with patients age on episode.start date
@@ -575,6 +576,8 @@ for (i in 1:length(tx_episodes_files)){
   discontinued_all_counts <- discontinued_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(discontinued_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
+  # Saves discontinued dfs
+  saveRDS(df_discontinued, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
   
   ################ STRATIFIED DISCONTINUED BY AGE GROUPS ###################
   # Performs discontinued counts - stratified by age group
@@ -741,3 +744,7 @@ for (i in 1:length(tx_episodes_files)){
 for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
 for (file in list.files(path=medicines_counts_dir, pattern="tx_dur", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_tx_dur, "/",file))}
 for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
+
+
+# Clean up 
+rm(list = grep("^df_|^discontinued_|^incidence_|^prevalence_|each_group|max_tx_df", ls(), value = TRUE))
