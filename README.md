@@ -1,31 +1,16 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V3.1.1</h3>
- <p align="center"> RELEASE NOTE: V3.1.1 - Final main analyses, minor release update
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V4</h3>
+ <p align="center"> RELEASE NOTE: V4 - Final main analyses, minor release update
  
-1.	All main descriptive analyses implemented for study objectives 1-4 (See protocol v1.1/SAP v2.0)
-2.	Plots of counts of pregnancies per month
-3.	Kaplan Meier drug survival curves
-4.	Additional data source-specific corrections added
-5.	Removal of incorrect sterility codes that were being picked up
-6.	Rates corrected, plot labels corrected, plot axes tidied - and adjusted to permit missing/non-finite values
-7.	Clarified flow chart xlsx/csv files in g_output/preliminary_counts
-8.	Addressed analysis script issues for FISABIO/FICF, BIFAP and PHARMO teams [22 Feb 2022]
 
 All groups are requested to run this script as soon as possible and report to UU/UMCU and issues encountered. Once results are generated, please upload to YODA.
-Following this, each group is requested to review the output using the guidance document (to be shared 10th Feb 2022).
 
-The output of these analyses will be used in interrupted time series analyses (ITSA), run by the UMCU team. The results of the ITSA will be uploaded to the pooled project folders on YODA. For transparency, the ITSA script is also part of the release.
+The output of these analyses will be used in interrupted time series analyses (ITSA), run by the UMCU team. The results of the ITSA will be uploaded to the pooled project folders on YODA. For transparency, the final ITSA scripts will be added to the release once they have been run.
 
-The following missing features will be implemented in the next release (v3.2):
-1.	Stratified counts (age group, indication (valproate), reason for discontinuation, dose, time on treatment, 
-2.	Sensitivity analyses (different time windows for the definitions of discontinuation, and concomitant pregnancy testing & contraception with exposure)
-3.	Medical observations codes (mainly relevant for pregnancy test data)
-4.	DAP-specific duration of treatment estimation (as described in Annex 7 of SAP). Currently a fixed duration of 30 days (with 30 day permissible gap) is implemented for valproates and retinoids, and fixed durations for contracecptions, as described in SAP v2.0 are implemented.
-
-Additional features that may be implemented in v3.3 onwards
-1.	Additional DAP-specific specifications of variables (as described in Annex 7 of SAP)
-2.	Additional DAP-specific sensitivity analyses (as described in Annex 7 of SAP)
-3.	Any further amendments requested or wanted for final manuscript
+The following missing features may be implemented in a later release:
+1.	Medical observations data
+2.	DAP-specific algorithms for events (ie indication)
+3.	Further DAP-specific sensitivity analyses
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
