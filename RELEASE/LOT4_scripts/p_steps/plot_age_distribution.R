@@ -22,4 +22,5 @@ if(nrow(mydata)>0){
   boxplot(age ~ year_in_study, data = mydata_expanded, main="Entry Age Distribution of Participants by Year")
   dev.off() 
 }
-
+# Clean up
+rm(list = grep("^mydata", ls(), value = TRUE))

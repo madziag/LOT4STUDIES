@@ -17,49 +17,29 @@
 # 1. Alternative medicines files 
 # Retinoids 
 alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
-# Filters by current subpopulation 
-alt_med_retinoid_files <- alt_med_retinoid_files[grepl(pop_prefix, alt_med_retinoid_files)]
-if(populations[pop] == "PC_study_population.rds"){
-  alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
-  alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("PC_HOSP", alt_med_retinoid_files)]
-}
-
+if(pop_prefix == "PC"){alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("PC_HOSP",alt_med_retinoid_files)]}
+if(pop_prefix == "PC_HOSP"){alt_med_retinoid_files <- alt_med_retinoid_files[grepl("PC_HOSP",alt_med_retinoid_files)]}
 if(is_CASERTA){alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("altmed_retin_psoriasis", alt_med_retinoid_files)]}
 
 # Valproates
 alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
-# Filters by current subpopulation 
-alt_med_valproate_files <- alt_med_valproate_files[grepl(pop_prefix, alt_med_valproate_files)]
-
-if(populations[pop] == "PC_study_population.rds"){
-  alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
-  alt_med_valproate_files <- alt_med_valproate_files[!grepl("PC_HOSP", alt_med_valproate_files)]
-}
+if(pop_prefix == "PC"){alt_med_valproate_files <- alt_med_valproate_files[!grepl("PC_HOSP",alt_med_valproate_files)]}
+if(pop_prefix == "PC_HOSP"){alt_med_valproate_files <- alt_med_valproate_files[grepl("PC_HOSP",alt_med_valproate_files)]}
 
 # 2. Treatment episode files 
 # Looks for treatment_episode files in treatment_episodes folder (actual files will be loaded in the for loop)
 tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
-# Filters by current subpopulation 
-tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
-
-if(populations[pop] == "PC_study_population.rds"){
-  tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern = "Retinoid_CMA|Valproate_CMA", ignore.case = T)
-  tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]
-}
+if(pop_prefix == "PC"){tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP",tx_episodes_files)]}
+if(pop_prefix == "PC_HOSP"){tx_episodes_files <- tx_episodes_files[grepl("PC_HOSP",tx_episodes_files)]}
 
 # 3. Prevalent user counts 
 prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-# Filters by current subpopulation 
-prevalent_counts_files <- prevalent_counts_files[grepl(pop_prefix, prevalent_counts_files)]
+if(pop_prefix == "PC"){prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP",prevalent_counts_files)]}
+if(pop_prefix == "PC_HOSP"){prevalent_counts_files <- prevalent_counts_files[grepl("PC_HOSP",prevalent_counts_files)]}
 # Removes age specific prevalent count files
-prevalent_counts_files <- prevalent_counts_files[!grepl("age_group", prevalent_counts_files)]
-
-if(populations[pop] == "PC_study_population.rds"){
-  prevalent_counts_files <- list.files(medicines_counts_dir, pattern = "prevalence_counts", ignore.case = T, full.names = T)
-  prevalent_counts_files <- prevalent_counts_files[!grepl("PC_HOSP", prevalent_counts_files)]
-}
-
 prevalent_counts_files <- prevalent_counts_files[!grepl("age_group|indication|tx_dur", prevalent_counts_files)]
+
+# 4. Denominator file
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
@@ -76,28 +56,28 @@ names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
 
-all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
 # 3. Indication records for valproates only
-if(length(all_temps)>0){
+if(length(list.files(all_indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
-  # Bind all indication records
-  all_indications<- do.call(rbind,lapply(indications_list, readRDS))
-  all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[!duplicated(all_indications),]
-  setnames(all_indications,"Date","indication_date")
+  if(length(indications_list>0)){
+    # Bind all indication records
+    all_indications<- do.call(rbind,lapply(indications_list, readRDS))
+    all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+    all_indications<-all_indications[order(person_id,indication, Date)]
+    all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
+    setnames(all_indications,"Date","indication_date")
+  }
 }
-
 
 if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
   # For each treatment episode file 
   for (i in 1:length(tx_episodes_files)){ 
     # Reads in the treatment episodes file 
     tx_episodes <- as.data.table(readRDS(paste0(g_intermediate,"treatment_episodes/",tx_episodes_files[i])))
-    tx_episodes <- tx_episodes[,-c("ATC", "type")]
     # Reads in the altmed files (corresponding to the medication)
     if(str_detect(tx_episodes_files[i], pattern = "Retinoid_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_retinoid_files, readRDS))}
     if(str_detect(tx_episodes_files[i], pattern = "Valproate_CMA")){alt_med_df <- do.call(rbind,lapply(alt_med_valproate_files, readRDS))}
@@ -106,7 +86,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
     setnames(alt_med_df, "Code", "ATC")
     setnames(alt_med_df, "Date", "record_date")
     # Remove any records that do not fall between entry and exit into study dates 
-    alt_med_df<-alt_med_df[record_date>=entry_date&record_date<=exit_date,]
+    alt_med_df<-alt_med_df[record_date>=entry_date&record_date<exit_date,]
     # Merge tx episodes with altmed records 
     alt_med_tx_episodes <- tx_episodes[alt_med_df, on = .(person_id), allow.cartesian = T] 
     # Delete records without alt medicine use
@@ -173,7 +153,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       ### Merges numerator file with denominator file
       alt_med_counts <- merge(x = num_1_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE)
       # Calculates rates
-      alt_med_counts <- alt_med_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+      alt_med_counts <- alt_med_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
       # Adjust for PHARMO
       if(is_PHARMO){alt_med_counts <- alt_med_counts[alt_med_counts$year < 2020,]} else {alt_med_counts <- alt_med_counts[alt_med_counts$year < 2021,]}
       # Drop unnecessary columns
@@ -230,15 +210,20 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       ##### STRATIFICATION BY INDICATIONS ###
       # Checks if there are indication files and performs action only for DAPs with indication files 
       if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
-
+        
         # Merge data with study population to get date of birth
         switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id), allow.cartesian = T]
         # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
         switched_df_indications[indication=="ind_bipolar", ind_bipolar_date:=indication_date]
         switched_df_indications[indication=="ind_epilepsy", ind_epilepsy_date:=indication_date]
         switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
-        switched_df_indications[,Date:=NULL][,Code:=NULL]
+        switched_df_indications[,Code:=NULL]
         setnames(switched_df_indications, "indication", "temp_indication")
+        
+        switched_df_indications<-switched_df_indications[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+        
+        switched_df_indications <- switched_df_indications[!duplicated(switched_df_indications[,c("person_id", "episode.start", "episode.end", "temp_indication")])]
+        
         switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
         
         switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]
@@ -249,7 +234,6 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
         switched_df_indications[num_obs>1, indication:="multiple"]
         drop.cols <- grep("diff|ind_", colnames(switched_df_indications))
         switched_df_indications[, (drop.cols) := NULL]
-        
         # Performs pgtests counts - stratified by indication group
         switched_by_indication <- switched_df_indications[,.N, by = .(year(episode.end.switch),month(episode.end.switch), indication)]
         # Get unique values of indication groups - for the for loop
@@ -297,7 +281,8 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
 for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
 for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
 
-
+# Clean up 
+rm(list = grep("^alt_med_|each_group|num_1_counts|^switched_|prevalent_counts|tx_episodes", ls(), value = TRUE))
 
 
 

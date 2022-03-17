@@ -66,8 +66,8 @@ contraceptives_window <- 90
 # contraceptives_window <- 30
 #user input parameter
 # Set DAP_specific assumed treatment duration value
-DAP_specific_DOT <- F   #### assumed treatment duration for creating treatment episodes == 30
-# DAP_specific_DOT <- T   #### assumed treatment duration for creating treatment episodes is DAP specific 
+# DAP_specific_DOT <- F   #### assumed treatment duration for creating treatment episodes == 30
+DAP_specific_DOT <- T   #### assumed treatment duration for creating treatment episodes is DAP specific 
 
 ############[PLEASE NOTE] ############################################
 # THERE ARE NO DAP SPECIFIC ASSUMED DURATION VALUES FOR:

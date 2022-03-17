@@ -1,3 +1,9 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+
 # Creates concept sets of Procedure codes
 
 # Loads functions

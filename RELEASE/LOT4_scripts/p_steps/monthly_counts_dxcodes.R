@@ -245,3 +245,5 @@ if(length(events_files)>0){
   print("There are no EVENTS tables to analyse!")
 }
 
+# Cleanup
+rm(list = grep("^codelist", ls(), value = TRUE))

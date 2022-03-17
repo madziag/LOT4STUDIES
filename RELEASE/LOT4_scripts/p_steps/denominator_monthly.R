@@ -50,8 +50,6 @@ if (is_Denmark == TRUE){
     } else {
       FUmonths_df <- FUmonths_df
     }
-    
-    
     # Saves file
     saveRDS(data.table(FUmonths_df), paste0(output_dir, pop_prefix, "_denominator.rds"))
     # plots denominator 

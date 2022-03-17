@@ -42,18 +42,15 @@ invisible(ifelse(!dir.exists(paste0(tmp, "conceptsets_proc")), dir.create(paste0
 conceptsets_PROC_dir<-paste0(tmp, "conceptsets_proc/")
 
 # EVENTS TABLES FOLDERS
-# There may or may not be events tables 
-if(length(list.files(path=path_dir, pattern = "EVENTS", ignore.case = TRUE)) > 0){
-  # Temporary folder 
-  invisible(ifelse(!dir.exists(paste0(tmp, "events_dx")), dir.create(paste0(tmp, "events_dx")), FALSE))
-  events_tmp_DX<-paste0(tmp, "events_dx/")
-  # Permanent folder
-  invisible(ifelse(!dir.exists(paste0(tmp, "diagnoses")), dir.create(paste0(tmp, "diagnoses")), FALSE))
-  diagnoses_pop <- paste0(tmp, "diagnoses/")
-  # Monthly counts
-  invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_dxcodes")), FALSE))
-  monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes")
-}
+# Temporary folder 
+invisible(ifelse(!dir.exists(paste0(tmp, "events_dx")), dir.create(paste0(tmp, "events_dx")), FALSE))
+events_tmp_DX<-paste0(tmp, "events_dx/")
+# Permanent folder
+invisible(ifelse(!dir.exists(paste0(tmp, "diagnoses")), dir.create(paste0(tmp, "diagnoses")), FALSE))
+diagnoses_pop <- paste0(tmp, "diagnoses/")
+# Monthly counts
+invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_dxcodes")), FALSE))
+monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes")
 
 # MEDICINES TABLES FOLDER
 # Temporary folder 
@@ -68,23 +65,22 @@ monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
 
 # PROCEDURES TABLES FOLDERS
 # There may or may not be procedures tables 
-if(length(list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
-  # Temporary folder
-  invisible(ifelse(!dir.exists(paste0(tmp, "events_proc")), dir.create(paste0(tmp, "events_proc")), FALSE))
-  events_tmp_PROC <- paste0(tmp, "events_proc/")
-  invisible(ifelse(!dir.exists(paste0(tmp, "events_proc_dxcodes")), dir.create(paste0(tmp, "events_proc_dxcodes")), FALSE))
-  events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
-  # Permanent folder
-  invisible(ifelse(!dir.exists(paste0(tmp, "procedures")), dir.create(paste0(tmp, "procedures")), FALSE))
-  procedures_pop <- paste0(tmp, "procedures/")
-  invisible(ifelse(!dir.exists(paste0(tmp, "procedures_dxcodes")), dir.create(paste0(tmp, "procedures_dxcodes")), FALSE))
-  procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
-  # Monthly counts
-  invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc")), dir.create(paste0(output_dir, "monthly_counts_proc")), FALSE))
-  monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
-  invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes")), FALSE))
-  monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
-}
+# Temporary folder
+invisible(ifelse(!dir.exists(paste0(tmp, "events_proc")), dir.create(paste0(tmp, "events_proc")), FALSE))
+events_tmp_PROC <- paste0(tmp, "events_proc/")
+invisible(ifelse(!dir.exists(paste0(tmp, "events_proc_dxcodes")), dir.create(paste0(tmp, "events_proc_dxcodes")), FALSE))
+events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
+# Permanent folder
+invisible(ifelse(!dir.exists(paste0(tmp, "procedures")), dir.create(paste0(tmp, "procedures")), FALSE))
+procedures_pop <- paste0(tmp, "procedures/")
+invisible(ifelse(!dir.exists(paste0(tmp, "procedures_dxcodes")), dir.create(paste0(tmp, "procedures_dxcodes")), FALSE))
+procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
+# Monthly counts
+invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc")), dir.create(paste0(output_dir, "monthly_counts_proc")), FALSE))
+monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes")), FALSE))
+monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
+
 
 # STERILITY FOLDERS
 # Temporary folder
@@ -135,6 +131,14 @@ medicines_stratified_tx_dur <- paste0(medicines_stratified_dir ,"/","tx_duration
 # Create stratified by indication folder 
 invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","indication")), dir.create(paste0(medicines_stratified_dir,"/","indication")), FALSE))
 medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indication")
+# Create stratified by indication folder 
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), dir.create(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), FALSE))
+medicines_stratified_reasons <- paste0(medicines_stratified_dir ,"/","reasons_for_discontinuation")
+# Create stratified by contraception type folder
+invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","contra_type")), dir.create(paste0(medicines_stratified_dir,"/","contra_type")), FALSE))
+medicines_stratified_contra_type <- paste0(medicines_stratified_dir ,"/","contra_type")
+
+
 
 # Move stratified records into stratified folders
 # Create stratified folder
@@ -146,5 +150,6 @@ contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/
 # Create stratified by indication folder
 invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
 contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
+
 
 

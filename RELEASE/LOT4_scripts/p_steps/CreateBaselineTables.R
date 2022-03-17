@@ -22,7 +22,7 @@ study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 
                                                     ifelse(study_population[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
 
 # Medicine records need to be between a persons entry and exit dates 
-study_pop_meds <- study_pop_meds[Date>=entry_date & Date<=exit_date,]
+study_pop_meds <- study_pop_meds[Date>=entry_date & Date<exit_date,]
 # Creates new column in Population with Retinoid and/or Valproate use: fu_dur_days 
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
 study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables
@@ -229,5 +229,6 @@ for (i in 1:length(all_dfs_meds)){
   }
 }
 
+# Clean up
+rm(list = grep("^study_pop_first|^study_pop_ret|^study_pop_val|all_dfs_meds|^age_at_ID|^fu_", ls(), value = TRUE))
 
-# rm(all_dfs_meds, df, baseline, study_pop_first_occurrence, study_pop_ret, study_pop_ret_D05BB02, study_pop_ret_D10BA01, study_pop_ret_D11AH04, study_pop_ret_unique, study_pop_val, study_pop_val_unique)

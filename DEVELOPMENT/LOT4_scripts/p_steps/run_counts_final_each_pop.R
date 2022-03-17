@@ -43,8 +43,8 @@ if (is_Denmark == T){
     source(paste0(pre_dir,"CreateBaselineTables.R"))
     # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
-    # Creates KM plots # This needs to be "uncommented" in a later run to generate this separately for DAPs who are getting errors with the KaplanMeier.R script
-#   source(paste0(pre_dir, "KaplanMeier.R"))
+    # Creates KM plots 
+    source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
     # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
     source(paste0(pre_dir, "contraception_duration.R"))
     # Creates contraception treatment episodes 
@@ -85,8 +85,8 @@ if (is_Denmark == T){
       source(paste0(pre_dir,"CreateBaselineTables.R"))
       # Creates Retinoid/Valproate treatment episodes #
       source(paste0(pre_dir, "treatment_episodes.R"))
-      # Creates KM plots # This needs to be "uncommented" in a later run to generate this separately for DAPs who are getting errors with the KaplanMeier.R script
-#     # source(paste0(pre_dir, "KaplanMeier.R"))
+      # Creates KM plots 
+      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
       # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
       source(paste0(pre_dir, "contraception_duration.R"))
       # Creates contraception treatment episodes 

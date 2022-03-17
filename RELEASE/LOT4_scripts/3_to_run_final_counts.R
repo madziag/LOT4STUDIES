@@ -33,7 +33,7 @@ source(paste0(pre_dir,"set_DAP_params.R"))
 
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
-# study_type <- "Both"
+study_type <- "Both"
 
 #user input parameter
 ## Turn statement to T if multiple regions #BIFAP
@@ -55,15 +55,25 @@ mask <- T
 my_format <- "csv"
 # my_format <- "xlsx"
 
+#user input parameter
 ### Sensitivity analysis ###
 # Set discontinuation period
 discontinuation_window <- 90
 # discontinuation_window <- 30
-
+#user input parameter
 # Set contraceptives look back window
 contraceptives_window <- 90
 # contraceptives_window <- 30
-  
+#user input parameter
+# Set DAP_specific assumed treatment duration value
+# DAP_specific_DOT <- F   #### assumed treatment duration for creating treatment episodes == 30
+DAP_specific_DOT <- T   #### assumed treatment duration for creating treatment episodes is DAP specific 
+
+############[PLEASE NOTE] ############################################
+# THERE ARE NO DAP SPECIFIC ASSUMED DURATION VALUES FOR:
+# - ARS (use default 30 days) 
+############[PLEASE NOTE] ###########################################
+
 ################################################
 # Final counts + plots
 #################################################

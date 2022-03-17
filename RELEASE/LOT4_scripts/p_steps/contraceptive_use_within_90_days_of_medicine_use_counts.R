@@ -21,17 +21,10 @@
 # 1. Contraception records 
 # Looks for Contraception files in tmp folder 
 contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
-# Filters by current subpopulation 
-contra_files <- contra_files[grepl(pop_prefix, contra_files)]
+if(pop_prefix == "PC"){contra_files <- contra_files[!grepl("PC_HOSP", contra_files)]}
+if(pop_prefix == "PC_HOSP"){contra_files <- contra_files[grepl("PC_HOSP", contra_files)]}
 
-if(populations[pop] == "PC_study_population.rds"){
-  contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
-  contra_files <- contra_files[!grepl("PC_HOSP", contra_files)]
-}
-# 2. Retinoid/Valproate records 
-# Looks for Retinoid/Valproate records in medications folder - this is done in wrapper script run_counts_final_each_pop.R
-# name of variable with list of medicines available -> med_files
-
+# 2. Denominator file
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
 # Looks for denominator file in output directory 
 denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
@@ -48,42 +41,22 @@ names(empty_df) <- c("year", "month")
 # Clean up
 rm(denominator)
 
-# # 3. Indication records for valproates only
-# if(length(list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
-#   # Creates a list of indications 
-#   indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
-#   
-#   for(ind in 1:length(indications)){
-#     indication_file<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=T)
-#     indication_file<-indication_file[grepl(pop_prefix,indication_file)]
-#     if(populations[pop]=="PC_study_population.rds"){indication_file<-indication_file[!grepl("PC_HOSP",indication_file)]}
-#     if(length(indication_file)>0){
-#       df<-readRDS(indication_file)[,indication:=indications[ind]]
-#       saveRDS(df, indication_file)
-#     }
-#   }
-#   # Get a list of indication files (with added new column to indicate indication type)
-#   indications_list <- list.files(diagnoses_pop, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
-#   # Bind all indication records
-#   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
-#   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-#   all_indications<-all_indications[!duplicated(all_indications),]
-#   setnames(all_indications,"Date","indication_date")
-# }
-# 1. Indication records for valproates only
-all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures|procedures_dxcodes")
 # 3. Indication records for valproates only
-if(length(all_temps)>0){
+# Check if any indications are present in the all_indications folder 
+if(length(list.files(all_indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
   indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
+  if(length(indications_list)>0){
   # Bind all indication records
   all_indications<- do.call(rbind,lapply(indications_list, readRDS))
   all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-  all_indications<-all_indications[!duplicated(all_indications),]
+  all_indications<-all_indications[order(person_id,indication, Date)]
+  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   setnames(all_indications,"Date","indication_date")
+  }
 }
 # Checks first if there are any contraception records found
 if(length(contra_files)>0) {
@@ -98,7 +71,7 @@ if(length(contra_files)>0) {
   for(i in 1:length(med_files)){
     ## Loads the medication record
     med_df <- readRDS(paste0(medications_pop, med_files[i])) # Loads file
-    med_df <- med_df[Date>=entry_date & Date<=exit_date]
+    med_df <- med_df[Date>=entry_date & Date<exit_date]
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column 
     ### Creates denominator: Total number of Retinoid/Valproate records per month
@@ -131,7 +104,7 @@ if(length(contra_files)>0) {
       # Rate calculation
       contra_prior_counts <- within(contra_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       contra_prior_counts <- merge(x = contra_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
-      contra_prior_counts <- contra_prior_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+      contra_prior_counts <- contra_prior_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
       contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(contra_prior_counts, "masked_num", "masked")
       ## Saves intermediate (to counts_df folder) and monthly count files (to contraceptives folder)
@@ -184,20 +157,29 @@ if(length(contra_files)>0) {
       }   
 
       ##### STRATIFICATION BY INDICATION ###
-      
       # Checks if there are indication files and performs action only for DAPs with indication files 
       if(str_detect(med_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
         # Merge data with study population to get date of birth
         contra_prior_df_indications <- all_indications[contra_prior_df,on=.(person_id), allow.cartesian = T]
-        # contra_prior_df_indications <- contra_prior_df_indications[Date>indication_date,]
+        # If indication_date > Date then indication is not relevant
         contra_prior_df_indications[is.na(indication)|indication_date>Date, indication:=NA]
+        # Creates subset where indication values are missing and assigns them the value indication = unknown
         contra_prior_df_indications_missing<- contra_prior_df_indications[is.na(indication),]
         contra_prior_df_indications_missing[,final_indication:="unknown"]
+        # Creates subset where indication values are not missing 
         contra_prior_df_indications_notmissing<- contra_prior_df_indications[!is.na(indication),]
+        # Counts the number of unique indications per person per Date of retinoid/valproate medication 
         contra_prior_df_indications_notmissing[,indication_count:=length(unique(indication)), by = .(person_id, Date)]
+        # If count = 1 then final indication is the name of the indication in the column
+        # If count > 1 then final indication = multiple 
         contra_prior_df_indications_notmissing[indication_count==1, final_indication:=indication][indication_count>1,final_indication:="multiple"]
+        # Drops no longer needed columns 
         contra_prior_df_indications_notmissing[,indication_count:=NULL]
         contra_prior_df_indications<-rbind(contra_prior_df_indications_missing,contra_prior_df_indications_notmissing)
+        # Drops no longer needed columns 
+        contra_prior_df_indications[,indication_date:=NULL][,Code:=NULL][,indication:=NULL][,contra_prior:=NULL]
+        # Deduplicates data 
+        contra_prior_df_indications <- contra_prior_df_indications[!duplicated(contra_prior_df_indications),]
         # Performs pgtests counts - stratified by age group
         contra_prior_by_indication <- contra_prior_df_indications[,.N, by = .(year(Date),month(Date), final_indication)]
         # Get unique values of age groups - for the for loop
@@ -233,9 +215,8 @@ if(length(contra_files)>0) {
         }   
       }
     } else {
-      print(paste0("No contraceptive records were found within", contraceptives_window, "days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
+      print(paste0("No contraceptive records were found within ", contraceptives_window, " days before ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use." ))
     }
-    
   }
 } else {
   print("There are no Contraception records available!")
@@ -243,22 +224,11 @@ if(length(contra_files)>0) {
 
 # Create stratified folders and move files into stratified folders
 if(nrow(contra_prior_df)>0){
-  # # Move stratified records into stratified folders
-  # # Create stratified folder
-  # invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
-  # contraceptives_stratified_dir <- paste0(contraceptive_counts_dir,"/","stratified")
-  # # Create stratified by age groups folder
-  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","age_group")), dir.create(paste0(contraceptives_stratified_dir,"/","age_group")), FALSE))
-  # contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/","age_group")
-  # # Create stratified by indication folder
-  # invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
-  # contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
-  
   # Move files 
   for (file in list.files(path=contraceptive_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_age_groups, "/",file))}
   for (file in list.files(path=contraceptive_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_indication, "/",file))}
 }
 
-
-
+# Clean up
+rm(list = grep("^contra_|each_group|med_df", ls(), value = TRUE))
 

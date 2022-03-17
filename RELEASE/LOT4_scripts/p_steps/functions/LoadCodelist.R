@@ -1,3 +1,9 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+
 #' Reads in user specified tabs from code list (Annex 2a, in excel format)
 #' @param filename path + name of codelist file
 #' @param matches list of partial/complete names of the tabs you want to load.

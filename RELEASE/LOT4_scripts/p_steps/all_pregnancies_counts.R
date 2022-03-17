@@ -47,3 +47,5 @@ for(i in 1:length(hq_unique)){
   saveRDS(counts_subset, paste0(preg_med_counts_dir,"/", pop_prefix,"_", hq_unique[i], "_all_pregnancies_counts.rds"))
 }
 
+# Clean up 
+rm(list = grep("^pregnancy_all_counts|counts_subset", ls(), value = TRUE))

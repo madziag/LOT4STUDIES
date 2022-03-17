@@ -1,3 +1,9 @@
+#Author: Magdalena Gamba M.D.
+#email: m.a.gamba@uu.nl
+#Organisation: Utrecht University, Utrecht, The Netherlands
+#Date: 31/01/2022
+
+
 # List of free text words used per concept set : Single words
 concept_set_terms <- vector(mode="list")
 

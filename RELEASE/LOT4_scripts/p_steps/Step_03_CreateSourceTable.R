@@ -46,9 +46,7 @@ for(i in 1:nrow(SCHEME_03)){
 
   SOURCE_POPULATION <- SOURCE_POPULATION[!is.na(death_date), date_max := pmin(date_max,death_date)]
   SOURCE_POPULATION <- SOURCE_POPULATION[, Population := SCHEME_03[["subpopulations"]][i]]
-  #SCHEME_03[i,"nrows"] <- nrow(SOURCE_POPULATION)
-  #SCHEME_03[i,"ncols"] <- ncol(SOURCE_POPULATION)
-  
+
   saveRDS(SOURCE_POPULATION,file = paste0(std_pop_tmp,SCHEME_03[["file_out"]][i]))
   
   rm(SPELLS,SOURCE_POPULATION)

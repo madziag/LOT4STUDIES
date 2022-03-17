@@ -42,7 +42,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
   for (i in 1:length(med_files)){ 
     ## Loads the medication record
     med_df <- as.data.table(readRDS(paste0(medications_pop, med_files[i]))) # Loads file
-    med_df <- med_df[Date>=entry_date & Date<=exit_date]
+    med_df <- med_df[Date>=entry_date & Date<exit_date]
     med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
     setnames(med_df, "Code", "ATC") # Renames column
     # Merge med file with pregnancy records 
@@ -71,7 +71,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       ############################
       med_use_during_preg_counts <- within(med_use_during_preg_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       med_use_during_preg_counts <- merge(x = med_use_during_preg_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
-      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
       med_use_during_preg_counts <- med_use_during_preg_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
       setnames(med_use_during_preg_counts, "masked_num", "masked")
       # Save files 
@@ -112,4 +112,5 @@ if (nrow(D3_pregnancy_reconciled)>0){
   print("No pregnancy records have been found")
 }
 
-
+# Cleanup
+rm(list = grep("^med_use_during_|med_preg|med_df", ls(), value = TRUE))
