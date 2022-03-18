@@ -210,30 +210,48 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       ##### STRATIFICATION BY INDICATIONS ###
       # Checks if there are indication files and performs action only for DAPs with indication files 
       if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+        all_indications[person_id=="ConCDM_SIM_200421_00030", person_id:="ConCDM_SIM_200421_00247"]
+        all_indications[person_id=="ConCDM_SIM_200421_00107", person_id:="ConCDM_SIM_200421_00190"]
+        all_indications[person_id=="ConCDM_SIM_200421_00333", person_id:="ConCDM_SIM_200421_00119"]
+        all_indications[person_id=="ConCDM_SIM_200421_00426", person_id:="ConCDM_SIM_200421_00201"]
+        all_indications[person_id=="ConCDM_SIM_200421_00839", person_id:="ConCDM_SIM_200421_00092"]
+        all_indications[person_id=="ConCDM_SIM_200421_00782", person_id:="ConCDM_SIM_200421_00029"]
         
         # Merge data with study population to get date of birth
         switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id), allow.cartesian = T]
-        # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
-        switched_df_indications[indication=="ind_bipolar", ind_bipolar_date:=indication_date]
-        switched_df_indications[indication=="ind_epilepsy", ind_epilepsy_date:=indication_date]
-        switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
-        switched_df_indications[,Code:=NULL]
-        setnames(switched_df_indications, "indication", "temp_indication")
+        switched_df_indications[indication_date<=episode.end.switch,indication:=NA][indication_date<=episode.end.switch,Code:=NA][indication_date<=episode.end.switch,indication_date:=NA]
         
-        switched_df_indications<-switched_df_indications[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+        # Counts the number of indication per person_id/episode.end.switch 
+        switched_df_indications[!is.na(indication),sum:=.N,by=c("person_id", "episode.end.switch")]
+        switched_df_indications<- switched_df_indications[!duplicated(switched_df_indications[,c("person_id", "episode.end.switch")])]
         
-        switched_df_indications <- switched_df_indications[!duplicated(switched_df_indications[,c("person_id", "episode.start", "episode.end", "temp_indication")])]
+        # Assign indications
+        switched_df_indications[sum==1, final_indication:=indication][sum>1, final_indication:="multiple"][is.na(sum), final_indication:="unknown"]
+        switched_df_indications[,indication:=NULL]
+        setnames(switched_df_indications, "final_indication", "indication")
         
-        switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
+        # # Create columns for each of the indication-> if there is more than one indication per treatment episode, then we want them to be in 1 row
+        # switched_df_indications[indication=="ind_bipolar", ind_bipolar_date:=indication_date]
+        # switched_df_indications[indication=="ind_epilepsy", ind_epilepsy_date:=indication_date]
+        # switched_df_indications[indication=="ind_migraine", ind_migraine_date:=indication_date]
+        # switched_df_indications[,Code:=NULL]
+        # setnames(switched_df_indications, "indication", "temp_indication")
+        # 
+        # switched_df_indications<-switched_df_indications[order(person_id,episode.start, episode.end, ind_bipolar_date, ind_epilepsy_date, ind_migraine_date)]
+        # 
+        # switched_df_indications <- switched_df_indications[!duplicated(switched_df_indications[,c("person_id", "episode.start", "episode.end", "temp_indication")])]
+        # 
+        # switched_df_indications <- setDT(switched_df_indications)[, lapply(.SD, na.omit), by = c("person_id", "episode.start","episode.end")]
+        # 
+        # switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]
+        # switched_df_indications[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
+        # switched_df_indications <- switched_df_indications[,num_obs:=rowSums(!is.na(switched_df_indications[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
+        # switched_df_indications[num_obs==0, indication:="unknown"]
+        # switched_df_indications[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
+        # switched_df_indications[num_obs>1, indication:="multiple"]
+        # drop.cols <- grep("diff|ind_", colnames(switched_df_indications))
+        # switched_df_indications[, (drop.cols) := NULL]
         
-        switched_df_indications[,bipolar_diff:=episode.end.switch-ind_bipolar_date][,epilepsy_diff:=episode.end.switch-ind_epilepsy_date][,migraine_diff:=episode.end.switch-ind_migraine_date]
-        switched_df_indications[bipolar_diff<0,bipolar_diff:=NA][epilepsy_diff<0,epilepsy_diff:=NA][migraine_diff<0,migraine_diff:=NA]
-        switched_df_indications <- switched_df_indications[,num_obs:=rowSums(!is.na(switched_df_indications[,c("epilepsy_diff", "bipolar_diff", "migraine_diff")]))][]
-        switched_df_indications[num_obs==0, indication:="unknown"]
-        switched_df_indications[num_obs==1, indication:=temp_indication][,temp_indication:=NULL]
-        switched_df_indications[num_obs>1, indication:="multiple"]
-        drop.cols <- grep("diff|ind_", colnames(switched_df_indications))
-        switched_df_indications[, (drop.cols) := NULL]
         # Performs pgtests counts - stratified by indication group
         switched_by_indication <- switched_df_indications[,.N, by = .(year(episode.end.switch),month(episode.end.switch), indication)]
         # Get unique values of indication groups - for the for loop

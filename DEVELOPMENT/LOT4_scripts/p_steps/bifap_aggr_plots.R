@@ -16,7 +16,8 @@ bifap_plots<-paste0(All_regions_dir,"plots/")
 
 
 # Creates a region color key
-my_regions<-c("AR", "AS","CA", "CL","CM","CN","MA","MU","NA")
+my_regions <- list.dirs(path = multiple_regions_dir, full.names = FALSE, recursive = FALSE)
+# my_regions<-c("AR", "AS","CA", "CL","CM","CN","MA","MU","NA")
 my_pallette<-RColorBrewer::brewer.pal(n =length(my_regions), name="Set1" )
 #bind colors to regions so that the same color will represent each region in all plots, even when not all regions are present
 region_key<-as.data.frame(cbind(my_pallette, my_regions))
@@ -36,7 +37,7 @@ my_folders <- list.files(All_regions_dir, pattern="counts") # 508 (excluded: 2 b
 # 5. Preg_starts
 my_folders_rates <- my_folders[!grepl(c("all_pregnancies|discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
 #351
-my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|ATC|reason|contra_type"), my_folders_rates)]
+my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|reason|contra_type"), my_folders_rates)]
 #171
 # PROPORTIONS 
 # 1. Discontinued
@@ -47,7 +48,7 @@ my_folders_rates <- my_folders_rates[!grepl(c("age_group|indication|tx_dur|ATC|r
 # 6. med_use_during_contraception 
 my_folders_props <- my_folders[grepl(c("discontinued|switched|pgtests_prior|pgtests_after|contraception_prior|med_use_during_contraception_episodes"), my_folders)]
 #154
-my_folders_props <- my_folders_props[!grepl(c("age_group|indication|tx_dur|ATC"), my_folders_props)]
+my_folders_props <- my_folders_props[!grepl(c("age_group|indication|tx_dur|reason|contra_type"), my_folders_props)]
 #24
 #create ylim max from pooled file
 ### Strtaified records 
