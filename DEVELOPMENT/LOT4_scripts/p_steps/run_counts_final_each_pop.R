@@ -102,13 +102,13 @@ if (is_Denmark == T){
       # Counts of medicine records during contraception episodes 
       source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
       # Counts of all pregnancies # No rates, only counts, not stratified by subpops
-      source(paste0(pre_dir, "all_pregnancies_counts.R")) 
+#      source(paste0(pre_dir, "all_pregnancies_counts.R")) 
       # Counts of pregnancies started during a treatment episode 
       source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
       # Counts of medicines used during a pregnancy
-      source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
+#      source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
       # Alternative medicine counts
-      source(paste0(pre_dir, "altmeds_final_counts.R")) # Rates rounded up to decimal 5
+#      source(paste0(pre_dir, "altmeds_final_counts.R")) # Rates rounded up to decimal 5
       # Counts of patients who switched from Retinoid/Valproate use to alt med use
       source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
       # Makes plots of all counts files
