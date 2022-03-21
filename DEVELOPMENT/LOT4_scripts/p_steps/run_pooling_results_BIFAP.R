@@ -47,8 +47,9 @@ all_regions_files                  <- list.files(paste0(projectFolder, "/ALL_reg
 all_regions_files_no_prefix        <- gsub("^[A-Z]{2}_" ,"",all_regions_files)
 all_regions_files_no_prefix_unique <- unique(unlist(all_regions_files_no_prefix))
 # all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("denominator", all_regions_files_no_prefix_unique)]
-
-## Loops through all the unique counts files
+all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("contra_type", all_regions_files_no_prefix_unique)]
+  
+  ## Loops through all the unique counts files
 for (i in 1:length(all_regions_files_no_prefix_unique)){
   ## Removes the .csv from the file name so that it is not created in the name of the newly created folder name
   file_name <- gsub(".csv|.rds", "", all_regions_files_no_prefix_unique[i])
@@ -163,6 +164,7 @@ if(length(num_files)>0){
 ### Discontinued counts & preg_start_during_tx_episodes use prevalence counts as a denominator
 # 8. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "prevalence")
+# denom_files <- denom_files[!grepl("age_group|indication|tx_dur|contra_type|reason", denom_files)]
 # print(denom_files)
 num_files <- list.files(All_regions_dir, pattern = "discontinued|preg_starts|switched")
 num_files <- num_files[!grepl("age_group|indication|tx_dur|contra_type|reason", num_files)]

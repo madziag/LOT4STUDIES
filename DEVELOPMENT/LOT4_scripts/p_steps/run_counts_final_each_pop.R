@@ -82,33 +82,33 @@ if (is_Denmark == T){
       # Reads in records of population with indicated study type
       study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
       # Creates baseline tables #
-      source(paste0(pre_dir,"CreateBaselineTables.R"))
+#      source(paste0(pre_dir,"CreateBaselineTables.R"))
       # Creates Retinoid/Valproate treatment episodes #
-      source(paste0(pre_dir, "treatment_episodes.R"))
+#      source(paste0(pre_dir, "treatment_episodes.R"))
       # Creates KM plots 
-      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
+#      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
       # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
-      source(paste0(pre_dir, "contraception_duration.R"))
+#      source(paste0(pre_dir, "contraception_duration.R"))
       # Creates contraception treatment episodes 
-      source(paste0(pre_dir, "treatment_episodes_contracep.R"))
+#      source(paste0(pre_dir, "treatment_episodes_contracep.R"))
       # Counts of prevalence, incidence, discontinuation - medicines use 
       source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
       # Counts of discontinuation, stratified by reason for discontinuation
       source(paste0(pre_dir, "reasons_for_discontinuation.R"))
       # Counts of pregnancy tests within 90 days before/after medication record 
-      source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
+#      source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
       # Counts of contraception records within 90 days before medication record 
       source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
       # Counts of medicine records during contraception episodes 
       source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
       # Counts of all pregnancies # No rates, only counts, not stratified by subpops
-      source(paste0(pre_dir, "all_pregnancies_counts.R")) 
+#      source(paste0(pre_dir, "all_pregnancies_counts.R")) 
       # Counts of pregnancies started during a treatment episode 
-      source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
+#      source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
       # Counts of medicines used during a pregnancy
-      source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
+#      source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))
       # Alternative medicine counts
-      source(paste0(pre_dir, "altmeds_final_counts.R")) # Rates rounded up to decimal 5
+#      source(paste0(pre_dir, "altmeds_final_counts.R")) # Rates rounded up to decimal 5
       # Counts of patients who switched from Retinoid/Valproate use to alt med use
       source(paste0(pre_dir, "switched_to_alt_meds_counts.R"))
       # Makes plots of all counts files
