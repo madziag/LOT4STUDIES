@@ -1,7 +1,9 @@
 #Author: Magdalena Gamba M.D.
 #email: m.a.gamba@uu.nl
 #Organisation: Utrecht University, Utrecht, The Netherlands
-#Date: 31/01/2022
+#Date: 21/03/2022
+
+# THIS IS A REDUCED VERION OF THE SCRIPT (V4.1) which runs corrected counts using information already generated from the 02 script, which is correct.
 
 rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
