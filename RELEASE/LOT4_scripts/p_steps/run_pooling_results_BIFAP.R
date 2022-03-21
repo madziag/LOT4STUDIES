@@ -46,8 +46,10 @@ for(reg in 1:length(regions)){
 all_regions_files                  <- list.files(paste0(projectFolder, "/ALL_regions/"), full.names = FALSE)
 all_regions_files_no_prefix        <- gsub("^[A-Z]{2}_" ,"",all_regions_files)
 all_regions_files_no_prefix_unique <- unique(unlist(all_regions_files_no_prefix))
-
-## Loops through all the unique counts files
+# all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("denominator", all_regions_files_no_prefix_unique)]
+all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("contra_type", all_regions_files_no_prefix_unique)]
+  
+  ## Loops through all the unique counts files
 for (i in 1:length(all_regions_files_no_prefix_unique)){
   ## Removes the .csv from the file name so that it is not created in the name of the newly created folder name
   file_name <- gsub(".csv|.rds", "", all_regions_files_no_prefix_unique[i])
@@ -79,7 +81,7 @@ for (i in 1:length(all_denominator_folders)){
 print("Pooling counts files...")
 # 5. Pools counts files 
 all_counts_folders <- list.files(All_regions_dir, pattern = "count", full.names = FALSE)
-all_counts_folders <- all_counts_folders[!grepl("age_group|indication|tx_dur|ATC|prior|after|med_use_during_contraception", all_counts_folders)]
+all_counts_folders <- all_counts_folders[!grepl("age_group|indication|tx_dur|reason|contra_type", all_counts_folders)]
 
 ## Loops through all the denominator folders 
 for (i in 1:length(all_counts_folders)){
@@ -106,49 +108,50 @@ for (i in 1:length(all_counts_folders)){
 # 6. Moves subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
 num_files   <- list.files(All_regions_dir, pattern = "EVENTS|MEDS|PROC|prevalence|incidence|med_use_during_pregnancy|alt_med")
-num_files <- num_files[!grepl("age_group|indication|tx_dur|ATC|switched", num_files)]
+num_files <- num_files[!grepl("age_group|indication|tx_dur|reason|contra_type|switched", num_files)]
 
-for (i in 1:length(num_files)){
-  num_subpop <- strsplit(num_files[i], "_")[[1]][1]
-  for (j in 1:length(denom_files)){
-    denom_subpop <- strsplit(denom_files[j], "_denominator")[[1]][1]
-    if (num_subpop == denom_subpop){
-      from <- paste0(All_regions_dir, denom_subpop, "_denominator/", denom_subpop,"_denominator_Pooled.csv")
-      to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_denominator_Pooled.csv")
-      file.copy(from, to)
-    } 
+if(length(num_files)>0){
+  for (i in 1:length(num_files)){
+    num_subpop <- strsplit(num_files[i], "_")[[1]][1]
+    for (j in 1:length(denom_files)){
+      denom_subpop <- strsplit(denom_files[j], "_denominator")[[1]][1]
+      if (num_subpop == denom_subpop){
+        from <- paste0(All_regions_dir, denom_subpop, "_denominator/", denom_subpop,"_denominator_Pooled.csv")
+        to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_denominator_Pooled.csv")
+        file.copy(from, to)
+      } 
+    }
+  }
+  
+  num_files   <- num_files[!grepl(c("all_pregnancies"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
+  
+  # 7. Merge denominator files with count files 
+  for (i in 1:length(num_files)){
+    # Set path
+    record_dir <- paste0(All_regions_dir, num_files[i], "/")
+    # Load denominator file
+    denom_file <- list.files(record_dir, pattern = "denominator", full.names = T)
+    denom_df   <- fread(denom_file)
+    setnames(denom_df, "Sum", "Freq")
+    
+    num_file <- list.files(record_dir, pattern = "counts_Pooled", full.names = T)
+    num_df   <- fread(num_file)
+    setnames(num_df,"Sum", "N")
+    # Masking values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
+    # Changes values less than 5 and more than 0 to 5
+    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # Calculates rates
+    df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
+    df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
+    df <- df[,rates:=rates*1000]
+    df <- df[,c("YM", "N", "Freq", "rates", "masked")]
+    write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
+    # Remove denominator file from folder 
+    unlink(denom_file)
   }
 }
-
-num_files   <- num_files[!grepl(c("all_pregnancies"), num_files)] # Excludes folders that do not use the overall denominator for calculating rates
-
-# 7. Merge denominator files with count files 
-for (i in 1:length(num_files)){
-  # Set path
-  record_dir <- paste0(All_regions_dir, num_files[i], "/")
-  # Load denominator file
-  denom_file <- list.files(record_dir, pattern = "denominator", full.names = T)
-  denom_df   <- fread(denom_file)
-  setnames(denom_df, "Sum", "Freq")
-  
-  num_file <- list.files(record_dir, pattern = "counts_Pooled", full.names = T)
-  num_df   <- fread(num_file)
-  setnames(num_df,"Sum", "N")
-  # Masking values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-  num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
-  # Changes values less than 5 and more than 0 to 5
-  if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
-  # Calculates rates
-  df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
-  df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
-  df <- df[,rates:=rates*1000]
-  df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-  write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
-  # Remove denominator file from folder 
-  unlink(denom_file)
-}
-
 ##########################################################################
 ##########################################################################
 ############## USES PREVALENCE AS DENOMINATOR ############################
@@ -161,82 +164,81 @@ for (i in 1:length(num_files)){
 ### Discontinued counts & preg_start_during_tx_episodes use prevalence counts as a denominator
 # 8. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "prevalence")
+# denom_files <- denom_files[!grepl("age_group|indication|tx_dur|contra_type|reason", denom_files)]
 # print(denom_files)
 num_files <- list.files(All_regions_dir, pattern = "discontinued|preg_starts|switched")
-num_files <- num_files[!grepl("age_group|indication|tx_dur|ATC", num_files)]
+num_files <- num_files[!grepl("age_group|indication|tx_dur|contra_type|reason", num_files)]
 # print(num_files)
-
-for (i in 1:length(num_files)){
-  if(str_detect(num_files[i], pattern = "PC_HOSP_Retinoid")){num_subpop <- "PC_HOSP_Retinoid"}
-  else if(str_detect(num_files[i], pattern = "PC_HOSP_Valproate")){num_subpop <- "PC_HOSP_Valproate"}
-  else if(str_detect(num_files[i], pattern = "PC_Retinoid")){num_subpop <- "PC_Retinoid"}
-  else if(str_detect(num_files[i], pattern = "PC_Valproate")){num_subpop <- "PC_Valproate"}
-  else(print("NUMERATOR NAME NOT FOUND"))
-  
-  for (j in 1:length(denom_files)){
-    if(str_detect(denom_files[j], pattern = "PC_HOSP_Retinoid")){denom_subpop <- "PC_HOSP_Retinoid"}
-    else if(str_detect(denom_files[j], pattern = "PC_HOSP_Valproate")){denom_subpop <- "PC_HOSP_Valproate"}
-    else if(str_detect(denom_files[j], pattern = "PC_Retinoid")){denom_subpop <- "PC_Retinoid"}
-    else if(str_detect(denom_files[j], pattern = "PC_Valproate")){denom_subpop <- "PC_Valproate"}
-    else(print("DENOMINATOR NAME NOT FOUND"))
+if(length(num_files)){
+  for (i in 1:length(num_files)){
+    if(str_detect(num_files[i], pattern = "PC_HOSP_Retinoid")){num_subpop <- "PC_HOSP_Retinoid"}
+    else if(str_detect(num_files[i], pattern = "PC_HOSP_Valproate")){num_subpop <- "PC_HOSP_Valproate"}
+    else if(str_detect(num_files[i], pattern = "PC_Retinoid")){num_subpop <- "PC_Retinoid"}
+    else if(str_detect(num_files[i], pattern = "PC_Valproate")){num_subpop <- "PC_Valproate"}
+    else(print("NUMERATOR NAME NOT FOUND"))
     
-    if (num_subpop == denom_subpop){
-      from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
-      to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
-      file.copy(from, to)
-    } 
+    for (j in 1:length(denom_files)){
+      if(str_detect(denom_files[j], pattern = "PC_HOSP_Retinoid")){denom_subpop <- "PC_HOSP_Retinoid"}
+      else if(str_detect(denom_files[j], pattern = "PC_HOSP_Valproate")){denom_subpop <- "PC_HOSP_Valproate"}
+      else if(str_detect(denom_files[j], pattern = "PC_Retinoid")){denom_subpop <- "PC_Retinoid"}
+      else if(str_detect(denom_files[j], pattern = "PC_Valproate")){denom_subpop <- "PC_Valproate"}
+      else(print("DENOMINATOR NAME NOT FOUND"))
+      
+      if (num_subpop == denom_subpop){
+        from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+        to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_prevalence_counts_Pooled.csv")
+        file.copy(from, to)
+      } 
+    }
+  }
+  
+  # 9. Merge denominator files with count files 
+  for (i in 1:length(num_files)){
+    # Set path
+    record_dir <- paste0(All_regions_dir, num_files[i], "/")
+    # print(record_dir)
+    # Looks for denominator file in numerator folder 
+    denom_file <- list.files(record_dir, pattern = "prevalence_counts_Pooled", full.names = T)
+    # print(paste0("DENOM:", list.files(record_dir, pattern = "prevalence_counts_Pooled")))
+    # Loads denominator file 
+    denom_df <- fread(denom_file)
+    # File clean up
+    denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
+    setnames(denom_df, "N", "Freq")
+    # Looks for numerator file in numerator folder (depending on numerator type)
+    if(str_detect(num_files[i], pattern = "discontinued_counts")){
+      num_file <- list.files(record_dir, pattern = "discontinued_counts_Pooled", full.names = T, ignore.case = T)
+      # print(paste0("NUM:", list.files(record_dir, pattern = "discontinued_counts_Pooled")))
+    }
+    if(str_detect(num_files[i], pattern = "all_preg_starts")){
+      num_file <- list.files(record_dir, pattern = "during_tx_episodes_counts_Pooled", full.names = T, ignore.case = T)
+      # print(paste0("NUM:", list.files(record_dir, pattern = "during_tx_episodes_counts_Pooled")))
+    }
+    if(str_detect(num_files[i], pattern = "switched")){
+      num_file <- list.files(record_dir, pattern = "switched_to_alt_meds_counts_Pooled", full.names = T, ignore.case = T)
+      # print(paste0("NUM:", list.files(record_dir, pattern = "switched_to_alt_meds_counts_Pooled")))
+    }
+    #Loads numerator file  
+    num_df <-  fread(num_file)
+    # File clean up
+    num_df <- num_df[,-c("V1")]
+    setnames(num_df,"Sum", "N")
+    # Masking values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    num_df[,masked:=ifelse(N>0&N<5,1,0)]
+    # Changes values less than 5 and more than 0 to 5
+    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # Calculates rates
+    df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
+    df <- df[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+    if(str_detect(num_files[i], pattern = "all_preg_starts")){df[,rates:=rates*1000]}
+    df <- df[,c("YM", "N", "Freq", "rates", "masked")]
+    # Save file 
+    write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
+    # Remove denominator file from folder 
+    unlink(denom_file)
   }
 }
-
-# 9. Merge denominator files with count files 
-for (i in 1:length(num_files)){
-  # Set path
-  record_dir <- paste0(All_regions_dir, num_files[i], "/")
-  # print(record_dir)
-  # Looks for denominator file in numerator folder 
-  denom_file <- list.files(record_dir, pattern = "prevalence_counts_Pooled", full.names = T)
-  # print(paste0("DENOM:", list.files(record_dir, pattern = "prevalence_counts_Pooled")))
-  # Loads denominator file 
-  denom_df <- fread(denom_file)
-  # File clean up
-  denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
-  setnames(denom_df, "N", "Freq")
-  # Looks for numerator file in numerator folder (depending on numerator type)
-  if(str_detect(num_files[i], pattern = "discontinued_counts")){
-    num_file <- list.files(record_dir, pattern = "discontinued_counts_Pooled", full.names = T, ignore.case = T)
-    # print(paste0("NUM:", list.files(record_dir, pattern = "discontinued_counts_Pooled")))
-  }
-  if(str_detect(num_files[i], pattern = "all_preg_starts")){
-    num_file <- list.files(record_dir, pattern = "during_tx_episodes_counts_Pooled", full.names = T, ignore.case = T)
-    # print(paste0("NUM:", list.files(record_dir, pattern = "during_tx_episodes_counts_Pooled")))
-  }
-  if(str_detect(num_files[i], pattern = "switched")){
-    num_file <- list.files(record_dir, pattern = "switched_to_alt_meds_counts_Pooled", full.names = T, ignore.case = T)
-    # print(paste0("NUM:", list.files(record_dir, pattern = "switched_to_alt_meds_counts_Pooled")))
-  }
-  #Loads numerator file  
-  num_df <-  fread(num_file)
-  # File clean up
-  num_df <- num_df[,-c("V1")]
-  setnames(num_df,"Sum", "N")
-  # Masking values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-  num_df[,masked:=ifelse(N>0&N<5,1,0)]
-  # Changes values less than 5 and more than 0 to 5
-  if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
-  # Calculates rates
-  df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
-  df <- df[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-  if(str_detect(num_files[i], pattern = "all_preg_starts")){df[,rates:=rates*1000]}
-  df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-  # Save file 
-  write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
-  # Remove denominator file from folder 
-  unlink(denom_file)
-}
-
-
-
 ##########################################################################
 ##########################################################################
 ############## USES RETINOID/VALPROATES AS DENOMINATOR ###################
@@ -252,106 +254,65 @@ for (i in 1:length(num_files)){
 # 10. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = paste0(c("Retinoid_MEDS", "Valproate_MEDS"), collapse = "|"))
 num_files   <- list.files(All_regions_dir, pattern = "prior|after|med_use_during_contraception")
-num_files <- num_files[!grepl("age_group|indication|tx_dur|ATC", num_files)]
+num_files   <- num_files[!grepl("age_group|indication|tx_dur|contra_type|reason", num_files)]
 
-for (i in 1:length(num_files)){
-
-  if(str_detect(num_files[i], pattern = "pgtests_prior_counts")){num_subpop <- gsub("_pgtests_prior_counts", "", num_files[i])}
-  if(str_detect(num_files[i], pattern = "pgtests_after_counts")){num_subpop <- gsub("_pgtests_after_counts", "", num_files[i])}
-  if(str_detect(num_files[i], pattern = "contraception_prior_counts")){num_subpop <- gsub("_contraception_prior_counts", "", num_files[i])}
-  if(str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_subpop <- gsub("_med_use_during_contraception_episodes_counts", "", num_files[i])}
-
-  for (j in 1:length(denom_files)){
-    denom_subpop <- gsub("_MEDS_counts", "", denom_files[j])
-    if (num_subpop == denom_subpop){
-      from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_MEDS_counts_Pooled.csv")
-      to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_MEDS_counts_Pooled.csv")
-      file.copy(from, to)
+if(length(num_files)>0){
+  for (i in 1:length(num_files)){
+    
+    if(str_detect(num_files[i], pattern = "pgtests_prior_counts")){num_subpop <- gsub("_pgtests_prior_counts", "", num_files[i])}
+    if(str_detect(num_files[i], pattern = "pgtests_after_counts")){num_subpop <- gsub("_pgtests_after_counts", "", num_files[i])}
+    if(str_detect(num_files[i], pattern = "contraception_prior_counts")){num_subpop <- gsub("_contraception_prior_counts", "", num_files[i])}
+    if(str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_subpop <- gsub("_med_use_during_contraception_episodes_counts", "", num_files[i])}
+    
+    for (j in 1:length(denom_files)){
+      denom_subpop <- gsub("_MEDS_counts", "", denom_files[j])
+      if (num_subpop == denom_subpop){
+        from <- paste0(All_regions_dir, denom_files[j], "/", denom_subpop,"_MEDS_counts_Pooled.csv")
+        to   <- paste0(All_regions_dir, num_files[i], "/", denom_subpop,"_MEDS_counts_Pooled.csv")
+        file.copy(from, to)
+      }
     }
   }
+  
+  # 11. Merge denominator files with count files
+  for (i in 1:length(num_files)){
+    # Set path
+    record_dir <- paste0(All_regions_dir, num_files[i], "/")
+    # Load denominator file
+    denom_file <- list.files(record_dir, pattern = "MEDS_counts_Pooled", full.names = T)
+    denom_df <- fread(denom_file)
+    denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
+    setnames(denom_df, "N", "Freq")
+    # Loads numerator file
+    if (str_detect(num_files[i], pattern = "pgtests_prior")){num_file <- list.files(record_dir, pattern = "pgtests_prior_counts_Pooled", full.names = T)}
+    if (str_detect(num_files[i], pattern = "pgtests_after")){num_file <- list.files(record_dir, pattern = "pgtests_after_counts_Pooled", full.names = T)}
+    if (str_detect(num_files[i], pattern = "contraception_prior")){num_file <- list.files(record_dir, pattern = "contraception_prior_counts_Pooled", full.names = T)}
+    if (str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_file <- list.files(record_dir, pattern = "med_use_during_contraception_episodes_counts_Pooled", full.names = T)}
+    
+    num_df <-  fread(num_file)
+    num_df <- num_df[,-c("V1")]
+    setnames(num_df, "Sum", "N")
+    # Masking values less than 5
+    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked
+    num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
+    # Changes values less than 5 and more than 0 to 5
+    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # Calculates rates
+    df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
+    df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
+    df$rates[is.nan(df$rates)]<-0
+    df <- df[,c("YM", "N", "Freq", "rates", "masked")]
+    # Save file
+    write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
+    # Remove denominator file from folder
+    unlink(denom_file)
+  }
 }
-
-# 11. Merge denominator files with count files
-for (i in 1:length(num_files)){
-  # Set path
-  record_dir <- paste0(All_regions_dir, num_files[i], "/")
-  # Load denominator file
-  denom_file <- list.files(record_dir, pattern = "MEDS_counts_Pooled", full.names = T)
-  denom_df <- fread(denom_file)
-  denom_df <- denom_df[,-c("V1", "Freq", "masked", "rates")]
-  setnames(denom_df, "N", "Freq")
-  # Loads numerator file
-  if (str_detect(num_files[i], pattern = "pgtests_prior")){num_file <- list.files(record_dir, pattern = "pgtests_prior_counts_Pooled", full.names = T)}
-  if (str_detect(num_files[i], pattern = "pgtests_after")){num_file <- list.files(record_dir, pattern = "pgtests_after_counts_Pooled", full.names = T)}
-  if (str_detect(num_files[i], pattern = "contraception_prior")){num_file <- list.files(record_dir, pattern = "contraception_prior_counts_Pooled", full.names = T)}
-  if (str_detect(num_files[i], pattern = "med_use_during_contraception_episodes")){num_file <- list.files(record_dir, pattern = "med_use_during_contraception_episodes_counts_Pooled", full.names = T)}
-
-  num_df <-  fread(num_file)
-  num_df <- num_df[,-c("V1")]
-  setnames(num_df, "Sum", "N")
-  # Masking values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked
-  num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
-  # Changes values less than 5 and more than 0 to 5
-  if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
-  # Calculates rates
-  df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
-  df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
-  df$rates[is.nan(df$rates)]<-0
-  df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-  # Save file
-  write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
-  # Remove denominator file from folder
-  unlink(denom_file)
-}
-
-##########################################################################
-##########################################################################
-############## USES RETINOID/VALPROATES AS DENOMINATOR ###################
-##########################################################################
-##########################################################################
-# 1. pg test prior - done
-# 2. pg test after - done
-# 3. contraception prior - done
-# 4. med_use_during_contraception - done
-### PROPORTIONS
-
-# # Numerator -> Added numerators of all available regions
-# # Denominator -> Added denominators of all available regions 
-# meds_as_denom <- list.files(All_regions_dir, pattern = "prior|after|med_use_during_contraception")
-# meds_as_denom <- meds_as_denom[!grepl("age_group|indication|tx_dur|ATC", meds_as_denom)]
-# 
-# 
-# ## Loops through all the startifed counts folders 
-# for (i in 1:length(meds_as_denom)){
-#   record_dir <- paste0(All_regions_dir, meds_as_denom[i], "/") # Sets path to numerator folder 
-#   tables <- lapply(paste0(record_dir,list.files(record_dir)), read.csv, header = TRUE) # Loads all numerator files 
-#   comb_tables <- as.data.table(do.call(rbind , tables)) # Binds all numerator files 
-#   comb_tables <-comb_tables[,c("YM", "N", "Freq", "true_value")]
-#   comb_tables1 <- comb_tables[, N_all:=sum(N), by = list(YM)][, Freq_all:=sum(Freq), by = list(YM)] # Sums counts by year, month
-#   comb_tables1[,N:=NULL][,Freq:=NULL]
-#   setnames(comb_tables1, "N_all", "N")
-#   setnames(comb_tables1, "Freq_all", "Freq")
-#   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "true_value")] # Removes unnecessary columns 
-#   comb_tables1 <- comb_tables1[!duplicated(comb_tables1),]
-#   # Masking 
-#   comb_tables1[,masked:=ifelse(N<5, 1, 0)]
-#   if(mask == T){comb_tables1[masked==1,N:=5]}else{comb_tables1[masked==1,N:=N]}
-#   # Calculate rates 
-#   comb_tables1[,rates:=as.numeric(N)/as.numeric(Freq)][is.na(rates)|is.nan(rates),rates:=0]
-#   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
-#   write.csv(comb_tables1, paste0(record_dir, meds_as_denom[i],"_Pooled.csv")) # Saves pooled file
-# }
-# 
-# 
-
-
-
-#### STRATIFIED ANALYSIS  + THOSE THAT USE RETINOIDS/VALPROATEs as denominator ####
+#### STRATIFIED ANALYSIS ####
 # Numerator -> Added numerators of all available regions
 # Denominator -> Added denominators of all available regions 
 all_counts_folders_strat <- list.files(All_regions_dir, pattern = "count", full.names = FALSE)
-all_counts_folders_strat <- all_counts_folders_strat[grepl("age_group|indication|tx_dur|ATC|reason|contra_type", all_counts_folders_strat)]
+all_counts_folders_strat <- all_counts_folders_strat[grepl("age_group|indication|tx_dur|reason|contra_type", all_counts_folders_strat)]
 
 ## Loops through all the startifed counts folders 
 for (i in 1:length(all_counts_folders_strat )){
@@ -373,15 +334,8 @@ for (i in 1:length(all_counts_folders_strat )){
   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   short_name<- gsub("_ind_", "_", all_counts_folders_strat[i])
   write.csv(comb_tables1, paste0(record_dir, short_name,"_Pooled.csv")) # Saves pooled file
-  # write.csv(comb_tables1, paste0(record_dir, all_counts_folders_strat[i],"_Pooled.csv")) # Saves pooled file
 }
 
-
-
-
-# Clean up
-# rm(f1, f2, tables_denom, tables_num, comb_tables_denom, comb_tables_num)
-# rm(num_files, num_file, denom_files, denom_file, num_df, denom_df, df)
 
 ###########################################################################################################################################################################
 ########### BASELINE TABLES  ##############################################################################################################################################

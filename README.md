@@ -1,6 +1,6 @@
  
- <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V4</h3>
- <p align="center"> RELEASE NOTE: V4 - Final main analyses, minor release update
+ <h3 align="center">Lot 4 Retinoids and Valproates study scripts, Release V4.1</h3>
+ <p align="center"> RELEASE NOTE: V4.1 - Final main analyses (abridged)  with corrections to some analyses
  
 
 All groups are requested to run this script as soon as possible and report to UU/UMCU and issues encountered. Once results are generated, please upload to YODA.

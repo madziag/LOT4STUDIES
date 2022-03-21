@@ -91,7 +91,7 @@ names(empty_df) <- c("year", "month")
 if(length(discontinued_all_files)>1){
   for(i in 1:length(discontinued_all_files)){
     # Loads discontinued file
-    df_discontinued <- readRDS(paste0(counts_dfs_dir, discontinued_all_files[i])) # 39
+    df_discontinued <- readRDS(paste0(counts_dfs_dir, discontinued_all_files[i])) 
     # Removes no longer needed columns 
     df_discontinued <- df_discontinued[,c("person_id", "episode.end")]
     # Renames columns
@@ -202,7 +202,7 @@ if(length(discontinued_all_files)>1){
     }
     if(str_detect(discontinued_all_files[i], "Valproate")){
       discontinued_valps <- discontinued_counts_files[grepl("Valproate", discontinued_counts_files)]
-      discontinued_valps <- discontinued_rets[!grepl("_reason-", discontinued_valps)]
+      discontinued_valps <- discontinued_valps[!grepl("_reason-", discontinued_valps)]
       discontinued_all_counts <- readRDS(discontinued_valps)
     }
     
