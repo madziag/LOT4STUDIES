@@ -148,7 +148,7 @@ for (i in 1:length(tx_episodes_files)){
   # Removes unnecessary columns
   df_episodes <- df_episodes[,-c("end.episode.gap.days", "episode.duration")]
   # Add row numbers to each row 
-  df_episodes[,nrow:=.I]
+  df_episodes[,rowID:=.I]
   # Creates a version of df_episodes for incidence counts (we do not need an expanded df for incidence counts)
   df_episodes_for_incidence <- df_episodes
   # Creates a version of df_episodes for discontinued counts (we do not need an expanded df for discontinued counts)
@@ -173,9 +173,9 @@ for (i in 1:length(tx_episodes_files)){
     df_episodes <- df_episodes[!duplicated(df_episodes)]
   }
   # Expands data to get every day of treatment per patient (will also be used to add age_groups)
-  df_episodes_expanded <- setDT(df_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end, by = "day")), by = 1:nrow(df_episodes)]
+  df_episodes_expanded <- setDT(df_episodes)[,list(idnum = person_id, episode.day = seq(episode.start, episode.end, by = "day")), by = "rowID"]
   # Merges back with original data to get all columns 
-  df_episodes_expanded <-  merge(df_episodes, df_episodes_expanded, by = "nrow")
+  df_episodes_expanded <-  merge(df_episodes, df_episodes_expanded, by = "rowID")
   ### Continuation of adding indication column 
   # Checks if there are indication files and performs action only for DAPs with indication files 
   if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
@@ -226,7 +226,7 @@ for (i in 1:length(tx_episodes_files)){
   # Create year-months columns based on episode.day
   df_episodes_expanded[,year:=year(episode.day)][,month:=month(episode.day)]
   # Removes unnecessary columns
-  df_episodes_expanded <- df_episodes_expanded[,-c("nrow", "birth_date", "idnum", "episode.ID", "current_age", "tx_duration", "year_month")]
+  df_episodes_expanded <- df_episodes_expanded[,-c("birth_date", "idnum", "episode.ID", "current_age", "tx_duration", "year_month")]
   
   ##################################################################################################
   ################################## Calculates Prevalence #########################################
@@ -332,7 +332,7 @@ for (i in 1:length(tx_episodes_files)){
     prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
     prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in medicine counts folder
-    saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
+    saveRDS(prevalence_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
   }
   ################ STRATIFIED PREVALENCE BY INDICATION ###################
   if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
@@ -368,7 +368,7 @@ for (i in 1:length(tx_episodes_files)){
       prevalence_indication_counts <- prevalence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
       prevalence_indication_counts <- prevalence_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in medicine counts folder
-      saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_unique[group],"_prevalence_counts.rds")))
+      saveRDS(prevalence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_unique[group],"_prevalence_counts.rds")))
     }
   }
   ##################################################################################################

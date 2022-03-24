@@ -206,7 +206,7 @@ if(length(contra_epi_files)>0) {
             tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
             tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
             # Saves files in medicine counts folder
-            saveRDS(tx_in_episode_age_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+            saveRDS(tx_in_episode_indication_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
             for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
           }   
           
