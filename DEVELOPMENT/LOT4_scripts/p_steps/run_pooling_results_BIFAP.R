@@ -41,13 +41,22 @@ for(reg in 1:length(regions)){
   file.copy(as.vector(f1$files.old), as.vector(f1$files.new))
 }
 
+contra_files <- list.files(All_regions_dir, pattern = "contra_type", full.names = T)
+for(i in 1:length(contra_files)){
+  df <- fread(contra_files[i])
+  new_name <- gsub("_contraception_episodes", "_contra_epis", contra_files[i])
+  new_name <- gsub("_contracep", "", new_name)
+  write.csv(df, new_name)
+  unlink(contra_files[i])
+}
+
 # 3. Moves files within ALL_regions folder to subfolders named after the specific counts that have been performed e.g. Valproate.csv files from every region will be moved into  Valproate folder 
 ## Gets a list of files in ALL_regions folder (for subfolder creation, the region prefix is removed)
 all_regions_files                  <- list.files(paste0(projectFolder, "/ALL_regions/"), full.names = FALSE)
 all_regions_files_no_prefix        <- gsub("^[A-Z]{2}_" ,"",all_regions_files)
 all_regions_files_no_prefix_unique <- unique(unlist(all_regions_files_no_prefix))
 # all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("denominator", all_regions_files_no_prefix_unique)]
-all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("contra_type", all_regions_files_no_prefix_unique)]
+# all_regions_files_no_prefix_unique <- all_regions_files_no_prefix_unique[!grepl("contra_type", all_regions_files_no_prefix_unique)]
   
   ## Loops through all the unique counts files
 for (i in 1:length(all_regions_files_no_prefix_unique)){
@@ -93,6 +102,7 @@ for (i in 1:length(all_counts_folders)){
   comb_tables_num <- comb_tables_num[!duplicated(comb_tables_num),] # Removes any duplicates
   write.csv(comb_tables_num, paste0(record_dir, all_counts_folders[i],"_Pooled.csv")) # Saves pooled file
 }
+
 
 ##########################################################################
 ##########################################################################
@@ -147,11 +157,15 @@ if(length(num_files)>0){
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
     df <- df[,rates:=rates*1000]
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
+    print(paste0(num_files[i], ": "))
+    print(apply(df, 2, function(x) any(any(is.na(x) | is.infinite(x)))))
     write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
     # Remove denominator file from folder 
     unlink(denom_file)
   }
 }
+
+
 ##########################################################################
 ##########################################################################
 ############## USES PREVALENCE AS DENOMINATOR ############################
@@ -164,7 +178,7 @@ if(length(num_files)>0){
 ### Discontinued counts & preg_start_during_tx_episodes use prevalence counts as a denominator
 # 8. Move subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "prevalence")
-# denom_files <- denom_files[!grepl("age_group|indication|tx_dur|contra_type|reason", denom_files)]
+denom_files <- denom_files[!grepl("age_group|indication|tx_dur|contra_type|reason", denom_files)]
 # print(denom_files)
 num_files <- list.files(All_regions_dir, pattern = "discontinued|preg_starts|switched")
 num_files <- num_files[!grepl("age_group|indication|tx_dur|contra_type|reason", num_files)]
@@ -233,12 +247,16 @@ if(length(num_files)){
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
     if(str_detect(num_files[i], pattern = "all_preg_starts")){df[,rates:=rates*1000]}
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-    # Save file 
+    print(paste0(num_files[i], ": "))
+    print(apply(df, 2, function(x) any(any(is.na(x) | is.infinite(x)))))
+    # Saves file 
     write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
     # Remove denominator file from folder 
     unlink(denom_file)
   }
 }
+
+
 ##########################################################################
 ##########################################################################
 ############## USES RETINOID/VALPROATES AS DENOMINATOR ###################
@@ -302,6 +320,8 @@ if(length(num_files)>0){
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
     df$rates[is.nan(df$rates)]<-0
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
+    print(paste0(num_files[i], ": "))
+    print(apply(df, 2, function(x) any(any(is.infinite(x)))))
     # Save file
     write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
     # Remove denominator file from folder
@@ -314,7 +334,7 @@ if(length(num_files)>0){
 all_counts_folders_strat <- list.files(All_regions_dir, pattern = "count", full.names = FALSE)
 all_counts_folders_strat <- all_counts_folders_strat[grepl("age_group|indication|tx_dur|reason|contra_type", all_counts_folders_strat)]
 
-## Loops through all the startifed counts folders 
+## Loops through all the stratifed counts folders 
 for (i in 1:length(all_counts_folders_strat )){
   record_dir <- paste0(All_regions_dir, all_counts_folders_strat[i], "/") # Sets path to numerator folder 
   tables <- lapply(paste0(record_dir,list.files(record_dir)), read.csv, header = TRUE) # Loads all numerator files 
@@ -327,275 +347,278 @@ for (i in 1:length(all_counts_folders_strat )){
   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "true_value")] # Removes unnecessary columns 
   comb_tables1 <- comb_tables1[!duplicated(comb_tables1),]
   # Masking 
-  comb_tables1[,masked:=ifelse(N<5, 1, 0)]
+  comb_tables1[,masked:=ifelse(N<5&N>0, 1, 0)]
   if(mask == T){comb_tables1[masked==1,N:=5]}else{comb_tables1[masked==1,N:=N]}
+  if(mask == T){comb_tables1[masked==1,Freq:=5]}else{comb_tables1[masked==1,Freq:=Freq]}
   # Calculate rates 
   comb_tables1[,rates:=as.numeric(N)/as.numeric(Freq)][is.na(rates)|is.nan(rates),rates:=0]
   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+  print(paste0(all_counts_folders_strat[i], ": "))
+  print(apply(comb_tables1, 2, function(x) any(any(is.infinite(x)))))
   short_name<- gsub("_ind_", "_", all_counts_folders_strat[i])
   write.csv(comb_tables1, paste0(record_dir, short_name,"_Pooled.csv")) # Saves pooled file
 }
 
 
-###########################################################################################################################################################################
-########### BASELINE TABLES  ##############################################################################################################################################
-###########################################################################################################################################################################
-print("Pooling baseline tables...")
-# 1. Pools study population
-study_pop_files  <- list.files(All_regions_dir, pattern = "PC_for_pooling_baseline_tables|PC_HOSP_for_pooling_baseline_tables")
-print(paste0("Available for_pooling_baseline_tables: ", study_pop_files))
-## Loops through all the baseline folders 
-for (i in 1:length(study_pop_files)){
-  record_dir <- paste0(All_regions_dir, study_pop_files[i], "/")
-  tables_study_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
-  comb_tables_study_pop <- as.data.table(do.call(rbind , tables_study_pop))
-  if(str_detect(study_pop_files[i], "PC_HOSP")){
-    saveRDS(comb_tables_study_pop, paste0(record_dir, "PC_HOSP_Study_Population_Pooled.rds"))
-  } else {
-    saveRDS(comb_tables_study_pop, paste0(record_dir, "PC_Study_Population_Pooled.rds"))
-  }
-  for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
-}
-
-rm(tables_study_pop)
-
-# 2. Pools retinoid/valproate populations
-med_pop_files  <- list.files(All_regions_dir, pattern = "PC_med_use_for_pooling_baseline_tables|PC_HOSP_med_use_for_pooling_baseline_tables")
-print(paste0("Meds available for_pooling_baseline_tables: ", med_pop_files))
-## Loops through all the denominator folders 
-for (i in 1:length(med_pop_files)){
-  record_dir <- paste0(All_regions_dir, med_pop_files[i], "/")
-  tables_med_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
-  comb_tables_med_pop <- as.data.table(do.call(rbind , tables_med_pop))
-  if(str_detect(med_pop_files[i], "PC_HOSP")){
-    saveRDS(comb_tables_med_pop, paste0(record_dir, "PC_HOSP_Meds_Population_Pooled.rds"))
-  } else {
-    saveRDS(comb_tables_med_pop, paste0(record_dir, "PC_Meds_Population_Pooled.rds"))
-  }
-  for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
-}
-
-rm(tables_med_pop)
-# 3. Move study population to corresponding med_use_for_pooling_baseline_tables folder 
-for (i in 1:length(med_pop_files)){
-  # if(str_detect(med_pop_files[i], "PC_HOSP")){med_pop_subpop <- "PC_HOSP"} else {med_pop_subpop <- "PC"}
-  if(str_detect(med_pop_files[i], "PC_HOSP")){med_pop_subpop <- "PC_HOSP"} else {med_pop_subpop <- "PC"}
-  for (j in 1:length(study_pop_files)){
-    # if(str_detect(study_pop_files[j], "PC_HOSP")){study_pop_subpop <- "PC_HOSP"} else {study_pop_subpop <- "PC"}
-    if(str_detect(study_pop_files[j], "PC_HOSP")){study_pop_subpop <- "PC_HOSP"} else {study_pop_subpop <- "PC"}
-    if (med_pop_subpop == study_pop_subpop){
-      from <- paste0(All_regions_dir, study_pop_subpop, "_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
-      to <- paste0(All_regions_dir,study_pop_subpop, "_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
-      file.move(from, to)
-      
-    } 
-  }
-}
-
-# Remove empty folders 
-for(file in list.files(path = All_regions_dir, pattern ="PC_for_pooling_baseline_tables|PC_HOSP_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
-
-# 4. Create baseline tables for each subpop
-baseline_subpop <- list.files(All_regions_dir, pattern = "med_use_for_pooling_baseline_tables")
-
-for (i in 1:length(baseline_subpop)){
-  record_dir <- paste0(All_regions_dir, baseline_subpop[i])
-  study_pop_first_occurrence <- readRDS(paste0(record_dir, "/", list.files(record_dir,pattern = "Meds_Population_Pooled")))
-  study_population <- readRDS(paste0(record_dir, "/", list.files(record_dir,pattern = "Study_Population_Pooled")))
-  # Creates Subsets 
-  if (study_type == "Retinoid"){
-    study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-    study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-    # Retinoids - subgroups
-    study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-    study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-    study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-    
-    all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-    names(all_dfs_meds) <- c("All_Users", "Retinoids_Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-    
-  } else if (study_type == "Valproate"){
-    study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-    study_pop_val_unique <- unique(study_pop_val, by = "person_id")
-    
-    all_dfs_meds <- list(study_population, study_pop_val_unique)
-    names(all_dfs_meds) <- c("All_Users", "Valproates_Only")
-    
-  } else if (study_type == "Both"){
-    study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-    study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-    study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-    study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-    study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
-    
-    study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-    study_pop_val_unique <- unique(study_pop_val, by = c("person_id"))
-    
-    all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-    names(all_dfs_meds) <- c("All_Users", "Retinoids_Only", "Valproates_Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
-    
-  }
-  
-  # Loops through all the subsets depending on the study_type and creates baseline tables 
-  for (j in 1:length(all_dfs_meds)){
-    df <- all_dfs_meds[[j]]
-    if(nrow(df > 0)){
-      ################## BASELINE ALL POPULATION ########################
-      # Calculates median of followup in years 
-      fu_median <-  median(df$fu_dur_days)/365.25
-      fu_IQR <- IQR(df$fu_dur_days)/365.25
-      fu_min        <- min(df$fu_dur_days)/365.25
-      fu_max        <- max(df$fu_dur_days)/365.25
-      max_exit_date <- max(df$exit_date)
-      # fu_SD
-      age_at_ID_mean <-mean(df$age_at_entry_date)
-      age_at_ID_SD   <-sd(df$age_at_entry_date)
-      # age_at_ID_SD <- do we calculate SD if we are calculating mean
-      
-      # If count < 5 and mask = T, then instead of actual count, write "count=<5
-      if(mask == TRUE){
-        
-        if(sum(df$age_groups == "12-20.99")<=5) {age_at_ID_12_20.99_count<-"count=<5"} else {age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99")} 
-        if(sum(df$age_groups == "21-30.99")<=5) {age_at_ID_21_30.99_count<-"count=<5"} else {age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")} 
-        if(sum(df$age_groups == "31-40.99")<=5) {age_at_ID_31_40.99_count<-"count=<5"} else {age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")}  
-        if(sum(df$age_groups == "41-55.99")<=5) {age_at_ID_41_55.99_count<-"count=<5"} else {age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")} 
-        # Masking
-        if (age_at_ID_12_20.99_count == "count=<5" | age_at_ID_21_30.99_count== "count=<5" |  age_at_ID_31_40.99_count == "count=<5" | age_at_ID_41_55.99_count == "count=<5") {
-          print("Masked values. Percentages cannot be calculated!")
-          # Creates dataframe
-          names <- c("Follow-up, years - median",
-                     "Follow-up, years - IQR",
-                     "Follow-up, years - min",
-                     "Follow-up, years - max",
-                     "Max exit date",
-                     "Age at index date (study entry) - mean",
-                     "Age at index date (study entry) - sd",
-                     "12.0-20.99 years_count",
-                     "21.0-30.99 years_count",
-                     "31.0-40.99 years_count",
-                     "41.0-55.99 years_count")
-          
-          values <- c(as.character(round(fu_median,1)),
-                      as.character(round(fu_IQR,1)),
-                      as.character(round(fu_min,1)),
-                      as.character(round(fu_max,1)),
-                      as.character(max_exit_date),
-                      as.character(round(age_at_ID_mean,1)),
-                      as.character(round(age_at_ID_SD,1)),
-                      as.character(age_at_ID_12_20.99_count),
-                      as.character(age_at_ID_21_30.99_count),
-                      as.character(age_at_ID_31_40.99_count),
-                      as.character(age_at_ID_41_55.99_count))
-        } else { # Performs counts
-          age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99")
-          age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")
-          age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")
-          age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")
-          # Calculates percentages
-          age_at_ID_12_20.99_perc  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
-          age_at_ID_21_30.99_perc  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
-          age_at_ID_31_40.99_perc  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
-          age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
-          
-          # Create dataframe
-          names <- c("Follow-up, years - median",
-                     "Follow-up, years - IQR",
-                     "Follow-up, years - min",
-                     "Follow-up, years - max",
-                     "Max exit date",
-                     "Age at index date (study entry) - mean",
-                     "Age at index date (study entry) - sd",
-                     "12.0-20.99 years_count",
-                     "12.0-20.99 years_perc",
-                     "21.0-30.99 years_count",
-                     "21.0-30.99 years_perc",
-                     "31.0-40.99 years_count",
-                     "31.0-40.99 years_perc",
-                     "41.0-55.99 years_count",
-                     "41.0-55.99 years_perc")
-          
-          values <- c(as.character(round(fu_median,1)),
-                      as.character(round(fu_IQR,1)),
-                      as.character(round(fu_min,1)),
-                      as.character(round(fu_max,1)),
-                      as.character(max_exit_date),
-                      as.character(round(age_at_ID_mean,1)),
-                      as.character(round(age_at_ID_SD,1)),
-                      as.character(age_at_ID_12_20.99_count),
-                      as.character(round(age_at_ID_12_20.99_perc,1)),
-                      as.character(age_at_ID_21_30.99_count),
-                      as.character(round(age_at_ID_21_30.99_perc,1)),
-                      as.character(age_at_ID_31_40.99_count),
-                      as.character(round(age_at_ID_31_40.99_perc,1)),
-                      as.character(age_at_ID_41_55.99_count),
-                      as.character(round(age_at_ID_41_55.99_perc),1))}
-        
-      } else {
-        age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99") 
-        age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")
-        age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99") 
-        age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")
-        # Calculates percentages
-        age_at_ID_12_20.99_perc  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
-        age_at_ID_21_30.99_perc  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
-        age_at_ID_31_40.99_perc  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
-        age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
-        
-        # Create dataframe
-        names <- c("Follow-up, years - median",
-                   "Follow-up, years - IQR",
-                   "Follow-up, years - min",
-                   "Follow-up, years - max",
-                   "Max exit date",
-                   "Age at index date (study entry) - mean",
-                   "Age at index date (study entry) - sd",
-                   "12.0-20.99 years_count",
-                   "12.0-20.99 years_perc",
-                   "21.0-30.99 years_count",
-                   "21.0-30.99 years_perc",
-                   "31.0-40.99 years_count",
-                   "31.0-40.99 years_perc",
-                   "41.0-55.99 years_count",
-                   "41.0-55.99 years_perc")
-        
-        values <- c(as.character(round(fu_median,1)),
-                    as.character(round(fu_IQR,1)),
-                    as.character(round(fu_min,1)),
-                    as.character(round(fu_max,1)),
-                    as.character(max_exit_date),
-                    as.character(round(age_at_ID_mean,1)),
-                    as.character(round(age_at_ID_SD,1)),
-                    as.character(age_at_ID_12_20.99_count),
-                    as.character(round(age_at_ID_12_20.99_perc,1)),
-                    as.character(age_at_ID_21_30.99_count),
-                    as.character(round(age_at_ID_21_30.99_perc,1)),
-                    as.character(age_at_ID_31_40.99_count),
-                    as.character(round(age_at_ID_31_40.99_perc,1)),
-                    as.character(age_at_ID_41_55.99_count),
-                    as.character(round(age_at_ID_41_55.99_perc),1))
-      }
-      # Creates baseline table
-      baseline <- data.table(names, values)
-      if(str_detect(baseline_subpop[i], "PC_HOSP")){subpop<-"PC_HOSP"}else{subpop<-"PC"}
-      # Saves baseline table
-      write.csv(baseline, paste0(record_dir, "/", subpop,"_", names(all_dfs_meds[j]), "_baseline.csv"))
-    } else {
-      print(paste("There are no records for: ", subpop, "_", names(all_dfs_meds[j])))
-    }
-  }
-}
-for(file in list.files(path = record_dir, pattern =".rds")){unlink(paste0(record_dir, "/", file), recursive = FALSE)}
-
-
-# Sources script that plots aggregated plots 
-print("Creating plots...")
-# source(paste0(pre_dir,"bifap_aggr_plots.R"))
-
-
-
-
-
-
-
-
-
+# ###########################################################################################################################################################################
+# ########### BASELINE TABLES  ##############################################################################################################################################
+# ###########################################################################################################################################################################
+# print("Pooling baseline tables...")
+# # 1. Pools study population
+# study_pop_files  <- list.files(All_regions_dir, pattern = "PC_for_pooling_baseline_tables|PC_HOSP_for_pooling_baseline_tables")
+# print(paste0("Available for_pooling_baseline_tables: ", study_pop_files))
+# ## Loops through all the baseline folders 
+# for (i in 1:length(study_pop_files)){
+#   record_dir <- paste0(All_regions_dir, study_pop_files[i], "/")
+#   tables_study_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
+#   comb_tables_study_pop <- as.data.table(do.call(rbind , tables_study_pop))
+#   if(str_detect(study_pop_files[i], "PC_HOSP")){
+#     saveRDS(comb_tables_study_pop, paste0(record_dir, "PC_HOSP_Study_Population_Pooled.rds"))
+#   } else {
+#     saveRDS(comb_tables_study_pop, paste0(record_dir, "PC_Study_Population_Pooled.rds"))
+#   }
+#   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
+# }
+# 
+# rm(tables_study_pop)
+# 
+# # 2. Pools retinoid/valproate populations
+# med_pop_files  <- list.files(All_regions_dir, pattern = "PC_med_use_for_pooling_baseline_tables|PC_HOSP_med_use_for_pooling_baseline_tables")
+# print(paste0("Meds available for_pooling_baseline_tables: ", med_pop_files))
+# ## Loops through all the denominator folders 
+# for (i in 1:length(med_pop_files)){
+#   record_dir <- paste0(All_regions_dir, med_pop_files[i], "/")
+#   tables_med_pop <- lapply(paste0(record_dir,list.files(record_dir)), readRDS)
+#   comb_tables_med_pop <- as.data.table(do.call(rbind , tables_med_pop))
+#   if(str_detect(med_pop_files[i], "PC_HOSP")){
+#     saveRDS(comb_tables_med_pop, paste0(record_dir, "PC_HOSP_Meds_Population_Pooled.rds"))
+#   } else {
+#     saveRDS(comb_tables_med_pop, paste0(record_dir, "PC_Meds_Population_Pooled.rds"))
+#   }
+#   for(file in list.files(path = record_dir, pattern ="for_pooling")){unlink(paste0(record_dir, file), recursive = FALSE)}
+# }
+# 
+# rm(tables_med_pop)
+# # 3. Move study population to corresponding med_use_for_pooling_baseline_tables folder 
+# for (i in 1:length(med_pop_files)){
+#   # if(str_detect(med_pop_files[i], "PC_HOSP")){med_pop_subpop <- "PC_HOSP"} else {med_pop_subpop <- "PC"}
+#   if(str_detect(med_pop_files[i], "PC_HOSP")){med_pop_subpop <- "PC_HOSP"} else {med_pop_subpop <- "PC"}
+#   for (j in 1:length(study_pop_files)){
+#     # if(str_detect(study_pop_files[j], "PC_HOSP")){study_pop_subpop <- "PC_HOSP"} else {study_pop_subpop <- "PC"}
+#     if(str_detect(study_pop_files[j], "PC_HOSP")){study_pop_subpop <- "PC_HOSP"} else {study_pop_subpop <- "PC"}
+#     if (med_pop_subpop == study_pop_subpop){
+#       from <- paste0(All_regions_dir, study_pop_subpop, "_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+#       to <- paste0(All_regions_dir,study_pop_subpop, "_med_use_for_pooling_baseline_tables/", study_pop_subpop, "_Study_Population_Pooled.rds")
+#       file.move(from, to)
+#       
+#     } 
+#   }
+# }
+# 
+# # Remove empty folders 
+# for(file in list.files(path = All_regions_dir, pattern ="PC_for_pooling_baseline_tables|PC_HOSP_for_pooling_baseline_tables")){unlink(paste0(All_regions_dir, file), recursive = TRUE)}
+# 
+# # 4. Create baseline tables for each subpop
+# baseline_subpop <- list.files(All_regions_dir, pattern = "med_use_for_pooling_baseline_tables")
+# 
+# for (i in 1:length(baseline_subpop)){
+#   record_dir <- paste0(All_regions_dir, baseline_subpop[i])
+#   study_pop_first_occurrence <- readRDS(paste0(record_dir, "/", list.files(record_dir,pattern = "Meds_Population_Pooled")))
+#   study_population <- readRDS(paste0(record_dir, "/", list.files(record_dir,pattern = "Study_Population_Pooled")))
+#   # Creates Subsets 
+#   if (study_type == "Retinoid"){
+#     study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+#     study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+#     # Retinoids - subgroups
+#     study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+#     study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+#     study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+#     
+#     all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+#     names(all_dfs_meds) <- c("All_Users", "Retinoids_Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+#     
+#   } else if (study_type == "Valproate"){
+#     study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+#     study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+#     
+#     all_dfs_meds <- list(study_population, study_pop_val_unique)
+#     names(all_dfs_meds) <- c("All_Users", "Valproates_Only")
+#     
+#   } else if (study_type == "Both"){
+#     study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+#     study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+#     study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
+#     study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
+#     study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+#     
+#     study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+#     study_pop_val_unique <- unique(study_pop_val, by = c("person_id"))
+#     
+#     all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+#     names(all_dfs_meds) <- c("All_Users", "Retinoids_Only", "Valproates_Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+#     
+#   }
+#   
+#   # Loops through all the subsets depending on the study_type and creates baseline tables 
+#   for (j in 1:length(all_dfs_meds)){
+#     df <- all_dfs_meds[[j]]
+#     if(nrow(df > 0)){
+#       ################## BASELINE ALL POPULATION ########################
+#       # Calculates median of followup in years 
+#       fu_median <-  median(df$fu_dur_days)/365.25
+#       fu_IQR <- IQR(df$fu_dur_days)/365.25
+#       fu_min        <- min(df$fu_dur_days)/365.25
+#       fu_max        <- max(df$fu_dur_days)/365.25
+#       max_exit_date <- max(df$exit_date)
+#       # fu_SD
+#       age_at_ID_mean <-mean(df$age_at_entry_date)
+#       age_at_ID_SD   <-sd(df$age_at_entry_date)
+#       # age_at_ID_SD <- do we calculate SD if we are calculating mean
+#       
+#       # If count < 5 and mask = T, then instead of actual count, write "count=<5
+#       if(mask == TRUE){
+#         
+#         if(sum(df$age_groups == "12-20.99")<=5) {age_at_ID_12_20.99_count<-"count=<5"} else {age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99")} 
+#         if(sum(df$age_groups == "21-30.99")<=5) {age_at_ID_21_30.99_count<-"count=<5"} else {age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")} 
+#         if(sum(df$age_groups == "31-40.99")<=5) {age_at_ID_31_40.99_count<-"count=<5"} else {age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")}  
+#         if(sum(df$age_groups == "41-55.99")<=5) {age_at_ID_41_55.99_count<-"count=<5"} else {age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")} 
+#         # Masking
+#         if (age_at_ID_12_20.99_count == "count=<5" | age_at_ID_21_30.99_count== "count=<5" |  age_at_ID_31_40.99_count == "count=<5" | age_at_ID_41_55.99_count == "count=<5") {
+#           print("Masked values. Percentages cannot be calculated!")
+#           # Creates dataframe
+#           names <- c("Follow-up, years - median",
+#                      "Follow-up, years - IQR",
+#                      "Follow-up, years - min",
+#                      "Follow-up, years - max",
+#                      "Max exit date",
+#                      "Age at index date (study entry) - mean",
+#                      "Age at index date (study entry) - sd",
+#                      "12.0-20.99 years_count",
+#                      "21.0-30.99 years_count",
+#                      "31.0-40.99 years_count",
+#                      "41.0-55.99 years_count")
+#           
+#           values <- c(as.character(round(fu_median,1)),
+#                       as.character(round(fu_IQR,1)),
+#                       as.character(round(fu_min,1)),
+#                       as.character(round(fu_max,1)),
+#                       as.character(max_exit_date),
+#                       as.character(round(age_at_ID_mean,1)),
+#                       as.character(round(age_at_ID_SD,1)),
+#                       as.character(age_at_ID_12_20.99_count),
+#                       as.character(age_at_ID_21_30.99_count),
+#                       as.character(age_at_ID_31_40.99_count),
+#                       as.character(age_at_ID_41_55.99_count))
+#         } else { # Performs counts
+#           age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99")
+#           age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")
+#           age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99")
+#           age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")
+#           # Calculates percentages
+#           age_at_ID_12_20.99_perc  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
+#           age_at_ID_21_30.99_perc  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
+#           age_at_ID_31_40.99_perc  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
+#           age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
+#           
+#           # Create dataframe
+#           names <- c("Follow-up, years - median",
+#                      "Follow-up, years - IQR",
+#                      "Follow-up, years - min",
+#                      "Follow-up, years - max",
+#                      "Max exit date",
+#                      "Age at index date (study entry) - mean",
+#                      "Age at index date (study entry) - sd",
+#                      "12.0-20.99 years_count",
+#                      "12.0-20.99 years_perc",
+#                      "21.0-30.99 years_count",
+#                      "21.0-30.99 years_perc",
+#                      "31.0-40.99 years_count",
+#                      "31.0-40.99 years_perc",
+#                      "41.0-55.99 years_count",
+#                      "41.0-55.99 years_perc")
+#           
+#           values <- c(as.character(round(fu_median,1)),
+#                       as.character(round(fu_IQR,1)),
+#                       as.character(round(fu_min,1)),
+#                       as.character(round(fu_max,1)),
+#                       as.character(max_exit_date),
+#                       as.character(round(age_at_ID_mean,1)),
+#                       as.character(round(age_at_ID_SD,1)),
+#                       as.character(age_at_ID_12_20.99_count),
+#                       as.character(round(age_at_ID_12_20.99_perc,1)),
+#                       as.character(age_at_ID_21_30.99_count),
+#                       as.character(round(age_at_ID_21_30.99_perc,1)),
+#                       as.character(age_at_ID_31_40.99_count),
+#                       as.character(round(age_at_ID_31_40.99_perc,1)),
+#                       as.character(age_at_ID_41_55.99_count),
+#                       as.character(round(age_at_ID_41_55.99_perc),1))}
+#         
+#       } else {
+#         age_at_ID_12_20.99_count <- sum(df$age_groups == "12-20.99") 
+#         age_at_ID_21_30.99_count <- sum(df$age_groups == "21-30.99")
+#         age_at_ID_31_40.99_count <- sum(df$age_groups == "31-40.99") 
+#         age_at_ID_41_55.99_count <- sum(df$age_groups == "41-55.99")
+#         # Calculates percentages
+#         age_at_ID_12_20.99_perc  <- (age_at_ID_12_20.99_count/nrow(df)) * 100
+#         age_at_ID_21_30.99_perc  <- (age_at_ID_21_30.99_count/nrow(df)) * 100
+#         age_at_ID_31_40.99_perc  <- (age_at_ID_31_40.99_count/nrow(df)) * 100
+#         age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
+#         
+#         # Create dataframe
+#         names <- c("Follow-up, years - median",
+#                    "Follow-up, years - IQR",
+#                    "Follow-up, years - min",
+#                    "Follow-up, years - max",
+#                    "Max exit date",
+#                    "Age at index date (study entry) - mean",
+#                    "Age at index date (study entry) - sd",
+#                    "12.0-20.99 years_count",
+#                    "12.0-20.99 years_perc",
+#                    "21.0-30.99 years_count",
+#                    "21.0-30.99 years_perc",
+#                    "31.0-40.99 years_count",
+#                    "31.0-40.99 years_perc",
+#                    "41.0-55.99 years_count",
+#                    "41.0-55.99 years_perc")
+#         
+#         values <- c(as.character(round(fu_median,1)),
+#                     as.character(round(fu_IQR,1)),
+#                     as.character(round(fu_min,1)),
+#                     as.character(round(fu_max,1)),
+#                     as.character(max_exit_date),
+#                     as.character(round(age_at_ID_mean,1)),
+#                     as.character(round(age_at_ID_SD,1)),
+#                     as.character(age_at_ID_12_20.99_count),
+#                     as.character(round(age_at_ID_12_20.99_perc,1)),
+#                     as.character(age_at_ID_21_30.99_count),
+#                     as.character(round(age_at_ID_21_30.99_perc,1)),
+#                     as.character(age_at_ID_31_40.99_count),
+#                     as.character(round(age_at_ID_31_40.99_perc,1)),
+#                     as.character(age_at_ID_41_55.99_count),
+#                     as.character(round(age_at_ID_41_55.99_perc),1))
+#       }
+#       # Creates baseline table
+#       baseline <- data.table(names, values)
+#       if(str_detect(baseline_subpop[i], "PC_HOSP")){subpop<-"PC_HOSP"}else{subpop<-"PC"}
+#       # Saves baseline table
+#       write.csv(baseline, paste0(record_dir, "/", subpop,"_", names(all_dfs_meds[j]), "_baseline.csv"))
+#     } else {
+#       print(paste("There are no records for: ", subpop, "_", names(all_dfs_meds[j])))
+#     }
+#   }
+# }
+# for(file in list.files(path = record_dir, pattern =".rds")){unlink(paste0(record_dir, "/", file), recursive = FALSE)}
+# 
+# 
+# # Sources script that plots aggregated plots 
+# print("Creating plots...")
+# # source(paste0(pre_dir,"bifap_aggr_plots.R"))
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 
+# 

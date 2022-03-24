@@ -210,7 +210,7 @@ if(length(contra_epi_files)>0) {
             for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
           }   
           
-          ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY AGE GROUPS ###################
+          ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY CONTRA TYPE ###################
           # Performs medicine counts during contraceptive episode - stratified by contraceptive type
           tx_in_episode_by_contra_type <- tx_in_episode_df[,.N, by = .(year(Date),month(Date),contra_type)]
           # Get unique values of age groups - for the for loop
