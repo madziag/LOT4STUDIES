@@ -82,11 +82,11 @@ if (is_Denmark == T){
       # Reads in records of population with indicated study type
       study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
       # Creates baseline tables #
-#      source(paste0(pre_dir,"CreateBaselineTables.R"))
+      source(paste0(pre_dir,"CreateBaselineTables.R"))
       # Creates Retinoid/Valproate treatment episodes #
       source(paste0(pre_dir, "treatment_episodes.R"))
       # Creates KM plots 
-#      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
+      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
       # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
       source(paste0(pre_dir, "contraception_duration.R"))
       # Creates contraception treatment episodes 
