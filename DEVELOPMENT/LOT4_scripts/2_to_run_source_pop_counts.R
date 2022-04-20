@@ -1,7 +1,7 @@
-#Author: Magdalena Gamba M.D.
-#email: m.a.gamba@uu.nl
-#Organisation: Utrecht University, Utrecht, The Netherlands
-#Date: 31/01/2022
+# Author: Magdalena Gamba M.D.
+# email: m.a.gamba@uu.nl
+# Organisation: Utrecht University, Utrecht, The Netherlands
+# Date: 31/01/2022
 
 rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
@@ -13,7 +13,7 @@ setwd(projectFolder)
 ###############################################
 ### NOTE FOR DAPS: If you have run the preselection script and would like to use the subsetted data sets that it produces instead of your full ETL'd data files, you need to go to the "99_path.R" file and choose the second path option, by adding a "#" symbol at the start of line 7, and removing the "#" symbol at the start of line 8. If the preselection files have been stored elsewhere, then the path will need to be set manually.
 
-### Please indicate DAP NAME 
+## Please choose DAP NAME 
 DAP_name <- "ARS"
 # DAP_name <- "BIFAP"
 # DAP_name <- "CASERTA"
@@ -23,12 +23,12 @@ DAP_name <- "ARS"
 # DAP_name <- "PHARMO"
 #user input parameter
   
-### Below you must set
+## Below you must set
 source("99_path.R")
 source(paste0(pre_dir,"packages.R"))
 source(paste0(pre_dir,"set_DAP_params.R"))
 
-## Choose study type
+## Please choose study type
 # study_type <- "Retinoid"
 # study_type <- "Valproate"
 study_type <- "Both"
@@ -45,7 +45,7 @@ mask <- T
 # mask <- F
 #user input parameter
 
-# Chose format to save files 
+## Chose format to save files 
 my_format <- "csv"
 # my_format <- "xlsx"
 #user input parameter

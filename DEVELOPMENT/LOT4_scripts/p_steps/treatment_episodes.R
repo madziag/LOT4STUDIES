@@ -47,6 +47,8 @@ if(study_type=="Both"){
 for (i in 1:length(split_data)){
   
   cma_data <- split_data[[i]]
+  # Get ATC code
+  ATC_code <- unique(cma_data$Code)
   # assumed duration column values are assigned dependent on user input DAP_specific_DOT
   if(DAP_specific_DOT==T){source(paste0(pre_dir, "DAP_specific_assumed_durations.R"))}else{cma_data[,assumed_duration:=30]}
   
@@ -96,8 +98,11 @@ for (i in 1:length(split_data)){
   my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
   # Episode end must be > than episode.start
   my_treat_episode1 <- my_treat_episode1[episode.end > episode.start,]
+  # Add column for ATC code 
+  my_treat_episode1[,ATC:=ATC_code]
   # Remove unnecessary rows
   my_treat_episode1[,entry_date:=NULL][,exit_date:=NULL]
+  
   # Saves files (only if df is not empty)
   if (nrow(my_treat_episode1)>0){
     saveRDS(my_treat_episode1, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_", my_name[i],"_CMA_treatment_episodes.rds")))

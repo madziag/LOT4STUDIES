@@ -25,11 +25,6 @@ for(i in 1:length(stratified_files)){
   if(str_detect(stratified_files[i],"tx_dur_group_182-365")){setnames(df,"N","N_tx_duration_182_365");setnames(df,"rates","Proportion_tx_duration_182_365")}
   if(str_detect(stratified_files[i],"tx_dur_group_over365")){setnames(df,"N","N_tx_duration_over365");setnames(df,"rates","Proportion_tx_duration_over365")}
   # Indications
-  # if(str_detect(stratified_files[i],"indication-bipolar")) {setnames(df,"N","N_indication_bipolar") ;setnames(df,"rates","Proportion_indication_bipolar")}
-  # if(str_detect(stratified_files[i],"indication-epilepsy")){setnames(df,"N","N_indication_epilepsy");setnames(df,"rates","Proportion_indication_epilepsy")}
-  # if(str_detect(stratified_files[i],"indication-migraine")){setnames(df,"N","N_indication_migraine");setnames(df,"rates","Proportion_indication_migraine")}
-  # if(str_detect(stratified_files[i],"indication-multiple")){setnames(df,"N","N_indication_multiple");setnames(df,"rates","Proportion_indication_multiple")}
-  # if(str_detect(stratified_files[i],"indication-unknown")) {setnames(df,"N","N_indication_unknown") ;setnames(df,"rates","Proportion_indication_unknown")}
   if(str_detect(stratified_files[i],"indication_bipolar")) {setnames(df,"N","N_indication_bipolar") ;setnames(df,"rates","Proportion_indication_bipolar")}
   if(str_detect(stratified_files[i],"indication_epilepsy")){setnames(df,"N","N_indication_epilepsy");setnames(df,"rates","Proportion_indication_epilepsy")}
   if(str_detect(stratified_files[i],"indication_migraine")){setnames(df,"N","N_indication_migraine");setnames(df,"rates","Proportion_indication_migraine")}

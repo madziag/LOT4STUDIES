@@ -3,8 +3,6 @@
 #Organisation: Utrecht University, Utrecht, The Netherlands
 #Date: 21/03/2022
 
-# THIS IS A REDUCED VERION OF THE SCRIPT (V4.1) which runs corrected counts using information already generated from the 02 script, which is correct.
-
 rm(list=ls())
 if(!require(rstudioapi)){install.packages("rstudioapi")}
 library(rstudioapi)
@@ -42,15 +40,15 @@ study_type <- "Both"
 multiple_regions <- F
 # multiple_regions <- T # BIFAP
 # multiple_regions_dir <- paste0(path_dir, "BIFAP/")
-#user input parameter
+# #user input parameter
 ## Turn the statement to T instead of = F if data has sub populations #BIFAP
 SUBP <- F
 # SUBP <- T
 
 #user input parameter
 ## MASKING 
-# mask <- T
-mask <- F
+mask <- T
+# mask <- F
 
 #user input parameter
 # Chose format to save files 

@@ -134,11 +134,6 @@ medicines_stratified_indication <- paste0(medicines_stratified_dir ,"/","indicat
 # Create stratified by indication folder 
 invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), dir.create(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), FALSE))
 medicines_stratified_reasons <- paste0(medicines_stratified_dir ,"/","reasons_for_discontinuation")
-# Create stratified by contraception type folder
-invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","contra_type")), dir.create(paste0(medicines_stratified_dir,"/","contra_type")), FALSE))
-medicines_stratified_contra_type <- paste0(medicines_stratified_dir ,"/","contra_type")
-
-
 
 # Move stratified records into stratified folders
 # Create stratified folder
@@ -150,6 +145,8 @@ contraceptives_stratified_age_groups <- paste0(contraceptives_stratified_dir ,"/
 # Create stratified by indication folder
 invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
 contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
-
+# Create stratified by contraception type folder
+invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","contra_type")), dir.create(paste0(contraceptives_stratified_dir,"/","contra_type")), FALSE))
+contraceptives_stratified_contra_type <- paste0(contraceptives_stratified_dir ,"/","contra_type")
 
 

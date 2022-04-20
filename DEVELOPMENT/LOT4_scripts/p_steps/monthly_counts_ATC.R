@@ -125,7 +125,7 @@ if(length(med_files)>0){
       counts <- counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts 
       if(comb_meds[[i]][,.N]>0){
-        saveRDS(comb_meds[[i]], paste0(medications_pop, pop_prefix, "_", names(codelist_all[i]),".rds"))
+        saveRDS(comb_meds[[i]], paste0(medications_pop, pop_prefix, "_", names(codelist_all[i]),"_MEDS.rds"))
         saveRDS(counts, paste0(monthly_counts_atc,"/", pop_prefix, "_", names(codelist_all[i]),"_MEDS_counts.rds"))
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))
@@ -189,7 +189,7 @@ if(is_CASERTA){
   setnames(ddd, "atc5", "Code")
   setnames(ddd, "minsan", "medicinal_product_id")
   # Load Retinoid file from medications pop
-  retinoids <- readRDS(paste0(medications_pop, "ALL_Retinoid.rds"))
+  retinoids <- readRDS(paste0(medications_pop, "ALL_Retinoid_MEDS.rds"))
   # Change to correct column format
   ddd[,medicinal_product_id:=as.integer(medicinal_product_id)][,Code:=as.character(Code)]
   # Merge the 2 files to get DAP specific durations
@@ -202,7 +202,7 @@ if(is_CASERTA){
   
   retinoids[,presc_duration_days:=as.numeric(disp_number_medicinal_product*days)][,days:=NULL]
   # Saves file over the previous version
-  saveRDS(retinoids, paste0(medications_pop, pop_prefix, "_Retinoid.rds"))
+  saveRDS(retinoids, paste0(medications_pop, pop_prefix, "_Retinoid_MEDS.rds"))
 }
 
 # Cleanup
