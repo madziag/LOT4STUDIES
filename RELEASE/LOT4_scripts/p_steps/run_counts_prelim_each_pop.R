@@ -31,6 +31,8 @@ for(pop in 1:length(populations)){
   source(paste0(pre_dir,"monthly_counts_procedures.R"))
   # Finds matching dx codes from dx concept set in PROCEDURES tables
   source(paste0(pre_dir,"monthly_counts_dxcodes_in_procedures.R"))
+  # Finds matching pregnancy test codes in MEDICAL OBSERVATIONS tables (for BIFAP only)
+  source(paste0(pre_dir, "monthly_counts_medical_observations.R"))
   # Makes plots of all counts files
   source(paste0(pre_dir,"plots_mask.R"))
   # Converts all .rds files into .csv or .xlsx (indicated by user)

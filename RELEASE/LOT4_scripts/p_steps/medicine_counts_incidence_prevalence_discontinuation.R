@@ -44,98 +44,42 @@ tx_episodes_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), p
 tx_episodes_files <- tx_episodes_files[grepl(pop_prefix, tx_episodes_files)]
 if(populations[pop] == "PC_study_population.rds"){tx_episodes_files <- tx_episodes_files[!grepl("PC_HOSP", tx_episodes_files)]}
 
-# 2. Denominator 
-# Looks for denominator file in output directory 
-denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
-# Loads denominator file 
-denominator <- readRDS(paste0(tmp, denominator_file))
-# Split Y-M variable to year - month columns (for merging later)
-denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
-denominator[,year:=as.integer(year)][,month:=as.integer(month)]
-min_data_available <- min(denominator$year)
-max_data_available <- max(denominator$year)
-### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
-names(empty_df) <- c("year", "month")
+# 2. Denominator
+source(paste0(pre_dir,"load_denominator.R"))
 
 # 3. Indication records for valproates only
-# Creates folder for all indications
-invisible(ifelse(!dir.exists(paste0(tmp,"/","all_indications")), dir.create(paste0(tmp,"/","all_indications")), FALSE))
-all_indications_dir <- paste0(tmp,"all_indications")
-# Gets list of folders potentially with indication files 
-all_temps <- list.files(tmp, pattern="diagnoses|procedures|procedures_dxcodes")
-# Checks if there is at least one folder that could have indication files
-if(length(all_temps)>0){
+if(length(list.files(indications_dir))>0){
+  # Get list of all indication files in folder (filtered by subpop)
+  indication_files<-list.files(indications_dir, ignore.case = T, full.names = F)
+  if(pop_prefix=="PC_HOSP"){indication_files<-indication_files[grepl("PC_HOSP",indication_files)]}
+  if(pop_prefix=="PC"){indication_files<-indication_files[!grepl("PC_HOSP",indication_files)]}
   # Creates a list of indications files to be looked for 
   indications <- c("ind_bipolar", "ind_epilepsy", "ind_migraine")
-  # Loops through indications
+  # Loops through all indications
   for(ind in 1:length(indications)){
-    # Indications found in diagnosis folder
-    if(exists("diagnoses_pop")){
-      # Gets list of current indication in diagnosis folder (filtered by pop_prefix)
-      indication_file_dx<-list.files(diagnoses_pop,pattern =indications[ind],ignore.case=T,full.names=F)
-      indication_file_dx<-indication_file_dx[grepl(pop_prefix,indication_file_dx)]
-      if(populations[pop]=="PC_study_population.rds"){indication_file_dx<-indication_file_dx[!grepl("PC_HOSP",indication_file_dx)]}
-      # If indication files exist:
-      if(length(indication_file_dx)>0){
-        # Reads in indication file & creates column with indication type name
-        df_dx<-readRDS(paste0(diagnoses_pop, indication_file_dx))[,indication:=indications[ind]]
-        # Keeps only  necessary  columns
-        df_dx<-df_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        # Saves modified file in all_indications folder
-        saveRDS(df_dx, paste0(all_indications_dir, "/from_events_", indication_file_dx))
-      }
-    }
-    # Indications found in procedures folder
-    if(exists("procedures_pop")){
-      # Gets list of current indication in diagnosis folder (filtered by pop_prefix)
-      indication_file_proc<-list.files(procedures_pop,pattern =indications[ind],ignore.case=T,full.names=F)
-      indication_file_proc<-indication_file_proc[grepl(pop_prefix,indication_file_proc)]
-      if(populations[pop]=="PC_study_population.rds"){indication_file_proc<-indication_file_proc[!grepl("PC_HOSP",indication_file_proc)]}
-      # If indication files exist:
-      if(length(indication_file_proc)>0){
-        # Reads in indication file & creates column with indication type name
-        df_proc<-readRDS(paste0(procedures_pop,indication_file_proc))[,indication:=indications[ind]]
-        # Keeps only  necessary  columns
-        df_proc<-df_proc[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        # Saves modified file in all_indications folder
-        saveRDS(df_proc, paste0(all_indications_dir, "/from_procedures_", indication_file_proc))
-      }
-    }
-    # Indications found in proc-dx folder 
-    if(exists("procedures_dxcodes_pop")){
-      # Gets list of current indication in diagnosis folder (filtered by pop_prefix)
-      indication_file_proc_dx<-list.files(procedures_dxcodes_pop, pattern =indications[ind],ignore.case=T,full.names=F)
-      indication_file_proc_dx<-indication_file_proc_dx[grepl(pop_prefix,indication_file_proc_dx)]
-      if(populations[pop]=="PC_study_population.rds"){indication_file_proc_dx<-indication_file_proc_dx[!grepl("PC_HOSP",indication_file_proc_dx)]}
-      # If indication files exist:
-      if(length(indication_file_proc_dx)>0){
-        # Reads in indication file & creates column with indication type name
-        df_proc_dx<-readRDS(paste0(procedures_dxcodes_pop,indication_file_proc_dx))[,indication:=indications[ind]]
-        # Keeps only  necessary  columns
-        df_proc_dx<-df_proc_dx[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
-        # Saves modified file in all_indications folder
-        saveRDS(df_proc_dx, paste0(all_indications_dir, "/from_procedures_dx_", indication_file_proc_dx))
-      }
+    ind_file<-indication_files[grepl(indications[ind],indication_files)]
+    if(length(ind_file)>0){
+      # Reads in indication file & creates column with indication type name
+      indication_df<-readRDS(paste0(indications_dir, ind_file))[,indication:=indications[ind]]
+      # Keeps only  necessary  columns
+      indication_df<-indication_df[,c("person_id", "Date", "Code", "Vocabulary", "Meaning", "entry_date", "exit_date", "indication")]
+      # Saves modified file in all_indications folder
+      saveRDS(indication_df, paste0(indications_dir, ind_file))
     }
   }
-  
-  if(length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))){
-    # Gets a list of indication files in all_indication folder (filtered by pop_prefix)
-    indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
-    if(pop_prefix == "PC"){indications_list<-indications_list[!grepl("PC_HOSP", indications_list)]}
-    if(pop_prefix == "PC_HOSP"){indications_list<-indications_list[grepl("PC_HOSP", indications_list)]}
-    
-    # Binds all indication records
-    all_indications<- do.call(rbind,lapply(indications_list, readRDS))
-    # Keeps only necessary columns 
-    all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
-    # Orders data by person_id, indication and date
-    all_indications<-all_indications[order(person_id,indication, Date)]
-    # Deduplicates data - you remain with one indication type per person (the one that occurs the earliest)
-    all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
-  }
+  # Binds all indication records
+  all_indications<- do.call(rbind,lapply(paste0(indications_dir, indication_files), readRDS))
+  # Keeps only necessary columns 
+  all_indications<-all_indications[,c("person_id", "Date", "Code", "indication")]
+  # Orders data by person_id, indication and date
+  all_indications<-all_indications[order(person_id,indication, Date)]
+  # Deduplicates data - you remain with one indication type per person (the one that occurs the earliest)
+  all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
 }
+
+# Create folder to store incidence, prevalence and discontinued individual level records 
+invisible(ifelse(!dir.exists(paste0(counts_dfs_dir,"objective_1")),dir.create(paste0(counts_dfs_dir,"objective_1")),FALSE))
+objective1_dir<-paste0(counts_dfs_dir,"objective_1/")
 
 # Performs counts using each of the tx_episode files 
 for (i in 1:length(tx_episodes_files)){
@@ -155,7 +99,7 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes_for_discontinued <- df_episodes
   ### Adds column with indication information ###
   # Checks if there are valproate tx_episode files and if so, that there are indication files for bipolar, epilepsy and migraine 
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Merge tx_episodes with all_indication file
     df_episodes <- all_indications[df_episodes,on=.(person_id), allow.cartesian = T]
     # if indication date is after episode.end, then remove the indication
@@ -178,7 +122,7 @@ for (i in 1:length(tx_episodes_files)){
   df_episodes_expanded <-  merge(df_episodes, df_episodes_expanded, by = "rowID")
   ### Continuation of adding indication column 
   # Checks if there are indication files and performs action only for DAPs with indication files 
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Adds indication column 
     # Creates columns that calculate difference between episode.day and (ind_epilepsy_date/ind_bipolar_date/ind_migraine_date)
     df_episodes_expanded[,bipolar_diff:=episode.day-ind_bipolar_date][,epilepsy_diff:=episode.day-ind_epilepsy_date][,migraine_diff:=episode.day-ind_migraine_date]
@@ -247,11 +191,8 @@ for (i in 1:length(tx_episodes_files)){
   prevalence_all[is.na(N), N:=0]
   # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
   prevalence_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-  # Masks values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-  prevalence_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
-  # Applies masking 
-  if(mask==T){prevalence_all[masked==1,N:=5]} else {prevalence_all[masked==1,N:=N]}
+  # Masking is not applied before stratification
+  prevalence_all[,masked:=0]
   ### Denominator = Total number of female subjects in the cohort for at least 1 day in the month
   ##### ->  denominator file has already been read in before the for loop, variable name = denominator
   ### Merges numerator file with denominator file
@@ -263,7 +204,7 @@ for (i in 1:length(tx_episodes_files)){
   # Saves files in medicine counts folder
   saveRDS(prevalence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
   # Saves df in counts_df folder 
-  saveRDS(df_prevalence, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts.rds")))
+  saveRDS(df_prevalence, (paste0(objective1_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_prevalence_counts_df.rds")))
   
   ################ STRATIFIED PREVALENCE BY AGE GROUPS ###################
   # Performs prevalence counts - stratified by age group
@@ -273,31 +214,33 @@ for (i in 1:length(tx_episodes_files)){
   
   for(group in 1:length(age_group_unique)){
     # Create a subset of age group
-    each_group <- prevalence_by_age[age_group==age_group_unique[group]]
+    each_group<-prevalence_by_age[age_group==age_group_unique[group]]
     # Adjust for PHARMO
-    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
     # Merge with empty df (for counts that do not have counts for all months and years of study)
-    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
     # Fills in missing values with 0
-    each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    each_group[is.na(N),N:=0][is.na(age_group),age_group:=age_group_unique[group]]
     # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
     each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
-    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-    # Masks values less than 5
-    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-    # Applies masking 
-    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
     # Prepare denominator (all prevalence counts )
-    prevalence_all_counts_min <- prevalence_all_counts[,c("YM", "N")]
-    setnames(prevalence_all_counts_min, "N", "Freq")
+    prevalence_all_counts_min<-prevalence_all_counts[,c("YM","N")]
+    setnames(prevalence_all_counts_min,"N","Freq")
     # Create counts file
-    prevalence_age_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
-    prevalence_age_counts <- prevalence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    prevalence_age_counts <- prevalence_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    prevalence_age_counts<-merge(x=each_group,y=prevalence_all_counts_min,by=c("YM"),all.x=TRUE)
+    # Masking no longer applied
+    prevalence_age_counts[,masked:=0]
+    # prevalence_age_counts[,masked:=ifelse(N<5&N>0,1,0)]
+    # # Applies masking 
+    # if(mask==T){prevalence_age_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+    # Calculates rates
+    prevalence_age_counts<-prevalence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
+    # Keeps necessary columns
+    prevalence_age_counts<-prevalence_age_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
-    saveRDS(prevalence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_prevalence_counts.rds")))
+    saveRDS(prevalence_age_counts,(paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_prevalence_counts.rds")))
   }
   
   ################ STRATIFIED PREVALENCE BY TX DURATION ###################
@@ -308,34 +251,36 @@ for (i in 1:length(tx_episodes_files)){
   
   for(group in 1:length(tx_dur_group_unique)){
     # Create a subset of age group
-    each_group <- prevalence_by_tx_dur[tx_dur_group==tx_dur_group_unique[group]]
+    each_group<-prevalence_by_tx_dur[tx_dur_group==tx_dur_group_unique[group]]
     # Adjust for PHARMO
-    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
     # Merge with empty df (for counts that do not have counts for all months and years of study)
-    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
     # Fills in missing values with 0
-    each_group[is.na(N), N:=0][is.na(tx_dur_group), tx_dur_group:=tx_dur_group_unique[group]]
+    each_group[is.na(N),N:=0][is.na(tx_dur_group),tx_dur_group:=tx_dur_group_unique[group]]
     # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
     each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
-    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-    # Masks values less than 5
-    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-    # Applies masking 
-    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
     # Prepare denominator (all prevalence counts )
-    prevalence_all_counts_min <- prevalence_all_counts[,c("YM", "N")]
-    setnames(prevalence_all_counts_min, "N", "Freq")
+    prevalence_all_counts_min<-prevalence_all_counts[,c("YM","N")]
+    setnames(prevalence_all_counts_min,"N","Freq")
     # Create counts file
-    prevalence_tx_dur_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
-    prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    prevalence_tx_dur_counts <- prevalence_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    prevalence_tx_dur_counts<-merge(x=each_group,y=prevalence_all_counts_min,by=c("YM"),all.x=TRUE)
+    # Masking no longer applied
+    prevalence_tx_dur_counts[,masked:=0]
+    # prevalence_tx_dur_counts[,masked:=ifelse(N<5&N>0,1,0)]
+    # # Applies masking 
+    # if(mask==T){prevalence_tx_dur_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+    # Calculates Rates
+    prevalence_tx_dur_counts<-prevalence_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
+    # Keeps necessary columns
+    prevalence_tx_dur_counts<-prevalence_tx_dur_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
-    saveRDS(prevalence_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
+    saveRDS(prevalence_tx_dur_counts,(paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_prevalence_counts.rds")))
   }
   ################ STRATIFIED PREVALENCE BY INDICATION ###################
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     
     # Performs prevalence counts - stratified by indication
     prevalence_by_indication <- df_prevalence[,.N, by = .(year,month, indication)]
@@ -344,31 +289,33 @@ for (i in 1:length(tx_episodes_files)){
     
     for(group in 1:length(indication_unique)){
       # Create a subset of age group
-      each_group <- prevalence_by_indication[indication==indication_unique[group]]
+      each_group<-prevalence_by_indication[indication==indication_unique[group]]
       # Adjust for PHARMO
-      if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+      if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
       # Merge with empty df (for counts that do not have counts for all months and years of study)
-      each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+      each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
       # Fills in missing values with 0
-      each_group[is.na(N), N:=0][is.na(indication), indication:=indication_unique[group]]
+      each_group[is.na(N),N:=0][is.na(indication),indication:=indication_unique[group]]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Create YM variable 
-      each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-      # Masks values less than 5
-      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-      # Applies masking 
-      if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+      each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
       # Prepare denominator (all prevalence counts )
-      prevalence_all_counts_min <- prevalence_all_counts[,c("YM", "N")]
-      setnames(prevalence_all_counts_min, "N", "Freq")
+      prevalence_all_counts_min<-prevalence_all_counts[,c("YM","N")]
+      setnames(prevalence_all_counts_min,"N","Freq")
       # Create counts file
-      prevalence_indication_counts <- merge(x = each_group, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
-      prevalence_indication_counts <- prevalence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      prevalence_indication_counts <- prevalence_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+      prevalence_indication_counts<-merge(x=each_group,y=prevalence_all_counts_min,by=c("YM"),all.x=TRUE)
+      # Masking no longer applied
+      prevalence_indication_counts[,masked:=0]
+      # prevalence_indication_counts[,masked:=ifelse(N<5&N>0,1,0)]
+      # # Applies masking 
+      # if(mask==T){prevalence_indication_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+      # Calculates rates
+      prevalence_indication_counts<-prevalence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
+      # Keeps necessary columns
+      prevalence_indication_counts<-prevalence_indication_counts[,c("YM","N","Freq","rates","masked","true_value")]
       # Saves files in medicine counts folder
-      saveRDS(prevalence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_unique[group],"_prevalence_counts.rds")))
+      saveRDS(prevalence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_unique[group],"_prevalence_counts.rds")))
     }
   }
   ##################################################################################################
@@ -377,6 +324,9 @@ for (i in 1:length(tx_episodes_files)){
   ### Numerator = Number of female subjects in cohort with a valproate/retinoid episode start in the month 
   # Deduplicate df_episodes_expanded to only include records patients with the first start date 
   df_incidence <- df_episodes_for_incidence[!duplicated(df_episodes_for_incidence)]
+  # Order df by date, then keep only the first treatment episode for each patient id
+  df_incidence <- df_incidence[order(person_id, episode.start)]
+  df_incidence <- df_incidence[, head(.SD, 1), by = "person_id"]
   # Removes all episode starts that fall outside entry_date and exit_date
   df_incidence <- df_incidence[episode.start >= entry_date & episode.start<=exit_date,]
   # Creates year and month columns
@@ -391,11 +341,8 @@ for (i in 1:length(tx_episodes_files)){
   incidence_all[is.na(N), N:=0]
   # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
   incidence_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-  # Masks values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-  incidence_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
-  # Applies masking 
-  if(mask==T){incidence_all[masked==1,N:=5]} else {incidence_all[masked==1,N:=N]}
+  # Masking is not applied before stratification
+  incidence_all[,masked:=0]
   ### Denominator = Total number of female subjects in the cohort for at least 1 day in the month
   ##### ->  denominator file has already been read in before the for loop, variable name = denominator
   ### Merges numerator file with denominator file
@@ -407,7 +354,7 @@ for (i in 1:length(tx_episodes_files)){
   # Saves files in medicine counts folder
   saveRDS(incidence_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
   # Saves incidence dfs
-  saveRDS(df_incidence, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts.rds")))
+  saveRDS(df_incidence, (paste0(objective1_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_incidence_counts_df.rds")))
   ################ STRATIFIED INCIDENCE BY AGE GROUPS ###################
   # Performs incidence counts - stratified by age group
   # Creates a column with patients age on episode.start date
@@ -424,35 +371,36 @@ for (i in 1:length(tx_episodes_files)){
   
   for(group in 1:length(age_group_unique)){
     # Create a subset of age group
-    each_group <- incidence_by_age[age_group==age_group_unique[group]]
+    each_group<-incidence_by_age[age_group==age_group_unique[group]]
     # Adjust for PHARMO
-    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
     # Merge with empty df (for counts that do not have counts for all months and years of study)
-    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
     # Fills in missing values with 0
-    each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    each_group[is.na(N),N:=0][is.na(age_group),age_group:=age_group_unique[group]]
     # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
     each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
-    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-    # Masks values less than 5
-    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-    # Applies masking 
-    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
     # Prepare denominator (all prevalence counts )
-    incidence_all_counts_min <- incidence_all_counts[,c("YM", "N")]
-    setnames(incidence_all_counts_min, "N", "Freq")
+    incidence_all_counts_min<-incidence_all_counts[,c("YM","N")]
+    setnames(incidence_all_counts_min,"N","Freq")
     # Create counts file
-    incidence_age_counts <- merge(x = each_group, y = incidence_all_counts_min, by = c("YM"), all.x = TRUE)
-    incidence_age_counts <- incidence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    incidence_age_counts <- incidence_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    incidence_age_counts<-merge(x=each_group,y=incidence_all_counts_min,by=c("YM"),all.x=TRUE)
+    # Masking no longer applied
+    incidence_age_counts[,masked:=0]
+    # incidence_age_counts[,masked:=ifelse(N<5&N>0,1,0)]
+    # # Applies masking 
+    # if(mask==T){incidence_age_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+    # Calculates rates
+    incidence_age_counts <- incidence_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
+    # Keeps necessary columns
+    incidence_age_counts <- incidence_age_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
-    saveRDS(incidence_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
+    saveRDS(incidence_age_counts,(paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_incidence_counts.rds")))
   }
-  
-  
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     ################ STRATIFIED INCIDENCE BY INDICATION ###################
     # Merge tx_episodes with all_indication file
     df_incidence <- all_indications[df_incidence,on=.(person_id), allow.cartesian = T]
@@ -495,31 +443,33 @@ for (i in 1:length(tx_episodes_files)){
     
     for(group in 1:length(indication_unique)){
       # Create a subset of age group
-      each_group <- incidence_by_indication[indication==indication_unique[group]]
+      each_group<-incidence_by_indication[indication==indication_unique[group]]
       # Adjust for PHARMO
-      if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+      if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
       # Merge with empty df (for counts that do not have counts for all months and years of study)
-      each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+      each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
       # Fills in missing values with 0
-      each_group[is.na(N), N:=0][is.na(indication), indication:=indication_unique[group]]
+      each_group[is.na(N),N:=0][is.na(indication),indication:=indication_unique[group]]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Create YM variable 
-      each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-      # Masks values less than 5
-      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-      # Applies masking 
-      if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+      each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
       # Prepare denominator (all prevalence counts )
-      incidence_all_counts_min <- incidence_all_counts[,c("YM", "N")]
-      setnames(incidence_all_counts_min, "N", "Freq")
+      incidence_all_counts_min<-incidence_all_counts[,c("YM","N")]
+      setnames(incidence_all_counts_min,"N","Freq")
       # Create counts file
-      incidence_indication_counts <- merge(x = each_group, y = incidence_all_counts_min, by = c("YM"), all.x = TRUE)
-      incidence_indication_counts <- incidence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      incidence_indication_counts <- incidence_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+      incidence_indication_counts<-merge(x=each_group,y=incidence_all_counts_min,by=c("YM"),all.x=TRUE)
+      # Masking no longer applied
+      incidence_indication_counts[,masked:=0]
+      # incidence_indication_counts[,masked:=ifelse(N<5&N>0,1,0)]
+      # # Applies masking 
+      # if(mask==T){incidence_indication_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+      # Calculates rates
+      incidence_indication_counts<-incidence_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
+      # Keeps necessary columns
+      incidence_indication_counts<-incidence_indication_counts[,c("YM","N","Freq","rates","masked","true_value")]
       # Saves files in medicine counts folder
-      saveRDS(incidence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_unique[group],"_incidence_counts.rds")))
+      saveRDS(incidence_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_unique[group],"_incidence_counts.rds")))
     }
   }
   
@@ -556,11 +506,8 @@ for (i in 1:length(tx_episodes_files)){
   discontinued_all[is.na(N), N:=0]
   # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
   discontinued_all[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-  # Masks values less than 5
-  # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-  discontinued_all[,masked:=ifelse(N<5 & N>0, 1, 0)]
-  # Applies masking 
-  if(mask==T){discontinued_all[masked==1,N:=5]} else {discontinued_all[masked==1,N:=N]}
+  # Masking is not applied before stratification
+  discontinued_all[,masked:=0]
   # Create YM variable 
   discontinued_all <- within(discontinued_all, YM<- sprintf("%d-%02d", year, month))
   ### Denominator = Number of prevalent valproate/retinoid users that month
@@ -571,13 +518,13 @@ for (i in 1:length(tx_episodes_files)){
   ### Merges numerator file with denominator file
   discontinued_all_counts <- merge(x = discontinued_all, y = prevalence_all_counts_min, by = c("YM"), all.x = TRUE)
   # Calculates rates
-  discontinued_all_counts <- discontinued_all_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
+  discontinued_all_counts <- discontinued_all_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0][,rates:=rates*100]
   # Keeps necessary columns 
   discontinued_all_counts <- discontinued_all_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
   # Saves files in medicine counts folder
   saveRDS(discontinued_all_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
   # Saves discontinued dfs
-  saveRDS(df_discontinued, (paste0(counts_dfs_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts.rds")))
+  saveRDS(df_discontinued, (paste0(objective1_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_discontinued_counts_df.rds")))
   
   ################ STRATIFIED DISCONTINUED BY AGE GROUPS ###################
   # Performs discontinued counts - stratified by age group
@@ -596,29 +543,31 @@ for (i in 1:length(tx_episodes_files)){
   
   for(group in 1:length(age_group_unique)){
     # Create a subset of age group
-    each_group <- discontinued_by_age[age_group==age_group_unique[group]]
+    each_group<-discontinued_by_age[age_group==age_group_unique[group]]
     # Adjust for PHARMO
-    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
     # Merge with empty df (for counts that do not have counts for all months and years of study)
-    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
     # Fills in missing values with 0
-    each_group[is.na(N), N:=0][is.na(age_group), age_group:=age_group_unique[group]]
+    each_group[is.na(N),N:=0][is.na(age_group),age_group:=age_group_unique[group]]
     # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
     each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
-    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-    # Masks values less than 5
-    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-    # Applies masking 
-    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
     # Prepare denominator (all prevalence counts )
-    discontinued_all_counts_min <- discontinued_all_counts[,c("YM", "N")]
-    setnames(discontinued_all_counts_min, "N", "Freq")
+    discontinued_all_counts_min<-discontinued_all_counts[,c("YM","N")]
+    setnames(discontinued_all_counts_min,"N","Freq")
     # Create counts file
-    discontinued_age_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
-    discontinued_age_counts <- discontinued_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    discontinued_age_counts <- discontinued_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    discontinued_age_counts<-merge(x=each_group,y=discontinued_all_counts_min,by=c("YM"),all.x=TRUE)
+    # Masking no longer applied
+    discontinued_age_counts[,masked:=0]
+    # discontinued_age_counts[,masked:=ifelse(N<5&N>0,1,0)]
+    # # Applies masking 
+    # if(mask==T){discontinued_age_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+    # Calculates rates 
+    discontinued_age_counts<-discontinued_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+    # Keeps necessary columns
+    discontinued_age_counts<-discontinued_age_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
     saveRDS(discontinued_age_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_age_group_", age_group_unique[group],"_discontinued_counts.rds")))
   }
@@ -640,35 +589,37 @@ for (i in 1:length(tx_episodes_files)){
   
   for(group in 1:length(tx_dur_group_unique)){
     # Create a subset of age group
-    each_group <- discontinued_by_tx_dur[tx_dur_group==tx_dur_group_unique[group]]
+    each_group<-discontinued_by_tx_dur[tx_dur_group==tx_dur_group_unique[group]]
     # Adjust for PHARMO
-    if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+    if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
     # Merge with empty df (for counts that do not have counts for all months and years of study)
-    each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+    each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
     # Fills in missing values with 0
-    each_group[is.na(N), N:=0][is.na(tx_dur_group), tx_dur_group:=tx_dur_group_unique[group]]
+    each_group[is.na(N),N:=0][is.na(tx_dur_group),tx_dur_group:=tx_dur_group_unique[group]]
     # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
     each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
     # Create YM variable 
-    each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-    # Masks values less than 5
-    # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-    each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-    # Applies masking 
-    if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+    each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
     # Prepare denominator (all prevalence counts )
-    discontinued_all_counts_min <- discontinued_all_counts[,c("YM", "N")]
-    setnames(discontinued_all_counts_min, "N", "Freq")
+    discontinued_all_counts_min<-discontinued_all_counts[,c("YM","N")]
+    setnames(discontinued_all_counts_min,"N","Freq")
     # Create counts file
-    discontinued_tx_dur_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
-    discontinued_tx_dur_counts <- discontinued_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-    discontinued_tx_dur_counts <- discontinued_tx_dur_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    discontinued_tx_dur_counts<-merge(x=each_group,y=discontinued_all_counts_min,by=c("YM"),all.x=TRUE)
+    # Masking no longer applied
+    discontinued_tx_dur_counts[,masked:=0]
+    # discontinued_tx_dur_counts[,masked:=ifelse(N<5&N>0,1,0)]
+    # # Applies masking 
+    # if(mask==T){discontinued_tx_dur_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+    # Calculates rates
+    discontinued_tx_dur_counts<-discontinued_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+    # Keeps necessary columns
+    discontinued_tx_dur_counts<-discontinued_tx_dur_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
     saveRDS(discontinued_tx_dur_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_tx_dur_group_", tx_dur_group_unique[group],"_discontinued_counts.rds")))
   }
   
   ################ STRATIFIED DISCONTINUED BY INDICATION ###################
-  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+  if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
     # Merge tx_episodes with all_indication file
     df_discontinued <- all_indications[df_discontinued,on=.(person_id), allow.cartesian = T]
     # if indication date is after episode.end, then remove the indication
@@ -709,36 +660,36 @@ for (i in 1:length(tx_episodes_files)){
     
     for(group in 1:length(indication_unique)){
       # Create a subset of age group
-      each_group <- discontinued_by_indication[indication==indication_unique[group]]
+      each_group<-discontinued_by_indication[indication==indication_unique[group]]
       # Adjust for PHARMO
-      if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+      if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
       # Merge with empty df (for counts that do not have counts for all months and years of study)
-      each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+      each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
       # Fills in missing values with 0
-      each_group[is.na(N), N:=0][is.na(indication), indication:=indication_unique[group]]
+      each_group[is.na(N),N:=0][is.na(indication),indication:=indication_unique[group]]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
       # Create YM variable 
-      each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-      # Masks values less than 5
-      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-      # Applies masking 
-      if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
+      each_group<-within(each_group,YM<-sprintf("%d-%02d",year,month))
       # Prepare denominator (all prevalence counts )
-      discontinued_all_counts_min <- discontinued_all_counts[,c("YM", "N")]
-      setnames(discontinued_all_counts_min, "N", "Freq")
+      discontinued_all_counts_min<-discontinued_all_counts[,c("YM","N")]
+      setnames(discontinued_all_counts_min,"N","Freq")
       # Create counts file
-      discontinued_indication_counts <- merge(x = each_group, y = discontinued_all_counts_min, by = c("YM"), all.x = TRUE)
-      discontinued_indication_counts <- discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-      discontinued_indication_counts <- discontinued_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+      discontinued_indication_counts<-merge(x=each_group,y=discontinued_all_counts_min,by=c("YM"),all.x=TRUE)
+      # Masking no longer applied
+      discontinued_indication_counts[,masked:=0]
+      # discontinued_indication_counts[,masked:=ifelse(N<5&N>0,1,0)]
+      # # Applies masking 
+      # if(mask==T){discontinued_indication_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+      # Calculate rates
+      discontinued_indication_counts<-discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+      # Keeps necessary columns
+      discontinued_indication_counts<-discontinued_indication_counts[,c("YM","N","Freq","rates","masked","true_value")]
       # Saves files in medicine counts folder
-      saveRDS(discontinued_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication-", indication_unique[group],"_discontinued_counts.rds")))
+      saveRDS(discontinued_indication_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_unique[group],"_discontinued_counts.rds")))
     }
   }
 }
-
-
 
 # Move files 
 for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
@@ -748,3 +699,4 @@ for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.
 
 # Clean up 
 rm(list = grep("^df_|^discontinued_|^incidence_|^prevalence_|each_group|max_tx_df", ls(), value = TRUE))
+

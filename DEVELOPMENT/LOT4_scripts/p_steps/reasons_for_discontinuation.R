@@ -118,7 +118,7 @@ if(length(discontinued_df_files)>0){
     #############################
     ######## ADR RECORDS ########
     #############################
-    if(nrow(all_adrs_df)>0){
+    if(length(list.files(adr_dir))>0){
       if(str_detect(discontinued_df_files[i], "Retinoid")){adr_record<-all_adrs_df[adr%!in%c("nausea","tremor"),]}
       if(str_detect(discontinued_df_files[i], "Valproate")){adr_record<-all_adrs_df[adr%in%c("nausea","tremor"),]}
       # Merge with discontinued file

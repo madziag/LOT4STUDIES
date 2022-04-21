@@ -11,7 +11,6 @@
 # Numerator -> Number of Retinoid/Valproate records with any contraception records (created in contraception_duration.R) within 90 days before medication record
 # Denominator -> Total number of Retinoid/Valproate records that month (duplicates removed )
 # Intermediate data set -> data set of dispensed/prescribed Retinoid/Valproates per month with column indicating whether there was a prior contraception record 
-# THE ABOVE NEEDS TO BE CLARIFIED!!!!
 # Records needed -> contraception records (created by contraception_duration.R) 2. Retinoid/Valproate records 
 
 ##################################################################################################################################################
@@ -20,33 +19,19 @@
 ### Loads records needed 
 # 1. Contraception records 
 # Looks for Contraception files in tmp folder 
-contra_files <- list.files(paste0(tmp, "all_contraception"), pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
+contra_files <- list.files(contraceptive_dir, pattern = paste0(pop_prefix, "_all_contra"), recursive = T, ignore.case = T, full.names = T)
 if(pop_prefix == "PC"){contra_files <- contra_files[!grepl("PC_HOSP", contra_files)]}
 if(pop_prefix == "PC_HOSP"){contra_files <- contra_files[grepl("PC_HOSP", contra_files)]}
 
 # 2. Denominator file
-### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
-# Looks for denominator file in output directory 
-denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
-# Loads denominator file 
-denominator <- readRDS(paste0(tmp, denominator_file))
-# Split Y-M variable to year - month columns (for merging later)
-denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
-denominator[,year:=as.integer(year)][,month:=as.integer(month)]
-min_data_available <- min(denominator$year)
-max_data_available <- max(denominator$year)
-### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
-names(empty_df) <- c("year", "month")
-# Clean up
-rm(denominator)
+source(paste0(pre_dir,"load_denominator.R"))
 
 # 3. Indication records for valproates only
 # Check if any indications are present in the all_indications folder 
-if(length(list.files(all_indications_dir))>0){
+if(length(list.files(indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   if(length(indications_list)>0){
@@ -56,8 +41,15 @@ if(length(list.files(all_indications_dir))>0){
   all_indications<-all_indications[order(person_id,indication, Date)]
   all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
   setnames(all_indications,"Date","indication_date")
+  # Renames indication values
+  all_indications[indication=="ind_bipolar",indication:="bipolar"][indication=="ind_epilepsy",indication:="epilepsy"][indication=="ind_migraine",indication:="migraine"]
   }
 }
+
+# Create folder to store incidence, prevalence and discontinued individual level records 
+invisible(ifelse(!dir.exists(paste0(counts_dfs_dir,"objective_2")),dir.create(paste0(counts_dfs_dir,"objective_2")),FALSE))
+objective2_dir<-paste0(counts_dfs_dir,"objective_2/")
+
 # Checks first if there are any contraception records found
 if(length(contra_files)>0) {
   # Loads files + clean up
@@ -79,9 +71,6 @@ if(length(contra_files)>0) {
     med_counts <- as.data.table(merge(x = empty_df, y = med_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_counts
     med_counts[is.na(med_counts[,N]), N:=0] # Fills in missing values with 0
     setnames(med_counts, "N", "Freq") # Renames column
-    # Masking
-    med_counts$masked_den <- ifelse(med_counts$Freq < 5 & med_counts$Freq > 0, 1, 0) # Creates column that indicates if count value will be masked_den if mask = TRUE
-    if(mask == T){med_counts[med_counts$masked_den == 1,]$Freq <- 5} else {med_counts[med_counts$masked_den == 1,]$Freq <- med_counts[med_counts$masked_den == 1,]$Freq} # Changes values less than 5 and more than 0 to 5
     ### Creates numerators
     # Merges contraception df with medication df 
     contra_med_df <- contra_df[med_df, on = .(person_id), allow.cartesian = T] # Left join
@@ -98,18 +87,16 @@ if(length(contra_files)>0) {
       contra_prior_counts[is.na(contra_prior_counts[,N]), N:=0] # Fills in missing values with 0
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       contra_prior_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-      # Masking
-      contra_prior_counts$masked_num <- ifelse(contra_prior_counts$N < 5 & contra_prior_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
-      if(mask == T){contra_prior_counts[contra_prior_counts$masked_num == 1,]$N <- 5} else {contra_prior_counts[contra_prior_counts$masked_num == 1,]$N <- contra_prior_counts[contra_prior_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
+      # Masking is not applied before stratification
+      contra_prior_counts[,masked:=0]
       # Rate calculation
       contra_prior_counts <- within(contra_prior_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       contra_prior_counts <- merge(x = contra_prior_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       contra_prior_counts <- contra_prior_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
-      contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
-      setnames(contra_prior_counts, "masked_num", "masked")
+      contra_prior_counts <- contra_prior_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       ## Saves intermediate (to counts_df folder) and monthly count files (to contraceptives folder)
-      saveRDS(contra_prior_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before records
-      saveRDS(contra_prior_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contraception_prior_counts.rds")) # Saves Contraceptive before counts
+      saveRDS(contra_prior_df, paste0(objective2_dir, gsub("_MEDS.rds", "", med_files[i]), "_contraception_prior.rds")) # Saves Contraceptive before records
+      saveRDS(contra_prior_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_contraception_prior_counts.rds")) # Saves Contraceptive before counts
       
       ##### STRATIFICATION BY AGE GROUPS ###
       # Merge data with study population to get date of birth
@@ -140,25 +127,24 @@ if(length(contra_files)>0) {
         each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-        # Masks values less than 5
-        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-        # Applies masking 
-        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
         # Prepare denominator (all pgtests counts )
         contra_prior_all_counts_min <- contra_prior_counts[,c("YM", "N")]
         setnames(contra_prior_all_counts_min, "N", "Freq")
         # Create counts file
         contra_prior_age_counts <- merge(x = each_group, y = contra_prior_all_counts_min, by = c("YM"), all.x = TRUE)
+        # Masking no longer applied
+        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+        contra_prior_age_counts[,masked:=0]
+        # Calculates rates
         contra_prior_age_counts <- contra_prior_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
         contra_prior_age_counts <- contra_prior_age_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
         # Saves files in medicine counts folder
-        saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
+        saveRDS(contra_prior_age_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_age_group_", age_group_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
       }   
 
       ##### STRATIFICATION BY INDICATION ###
       # Checks if there are indication files and performs action only for DAPs with indication files 
-      if(str_detect(med_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+      if(str_detect(med_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
         # Merge data with study population to get date of birth
         contra_prior_df_indications <- all_indications[contra_prior_df,on=.(person_id), allow.cartesian = T]
         # If indication_date > Date then indication is not relevant
@@ -198,20 +184,18 @@ if(length(contra_files)>0) {
           each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
           # Create YM variable 
           each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-          # Masks values less than 5
-          # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-          each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-          # Applies masking 
-          if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
           # Prepare denominator (all pgtests counts )
           contra_prior_all_counts_min <- contra_prior_counts[,c("YM", "N")]
           setnames(contra_prior_all_counts_min, "N", "Freq")
           # Create counts file
           contra_prior_indication_counts <- merge(x = each_group, y = contra_prior_all_counts_min, by = c("YM"), all.x = TRUE)
+          # Masking no longer applied
+          contra_prior_indication_counts[,masked:=0]
+          # Calculates rates
           contra_prior_indication_counts <- contra_prior_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
           contra_prior_indication_counts <- contra_prior_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
           # Saves files in medicine counts folder
-          saveRDS(contra_prior_indication_counts, paste0(contraceptive_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
+          saveRDS(contra_prior_indication_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_indication_", indication_unique[group], "_contraception_prior_counts.rds")) # Monthly counts file
         }   
       }
     } else {

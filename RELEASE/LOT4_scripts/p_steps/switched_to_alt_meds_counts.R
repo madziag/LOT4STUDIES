@@ -16,13 +16,13 @@
 ### Loads records needed 
 # 1. Alternative medicines files 
 # Retinoids 
-alt_med_retinoid_files <- list.files(medications_pop, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
+alt_med_retinoid_files <- list.files(altmeds_dir, pattern="altmed_retin", ignore.case = T, recursive = T, full.names = T)
 if(pop_prefix == "PC"){alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("PC_HOSP",alt_med_retinoid_files)]}
 if(pop_prefix == "PC_HOSP"){alt_med_retinoid_files <- alt_med_retinoid_files[grepl("PC_HOSP",alt_med_retinoid_files)]}
 if(is_CASERTA){alt_med_retinoid_files <- alt_med_retinoid_files[!grepl("altmed_retin_psoriasis", alt_med_retinoid_files)]}
 
 # Valproates
-alt_med_valproate_files <- list.files(medications_pop, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
+alt_med_valproate_files <- list.files(altmeds_dir, pattern="altmed_valp", ignore.case = T, recursive = T, full.names = T)
 if(pop_prefix == "PC"){alt_med_valproate_files <- alt_med_valproate_files[!grepl("PC_HOSP",alt_med_valproate_files)]}
 if(pop_prefix == "PC_HOSP"){alt_med_valproate_files <- alt_med_valproate_files[grepl("PC_HOSP",alt_med_valproate_files)]}
 
@@ -40,27 +40,14 @@ if(pop_prefix == "PC_HOSP"){prevalent_counts_files <- prevalent_counts_files[gre
 prevalent_counts_files <- prevalent_counts_files[!grepl("age_group|indication|tx_dur", prevalent_counts_files)]
 
 # 4. Denominator file
-### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
-# Looks for denominator file in output directory 
-denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
-# Loads denominator file 
-denominator <- readRDS(paste0(tmp, denominator_file))
-# Split Y-M variable to year - month columns (for merging later)
-denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
-denominator[,year:=as.integer(year)][,month:=as.integer(month)]
-min_data_available <- min(denominator$year)
-max_data_available <- max(denominator$year)
-### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
-names(empty_df) <- c("year", "month")
-# Clean up
-rm(denominator)
+source(paste0(pre_dir,"load_denominator.R"))
+
 
 # 3. Indication records for valproates only
-if(length(list.files(all_indications_dir))>0){
+if(length(list.files(indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   if(length(indications_list>0)){
@@ -70,6 +57,8 @@ if(length(list.files(all_indications_dir))>0){
     all_indications<-all_indications[order(person_id,indication, Date)]
     all_indications<-all_indications[!duplicated(all_indications[,c("person_id", "indication")]),]
     setnames(all_indications,"Date","indication_date")
+    # Renames indication values
+    all_indications[indication=="ind_bipolar",indication:="bipolar"][indication=="ind_epilepsy",indication:="epilepsy"][indication=="ind_migraine",indication:="migraine"]
   }
 }
 
@@ -137,19 +126,15 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       num_1_counts[is.na(num_1_counts[,N]), N:=0]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       num_1_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-      # Masks values less than 5
-      # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-      num_1_counts$masked <- ifelse(num_1_counts$N < 5 & num_1_counts$N > 0, 1, 0)
-      # Changes values less than 5 and more than 0 to 5
-      if (mask == T){num_1_counts[num_1_counts$masked == 1,]$N <- 5} else {num_1_counts[num_1_counts$masked == 1,]$N <- num_1_counts[num_1_counts$masked == 1,]$N}
+      # Masking is not applied before stratification
+      num_1_counts[,masked:=0]
       # Create YM variable 
       num_1_counts <- within(num_1_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       # Get denominator 
       # Load prevalence counts
       prevalent_counts <- readRDS(prevalent_counts_files[grepl(gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), prevalent_counts_files)])
-      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "masked", "true_value")]
+      prevalent_counts <- prevalent_counts[,-c("Freq", "rates", "true_value", "masked")]
       setnames(prevalent_counts, "N", "Freq")
-      # Calculate rates 
       ### Merges numerator file with denominator file
       alt_med_counts <- merge(x = num_1_counts, y = prevalent_counts, by = c("YM"), all.x = TRUE)
       # Calculates rates
@@ -160,9 +145,6 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       alt_med_counts <- alt_med_counts[,c("YM", "N", "Freq", "rates", "masked")]
       # Saves files 
       saveRDS(alt_med_counts, (paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_switched_to_alt_meds_counts.rds")))
-      # Clean up
-      # rm(tx_episodes, alt_med_df, alt_med_tx_episodes_0, alt_med_tx_episodes_1, alt_med_tx_episodes_expanded, denom_0_1_counts, num_1_counts, alt_med_counts)
-      
       ##### STRATIFICATION BY AGE GROUPS ###
       # Merge data with study population to get date of birth
       switched_df_age_groups <- merge(alt_med_tx_episodes_1, study_population[,c("person_id", "birth_date")], by = "person_id")
@@ -192,16 +174,14 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
         each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-        # Masks values less than 5
-        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-        # Applies masking 
-        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
         # Prepare denominator (all pgtests counts )
         switched_all_counts_min <- alt_med_counts[,c("YM", "N")]
-        setnames(switched_all_counts_min, "N", "Freq")
+        setnames(switched_all_counts_min,"N","Freq")
         # Create counts file
         switched_age_counts <- merge(x = each_group, y = switched_all_counts_min, by = c("YM"), all.x = TRUE)
+        # Masking no longer applied
+        switched_age_counts[,masked:=0]
+        # Calculate rates 
         switched_age_counts <- switched_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
         switched_age_counts <- switched_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
         # Saves files in medicine counts folder
@@ -209,7 +189,7 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
       }    
       ##### STRATIFICATION BY INDICATIONS ###
       # Checks if there are indication files and performs action only for DAPs with indication files 
-      if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+      if(str_detect(tx_episodes_files[i],"Valproate") & length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
         # Merge data with study population to get date of birth
         switched_df_indications <- all_indications[alt_med_tx_episodes_1,on=.(person_id), allow.cartesian = T]
         switched_df_indications[indication_date<=episode.end.switch,indication:=NA][indication_date<=episode.end.switch,Code:=NA][indication_date<=episode.end.switch,indication_date:=NA]
@@ -241,18 +221,16 @@ if (length(alt_med_retinoid_files) > 0 | length(alt_med_valproate_files)){
           each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
           # Create YM variable 
           each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-          # Masks values less than 5
-          # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-          each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-          # Applies masking 
-          if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
           # Prepare denominator (all pgtests counts )
           switched_all_counts_min <- alt_med_counts[,c("YM", "N")]
           setnames(switched_all_counts_min, "N", "Freq")
           # Create counts file
           switched_indication_counts <- merge(x = each_group, y = switched_all_counts_min, by = c("YM"), all.x = TRUE)
-          switched_indication_counts <- switched_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-          switched_indication_counts <- switched_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+          # Masking no longer applied
+          switched_indication_counts[,masked:=0]
+          # Calculate rates 
+          switched_indication_counts<-switched_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+          switched_indication_counts<-switched_indication_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
           # Saves files in medicine counts folder
           saveRDS(switched_indication_counts, paste0(medicines_counts_dir,"/", gsub("_CMA_treatment_episodes.rds", "", tx_episodes_files[i]), "_indication_", indication_group_unique[group], "_switched_to_alt_meds_counts.rds")) # Monthly counts file
         }                              
