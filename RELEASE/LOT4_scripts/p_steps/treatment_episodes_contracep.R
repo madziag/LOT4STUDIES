@@ -15,7 +15,7 @@
 #Retinoid.rds or Valproate.rds or both
 #p_param\DOT
 
-contra_data <- readRDS(paste0(contra_folder, pop_prefix, "_all_contra.rds" ))
+contra_data <- readRDS(paste0(contraceptive_dir, pop_prefix, "_all_contra.rds" ))
 names(contra_data)
 str(contra_data$assumed_duration)
 contra_data$assumed_duration<-as.numeric(paste(contra_data$assumed_duration))

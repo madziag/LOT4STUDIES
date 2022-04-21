@@ -29,7 +29,6 @@ for(file in list.files(path=output_dir, pattern="denominator", ignore.case = T))
 
 
 if (is_Denmark == T){
-  
   for(pop in 1:length(populations)){
     # Loads files with matching pattern 
     med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
@@ -40,7 +39,9 @@ if (is_Denmark == T){
     # Assign study population prefix name
     pop_prefix <- gsub("_study_population.rds", "", populations)
     # Creates baseline tables 
-    source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # Prepares preliminary data to be used for final counts
+    source(paste0(pre_dir, "prepare_prelim_data.R"))
     # Creates Retinoid/Valproate treatment episodes 
     source(paste0(pre_dir, "treatment_episodes.R"))
     # Creates KM plots 
@@ -77,33 +78,35 @@ if (is_Denmark == T){
     med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
     if(pop_prefix == "PC"){med_files <- med_files[!grepl("PC_HOSP",med_files)]}
     if(pop_prefix == "PC_HOSP"){med_files <- med_files[grepl("PC_HOSP",med_files)]}
-    
+
     if(length(med_files)>0){
       # Reads in records of population with indicated study type
       study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
       # Creates baseline tables #
-#      source(paste0(pre_dir,"CreateBaselineTables.R"))
+      # source(paste0(pre_dir,"CreateBaselineTables.R"))
+      # Prepares preliminary data to be used for final counts
+      source(paste0(pre_dir, "prepare_prelim_data.R"))
       # Creates Retinoid/Valproate treatment episodes #
       source(paste0(pre_dir, "treatment_episodes.R"))
-      # Creates KM plots 
-#      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
+      # Creates KM plots
+      source(paste0(pre_dir, "KaplanMeier.R")) # COMMENT THIS OUT WITH "#" if you get an error and rerun
       # Creates contraceptive record with all contraceptives and their respective duration (for use in creating contraception treatment episodes)
       source(paste0(pre_dir, "contraception_duration.R"))
-      # Creates contraception treatment episodes 
+      # Creates contraception treatment episodes
       source(paste0(pre_dir, "treatment_episodes_contracep.R"))
-      # Counts of prevalence, incidence, discontinuation - medicines use 
+      # Counts of prevalence, incidence, discontinuation - medicines use
       source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
       # Counts of discontinuation, stratified by reason for discontinuation
       source(paste0(pre_dir, "reasons_for_discontinuation.R"))
-      # Counts of pregnancy tests within 90 days before/after medication record 
+      # Counts of pregnancy tests within 90 days before/after medication record
       source(paste0(pre_dir, "pregnancy_tests_within_90_days_of_medicine_use_counts.R"))
-      # Counts of contraception records within 90 days before medication record 
+      # Counts of contraception records within 90 days before medication record
       source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
-      # Counts of medicine records during contraception episodes 
+      # Counts of medicine records during contraception episodes
       source(paste0(pre_dir, "med_use_during_contraception_episode_counts.R"))
       # Counts of all pregnancies # No rates, only counts, not stratified by subpops
-      source(paste0(pre_dir, "all_pregnancies_counts.R")) 
-      # Counts of pregnancies started during a treatment episode 
+      source(paste0(pre_dir, "all_pregnancies_counts.R"))
+      # Counts of pregnancies started during a treatment episode
       source(paste0(pre_dir, "pregnancies_started_during_treatment_episode_counts.R"))
       # Counts of medicines used during a pregnancy
       source(paste0(pre_dir, "med_use_during_pregnancy_counts.R"))

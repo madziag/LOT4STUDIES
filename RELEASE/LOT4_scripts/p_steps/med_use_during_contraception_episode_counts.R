@@ -24,24 +24,13 @@ if(pop_prefix == "PC"){contra_epi_files <- contra_epi_files[!grepl("PC_HOSP",con
 if(pop_prefix == "PC_HOSP"){contra_epi_files <- contra_epi_files[grepl("PC_HOSP",contra_epi_files)]}
 
 ### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
-# Looks for denominator file in output directory 
-denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
-# Loads denominator file 
-denominator <- readRDS(paste0(tmp, denominator_file))
-# Split Y-M variable to year - month columns (for merging later)
-denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
-denominator[,year:=as.integer(year)][,month:=as.integer(month)]
-min_data_available <- min(denominator$year)
-max_data_available <- max(denominator$year)
-### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
-names(empty_df) <- c("year", "month")
+source(paste0(pre_dir,"load_denominator.R"))
 
 # 3. Indication records for valproates only
-if(length(list.files(all_indications_dir))>0){
+if(length(list.files(indications_dir))>0){
   # Creates a list of indications 
   # Get a list of indication files (with added new column to indicate indication type)
-  indications_list <- list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
+  indications_list <- list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine", full.names = T)
   if(pop_prefix == "PC"){indications_list <- indications_list[!grepl("PC_HOSP", indications_list)]}
   if(pop_prefix == "PC_HOSP"){indications_list <- indications_list[grepl("PC_HOSP", indications_list)]}
   if(length(indications_list)>0){
@@ -69,9 +58,6 @@ if(length(contra_epi_files)>0) {
     med_counts <- as.data.table(merge(x = empty_df, y = med_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_counts
     med_counts[is.na(med_counts[,N]), N:=0] # Fills in missing values with 0
     setnames(med_counts, "N", "Freq") # Renames column
-    # Masking
-    med_counts$masked_den <- ifelse(med_counts$Freq < 5 & med_counts$Freq > 0, 1, 0) # Creates column that indicates if count value will be masked_den if mask = TRUE
-    if(mask == T){med_counts[med_counts$masked_den == 1,]$Freq <- 5} else {med_counts[med_counts$masked_den == 1,]$Freq <- med_counts[med_counts$masked_den == 1,]$Freq} # Changes values less than 5 and more than 0 to 5
     ### Creates numerators
     # Merges contraception episodes df with medication df 
     contra_epi_med_df <- contra_epi_df[med_df, on = .(person_id), allow.cartesian = T] # Left join
@@ -99,18 +85,16 @@ if(length(contra_epi_files)>0) {
       tx_in_episode_counts[is.na(tx_in_episode_counts[,N]), N:=0] # Fills in missing values with 0
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
       tx_in_episode_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-      # Masking
-      tx_in_episode_counts$masked_num <- ifelse(tx_in_episode_counts$N < 5 & tx_in_episode_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
-      if(mask == T){tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N <- 5} else {tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N <- tx_in_episode_counts[tx_in_episode_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
+      # Masking is not applied before stratification
+      tx_in_episode_counts[,masked:=0]
       # Rate calculation
       tx_in_episode_counts <- within(tx_in_episode_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
       tx_in_episode_counts <- merge(x = tx_in_episode_counts, y = med_counts, by = c("year", "month"), all.x = TRUE) # Merge with med counts
       tx_in_episode_counts <- tx_in_episode_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][is.nan(rates)|is.na(rates), rates:=0]
-      tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
-      setnames(tx_in_episode_counts, "masked_num", "masked")
+      tx_in_episode_counts <- tx_in_episode_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       ## Saves intermediate (to counts_df folder) and monthly count files (to medicines counts folder)
-      saveRDS(tx_in_episode_df, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_contra_episodes.rds")) # Saves intermediate file
-      saveRDS(tx_in_episode_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+      saveRDS(tx_in_episode_df, paste0(objective2_dir, gsub("_MEDS.rds", "", med_files[i]), "_med_use_during_contra_episodes.rds")) # Saves intermediate file
+      saveRDS(tx_in_episode_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
       
       ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY AGE GROUPS ###################
       # Performs medicine counts during contraceptive episode - stratified by age group
@@ -131,28 +115,26 @@ if(length(contra_epi_files)>0) {
         each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
         # Create YM variable 
         each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-        # Masks values less than 5
-        # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-        each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-        # Applies masking 
-        if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
         # Prepare denominator (all prevalence counts )
         tx_in_episode_counts_min <- tx_in_episode_counts[,c("YM", "N")]
         setnames(tx_in_episode_counts_min, "N", "Freq")
         # Create counts file
         tx_in_episode_age_counts <- merge(x = each_group, y = tx_in_episode_counts_min, by = c("YM"), all.x = TRUE)
+        # Masking no longer applied
+        tx_in_episode_age_counts[,masked:=0]
+        # Calculate rates
         tx_in_episode_age_counts <- tx_in_episode_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
         tx_in_episode_age_counts <- tx_in_episode_age_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
         # Saves files in medicine counts folder
-        saveRDS(tx_in_episode_age_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_age_group_", age_group_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+        saveRDS(tx_in_episode_age_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_age_group_", age_group_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
         # Move files 
-        for (file in list.files(path=medicines_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_age_groups, "/",file))}
+        for (file in list.files(path=contraceptive_counts_dir, pattern="age_group", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_age_groups, "/",file))}
       }
       
       ##### STRATIFICATION BY INDICATION ###
       if (str_detect(med_files[i],"Valproate")){
         # Checks if there are indication files and performs action only for DAPs with indication files 
-        if(length(list.files(all_indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
+        if(length(list.files(indications_dir, pattern = "ind_bipolar|ind_epilepsy|ind_migraine"))>0){
           # Merge data with study population to get date of birth
           tx_in_episode_df_indications <- all_indications[tx_in_episode_df,on=.(person_id), allow.cartesian = T]
           # tx_in_episode_df_indications <- tx_in_episode_df_indications[Date>indication_date,]
@@ -193,60 +175,57 @@ if(length(contra_epi_files)>0) {
             each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
             # Create YM variable 
             each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-            # Masks values less than 5
-            # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-            each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-            # Applies masking 
-            if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
             # Prepare denominator (all pgtests counts )
             tx_in_episode_all_counts_min <- tx_in_episode_counts[,c("YM", "N")]
             setnames(tx_in_episode_all_counts_min, "N", "Freq")
             # Create counts file
             tx_in_episode_indication_counts <- merge(x = each_group, y = tx_in_episode_all_counts_min, by = c("YM"), all.x = TRUE)
+            # Masking no longer applied
+            tx_in_episode_indication_counts[,masked:=0]
+            # Applies masking 
+            if(mask==T){tx_in_episode_indication_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
+            # Calculate rates
             tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
             tx_in_episode_indication_counts <- tx_in_episode_indication_counts[,c("YM", "N", "Freq", "rates", "masked","true_value")]
             # Saves files in medicine counts folder
-            saveRDS(tx_in_episode_indication_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
-            for (file in list.files(path=medicines_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_indication, "/",file))}
+            saveRDS(tx_in_episode_indication_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_indication_", indication_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+            for (file in list.files(path=contraceptive_counts_dir, pattern="indication", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_indication, "/",file))}
           }   
-          
-          ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY AGE GROUPS ###################
-          # Performs medicine counts during contraceptive episode - stratified by contraceptive type
-          tx_in_episode_by_contra_type <- tx_in_episode_df[,.N, by = .(year(Date),month(Date),contra_type)]
-          # Get unique values of age groups - for the for loop
-          contra_type_unique <- unique(tx_in_episode_by_contra_type$contra_type)
-          
-          for(group in 1:length(contra_type_unique)){
-            # Create a subset of age group
-            each_group <- tx_in_episode_by_contra_type[contra_type==contra_type_unique[group]]
-            # Adjust for PHARMO
-            if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
-            # Merge with empty df (for counts that do not have counts for all months and years of study)
-            each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
-            # Fills in missing values with 0
-            each_group[is.na(N), N:=0][is.na(contra_type), contra_type:=contra_type_unique[group]]
-            # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
-            each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-            # Create YM variable 
-            each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
-            # Masks values less than 5
-            # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
-            each_group[,masked:=ifelse(N<5 & N>0, 1, 0)]
-            # Applies masking 
-            if(mask==T){each_group[masked==1,N:=5]} else {each_group[masked==1,N:=N]}
-            # Prepare denominator (all prevalence counts )
-            tx_in_episode_counts_min <- tx_in_episode_counts[,c("YM", "N")]
-            setnames(tx_in_episode_counts_min, "N", "Freq")
-            # Create counts file
-            tx_in_episode_contra_type_counts <- merge(x = each_group, y = tx_in_episode_counts_min, by = c("YM"), all.x = TRUE)
-            tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
-            tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
-            # Saves files in medicine counts folder
-            saveRDS(tx_in_episode_contra_type_counts, paste0(medicines_counts_dir, "/", gsub(".rds", "", med_files[i]), "_contra_type_", contra_type_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
-            # Move files 
-            for (file in list.files(path=medicines_counts_dir, pattern="contra_type", ignore.case = T)){file.move(paste0(medicines_counts_dir,"/", file),paste0(medicines_stratified_contra_type, "/",file))}
-          }
         }
+      }
+      ################ MEDICINE COUNTS DURING CONTRACEPTIVE EPISODE STRATIFIED BY CONTRA TYPE ###################
+      # Performs medicine counts during contraceptive episode - stratified by contraceptive type
+      tx_in_episode_by_contra_type <- tx_in_episode_df[,.N, by = .(year(Date),month(Date),contra_type)]
+      # Get unique values of age groups - for the for loop
+      contra_type_unique <- unique(tx_in_episode_by_contra_type$contra_type)
+      
+      for(group in 1:length(contra_type_unique)){
+        # Create a subset of age group
+        each_group <- tx_in_episode_by_contra_type[contra_type==contra_type_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group <- each_group[year < 2020,]} else {each_group <- each_group[year < 2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group <- as.data.table(merge(x = empty_df, y = each_group, by = c("year", "month"), all.x = TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N), N:=0][is.na(contra_type), contra_type:=contra_type_unique[group]]
+        # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+        # Create YM variable 
+        each_group <- within(each_group, YM<- sprintf("%d-%02d", year, month))
+        # Prepare denominator (all prevalence counts )
+        tx_in_episode_counts_min <- tx_in_episode_counts[,c("YM", "N")]
+        setnames(tx_in_episode_counts_min, "N", "Freq")
+        # Create counts file
+        tx_in_episode_contra_type_counts <- merge(x = each_group, y = tx_in_episode_counts_min, by = c("YM"), all.x = TRUE)
+        # Masking no longer applied
+        tx_in_episode_contra_type_counts[,masked:=0]
+        # Calculate rates
+        tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        tx_in_episode_contra_type_counts <- tx_in_episode_contra_type_counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+        # Saves files in medicine counts folder
+        saveRDS(tx_in_episode_contra_type_counts, paste0(contraceptive_counts_dir, "/", gsub("_MEDS.rds", "", med_files[i]), "_contra_type_", contra_type_unique[group],"_med_use_during_contraception_episodes_counts.rds")) # Saves monthly counts 
+        # Move files 
+        for (file in list.files(path=contraceptive_counts_dir, pattern="contra_type", ignore.case = T)){file.move(paste0(contraceptive_counts_dir,"/", file),paste0(contraceptives_stratified_contra_type, "/",file))}
       }
     } else {
       print(paste0("No record of ", strsplit(gsub(".rds", "", med_files[i]), "_")[[1]][2], " use during a contraceptive episode." ))

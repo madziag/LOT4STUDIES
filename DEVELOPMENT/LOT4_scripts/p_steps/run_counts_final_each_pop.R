@@ -39,7 +39,7 @@ if (is_Denmark == T){
     # Assign study population prefix name
     pop_prefix <- gsub("_study_population.rds", "", populations)
     # Creates baseline tables 
-    source(paste0(pre_dir,"CreateBaselineTables.R"))
+    # source(paste0(pre_dir,"CreateBaselineTables.R"))
     # Prepares preliminary data to be used for final counts
     source(paste0(pre_dir, "prepare_prelim_data.R"))
     # Creates Retinoid/Valproate treatment episodes 
@@ -83,7 +83,7 @@ if (is_Denmark == T){
       # Reads in records of population with indicated study type
       study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
       # Creates baseline tables #
-      source(paste0(pre_dir,"CreateBaselineTables.R"))
+      # source(paste0(pre_dir,"CreateBaselineTables.R"))
       # Prepares preliminary data to be used for final counts
       source(paste0(pre_dir, "prepare_prelim_data.R"))
       # Creates Retinoid/Valproate treatment episodes #

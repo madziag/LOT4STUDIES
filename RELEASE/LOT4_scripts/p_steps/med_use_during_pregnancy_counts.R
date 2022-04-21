@@ -7,110 +7,157 @@
 ###################################################### OBJECTIVE: 3.2 ############################################################################
 ##################################################################################################################################################
 
-## Objective 3.2: Proportion of Retinoid/Valproate records that occurred during a pregnancy 
+## Objective 3.2: Proportion of Retinoid/Valproate records that occurred during a pregnancy
 # Numerator -> Number of Retinoid/Valproate records that occurred during a pregnancy
 # Denominator -> Number of eligible subjects that month (main denominator)
-# Records needed -> 1. Pregnancy records (created by ARS Toscana script) 2. Total number of female subjects in cohort for at least 1 day in the month (denominator file)
+# Records needed -> 1. Pregnancy records (created by ARS Toscana script) 2.Retinoid/Valproate records 3. Total number of female subjects in cohort for at least 1 day in the month (denominator file)
 
 ##################################################################################################################################################
 ##################################################################################################################################################
 ##################################################################################################################################################
-### Loads records needed 
-# 1. Pregnancy records 
-D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermediate/D3_pregnancy_reconciled.RData"))))
+### Loads records needed
+### Loads records needed
+# 1. Pregnancy records
+D3_pregnancy_reconciled<-as.data.table(get(load(paste0(preg_dir,"g_intermediate/D3_pregnancy_reconciled.RData"))))
 # Data Cleaning Pregnancy file
-D3_pregnancy_reconciled[,person_id:=as.character(person_id)]
-D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date, "%Y%m%d" )]
-D3_pregnancy_reconciled[,pregnancy_end_date:=as.IDate(pregnancy_end_date, "%Y%m%d" )]
+D3_pregnancy_reconciled[,person_id:=as.character(person_id)][,pregnancy_start_date:=as.IDate(pregnancy_start_date,"%Y%m%d")][,pregnancy_end_date:=as.IDate(pregnancy_end_date,"%Y%m%d")]
+# Remove duplicate pregnancies
+D3_pregnancy_reconciled<-D3_pregnancy_reconciled[!duplicated(D3_pregnancy_reconciled),]
 
-### Creates empty df for expanding counts files (when not all month-year combinations have counts) - uses denominator file min and max year values 
-# Looks for denominator file in output directory 
-denominator_file <- list.files(tmp, pattern = paste0(pop_prefix,"_denominator.rds"))
-# Loads denominator file 
-denominator <- readRDS(paste0(tmp, denominator_file))
-# Split Y-M variable to year - month columns (for merging later)
-denominator[, c("year", "month") := tstrsplit(YM, "-", fixed=TRUE)]
-denominator[,year:=as.integer(year)][,month:=as.integer(month)]
-min_data_available <- min(denominator$year)
-max_data_available <- max(denominator$year)
-### Creates empty df for expanding counts files (when not all month-year combinations have counts)
-empty_df<-as.data.table(expand.grid(seq(min(denominator$year), max(denominator$year)), seq(1, 12)))
-names(empty_df) <- c("year", "month")
+# 2. Retinoid/Valproate records 
+# Loaded in run_counts_final_each_pop.R # med_files
 
+# 3. Load denominator file 
+source(paste0(pre_dir,"load_denominator.R"))
+
+# Runs if pregnancy records exist
 if (nrow(D3_pregnancy_reconciled)>0){
-  # For each treatment episode file 
-  for (i in 1:length(med_files)){ 
-    ## Loads the medication record
-    med_df <- as.data.table(readRDS(paste0(medications_pop, med_files[i]))) # Loads file
-    med_df <- med_df[Date>=entry_date & Date<exit_date]
-    med_df <- med_df[ ,c("person_id", "Date", "Code")] # Keeps necessary columns
-    setnames(med_df, "Code", "ATC") # Renames column
-    # Merge med file with pregnancy records 
-    med_preg <- as.data.table(D3_pregnancy_reconciled[med_df, on = .(person_id), allow.cartesian = T]) # Left join
-    # Delete records without pregnancy records
-    med_preg <-  med_preg[!is.na(pregnancy_start_date),]
-    # Remove duplicates
-    med_preg <- med_preg[!duplicated(med_preg[,c("person_id", "pregnancy_start_date", "pregnancy_end_date", "highest_quality")])]
-    # Creates column that indicates if medicine record date is between episode.start and episode.end dates
-    med_preg[,med_use_during_preg:= fifelse(Date>=pregnancy_start_date & Date<=pregnancy_end_date, 1, 0)] 
-    # Creates df of patients who have a pregnancy start date between tx episode.start and episode.end dates
-    med_use_during_preg <- med_preg[med_use_during_preg == 1,] 
-    # Checks if there are any records that meet the criteria. If so it does the calculations
-    if (nrow(med_use_during_preg) > 0){
-      # Performs counts 
-      med_use_during_preg_counts <- med_use_during_preg[,.N, by = .(year(pregnancy_start_date),month(pregnancy_start_date))] # Performs counts grouped by year, month of medicine prescription date
-      med_use_during_preg_counts <- as.data.table(merge(x = empty_df, y = med_use_during_preg_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_use_during_preg_counts
-      med_use_during_preg_counts[is.na(med_use_during_preg_counts[,N]), N:=0] # Fills in missing values with 0
-      # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
-      med_use_during_preg_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-      # Masking
-      med_use_during_preg_counts$masked_num <- ifelse(med_use_during_preg_counts$N < 5 & med_use_during_preg_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
-      if(mask == T){med_use_during_preg_counts[med_use_during_preg_counts$masked_num == 1,]$N <- 5} else {med_use_during_preg_counts[med_use_during_preg_counts$masked_num == 1,]$N <- med_use_during_preg_counts[med_use_during_preg_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
-      ############################
-      ##### Calculates Rates #####
-      ############################
-      med_use_during_preg_counts <- within(med_use_during_preg_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
-      med_use_during_preg_counts <- merge(x = med_use_during_preg_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
-      med_use_during_preg_counts <- med_use_during_preg_counts[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-      med_use_during_preg_counts <- med_use_during_preg_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
-      setnames(med_use_during_preg_counts, "masked_num", "masked")
-      # Save files 
-      saveRDS(med_use_during_preg, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy.rds"))
-      saveRDS(med_use_during_preg_counts, paste0(preg_med_counts_dir,"/", gsub(".rds", "", med_files[i]), "_med_use_during_pregnancy_counts.rds"))
-      #### Taking into account highest_quality column in pregnancy df - Counts ####
-      # Get the unique value of the highest quality column
-      hq_unique <- unique(med_use_during_preg$highest_quality)
-      for (j in 1:length(hq_unique)){
-        # Create a subset of the unique value
-        med_use_during_preg_unique <- med_use_during_preg[which(highest_quality==hq_unique[j]),]
-        # Performs counts 
-        med_use_during_preg_unique_counts <- med_use_during_preg_unique[,.N, by = .(year(pregnancy_start_date),month(pregnancy_start_date))] # Performs counts grouped by year, month of medicine prescription date
-        med_use_during_preg_unique_counts <- as.data.table(merge(x = empty_df, y = med_use_during_preg_unique_counts, by = c("year", "month"), all.x = TRUE)) # Merges empty_df with med_use_during_preg_unique_counts
-        med_use_during_preg_unique_counts[is.na(med_use_during_preg_unique_counts[,N]), N:=0] # Fills in missing values with 0
+  # For each medication file 
+  for (i in 1:length(med_files)){
+    # Loads the medication record
+    med_df<-as.data.table(readRDS(paste0(medications_pop,med_files[i])))
+    # Remove records that fall outside patients entry and exit into study dates
+    med_df<-med_df[Date>=entry_date&Date<exit_date]
+    # Keep only necessary columns (Date = Date of prescribing/dispensing as indicated in the preliminary counts)
+    med_df<-med_df[,c("person_id","Date","Code")] 
+    # Rename columns 
+    setnames(med_df,"Code","ATC") 
+    # Join pregnancy records with medicine records (we should have all the medicine records)
+    med_df_with_pregs<-as.data.table(D3_pregnancy_reconciled[med_df,on =.(person_id),allow.cartesian = T])
+    # Remove medicine records that are NOT attached to a pregnancy
+    med_df_with_pregs<-med_df_with_pregs[!is.na(pregnancy_start_date),]
+    # Create subset where medication prescription/dispensing occurs during a pregnancy
+    med_df_with_pregs<-med_df_with_pregs[Date>=pregnancy_start_date&Date<=pregnancy_end_date,]
+    # Order the records by person_id, pregnancy_start date and Date (medication dispensed or prescribed date)
+    med_df_with_pregs<-med_df_with_pregs[order(person_id,pregnancy_start_date,Date)]
+    # Keep only the first instance of use of medication during pregnancy
+    med_df_with_pregs<-med_df_with_pregs[,head(.SD,1),by=c("person_id", "pregnancy_start_date", "pregnancy_end_date")]
+    # Perform counts (after checking that there are medicine records that occurred during a pregnancy)
+    if (nrow(med_df_with_pregs)>0){
+      # Monthly counts
+      med_use<-med_df_with_pregs[,.N,by=.(year(Date),month(Date))] 
+      # Merge with empty_df to give value for all months/years
+      med_use<-as.data.table(merge(x=empty_df,y=med_use,by=c("year","month"),all.x = TRUE))
+      # Fill in missing values with 0
+      med_use[is.na(med_use[,N]),N:=0] 
+      # Create column that detects if data is available a certain year or not: 
+      # 3-> data is not available, 0 values because data does not exist; 
+      # 16-> data is available, any 0 values are true
+      med_use[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+      # WE NO LONGER MASK BEFORE STRATIFICATION  even if user parameter mask is set to T!
+      med_use[,masked:=0]
+      # Merge counts file with denominator file on year/month 
+      med_use<-merge(x=med_use,y=denominator,by = c("year","month"),all.x=TRUE)
+      # Calculate rates (medicine count/denominator count)
+      med_use<-med_use[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates),rates:=0]
+      # Rearrange columns 
+      med_use_monthly<-med_use[,c("YM","N","Freq","rates","masked","true_value")]
+      # Save Files
+      saveRDS(med_df_with_pregs,paste0(objective3_dir,gsub("_MEDS.rds","", med_files[i]),"_med_use_during_pregnancy.rds"))
+      saveRDS(med_use_monthly,paste0(preg_med_counts_dir,"/",gsub("_MEDS.rds","",med_files[i]),"_med_use_during_pregnancy_counts.rds"))
+      # Yearly counts
+      med_use_yearly<-med_use[,sum_N:=sum(N),by=.(year)][,sum_Freq:=sum(Freq),by=.(year)]
+      # Drop original N and Freq columns 
+      med_use_yearly<-med_use_yearly[,-c("N","Freq","rates","YM","month")]
+      setnames(med_use_yearly,"sum_N","N")
+      setnames(med_use_yearly,"sum_Freq","Freq")
+      # Remove duplicates
+      med_use_yearly<-med_use_yearly[!duplicated(med_use_yearly)]
+      # recalculate rates 
+      med_use_yearly<-med_use_yearly[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates),rates:=0]
+      med_use_yearly<-med_use_yearly[,c("year","N","Freq","rates","masked","true_value")]
+      # Save file
+      saveRDS(med_use_yearly,paste0(preg_med_counts_dir,"/", gsub("_CMA_treatment_episodes.rds","",tx_episodes_files[i]), "_med_use_during_pregnancy_PER-YEAR.rds"))
+      # Pre-Post Intervention
+      # Add intervention column
+      med_use<-med_use[YM<"2018-08",intervention:="pre"][YM>="2018-08", intervention:="post"]
+      med_use_pre_post<-med_use[,sum_N:=sum(N),by=.(intervention)][,sum_Freq:=sum(Freq),by=.(intervention)]
+      # Drop original N and Freq columns 
+      med_use_pre_post<-med_use_pre_post[,-c("YM","year","month","N","Freq","rates")]
+      setnames(med_use_pre_post,"sum_N","N")
+      setnames(med_use_pre_post,"sum_Freq","Freq")
+      # Remove duplicates
+      med_use_pre_post<-med_use_pre_post[!duplicated(med_use_pre_post)]
+      # recalculate rates 
+      med_use_pre_post<-med_use_pre_post[,rates:=round(as.numeric(N)/as.numeric(Freq),5)][,rates:=rates*1000][is.nan(rates)|is.na(rates),rates:=0]
+      med_use_pre_post<-med_use_pre_post[,c("intervention","N", "Freq", "rates", "masked", "true_value")]
+      # Save file
+      saveRDS(med_use_pre_post,paste0(preg_med_counts_dir,"/", gsub("_CMA_treatment_episodes.rds","",tx_episodes_files[i]), "_med_use_during_pregnancy_PRE-POST.rds"))
+      ##### Stratification by highest quality #####
+      # Performs monthly counts grouped by highest quality
+      med_df_with_pregs_by_hq<-med_df_with_pregs[,.N,by =.(year(Date),month(Date), highest_quality)]
+      # Get list of unique values of highest quality column
+      hq_unique<-unique(med_df_with_pregs_by_hq$highest_quality)
+      # Start for loop for each unique hq color
+      for(group in 1:length(hq_unique)){
+        # Create a subset of unique highest quality
+        each_group<-med_df_with_pregs_by_hq[highest_quality==hq_unique[group]]
+        # Adjust for PHARMO
+        if(is_PHARMO){each_group<-each_group[year<2020,]}else{each_group<-each_group[year<2021,]}
+        # Merge with empty df (for counts that do not have counts for all months and years of study)
+        each_group<-as.data.table(merge(x=empty_df,y=each_group,by=c("year","month"),all.x=TRUE))
+        # Fills in missing values with 0
+        each_group[is.na(N),N:=0][is.na(highest_quality), highest_quality:=hq_unique[group]]
         # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
-        med_use_during_preg_unique_counts[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
-        # Masking
-        med_use_during_preg_unique_counts$masked_num <- ifelse(med_use_during_preg_unique_counts$N < 5 & med_use_during_preg_unique_counts$N > 0, 1, 0) # Creates column that indicates if count value will be masked_num if mask = TRUE
-        if(mask == T){med_use_during_preg_unique_counts[med_use_during_preg_unique_counts$masked_num == 1,]$N <- 5} else {med_use_during_preg_unique_counts[med_use_during_preg_unique_counts$masked_num == 1,]$N <- med_use_during_preg_unique_counts[med_use_during_preg_unique_counts$masked_num == 1,]$N} # Changes values less than 5 and more than 0 to 5
-        ############################
-        ##### Calculates Rates #####
-        ############################
-        med_use_during_preg_unique_counts <- within(med_use_during_preg_unique_counts, YM<- sprintf("%d-%02d", year, month)) # Create a YM column
-        med_use_during_preg_unique_counts <- merge(x = med_use_during_preg_unique_counts, y = denominator, by = c("YM"), all.x = TRUE) # Merge with med counts
-        med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-        med_use_during_preg_unique_counts <- med_use_during_preg_unique_counts[,c("YM", "N", "Freq", "rates", "masked_num", "true_value")]
-        setnames(med_use_during_preg_unique_counts, "masked_num", "masked")
-        # Save files 
-        saveRDS(med_use_during_preg_unique, paste0(counts_dfs_dir, gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy.rds"))
-        saveRDS(med_use_during_preg_unique_counts, paste0(preg_med_counts_dir,"/",gsub(".rds", "", med_files[i]), "_hq_", hq_unique[j], "_med_use_during_pregnancy_counts.rds"))
+        each_group[year<min_data_available|year>max_data_available,true_value:=3][year>=min_data_available&year<=max_data_available,true_value:=16]
+        # Create YM variable 
+        each_group<-within(each_group, YM<- sprintf("%d-%02d",year,month))
+        # Prepare denominator (all treatment during pregnancies counts)
+        med_use_min<-med_use[,c("YM", "N")]
+        setnames(med_use_min, "N", "Freq")
+        # Create counts file
+        med_use_by_hq<-merge(x=each_group,y=med_use_min,by=c("YM"),all.x=TRUE)
+        # Masking no longer applied
+        med_use_by_hq[,masked:=0]
+        # Calculates rates
+        med_use_by_hq<-med_use_by_hq[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
+        # Rearrange columns
+        med_use_by_hq<-med_use_by_hq[,c("YM","N","Freq","rates","masked","true_value")]
+        # Saves individual level files in g_intermediate and counts in g_output
+        saveRDS(med_use_by_hq,paste0(preg_med_counts_dir,"/",gsub("_MEDS.rds","",med_files[i]),"_hq_",hq_unique[group], "_med_use_during_pregnancy_counts.rds"))
       }
+      # Save records for DAPS to go through
+      pregnancies<-med_df_with_pregs[,c("person_id","age_at_start_of_pregnancy","pregnancy_start_date","pregnancy_end_date","highest_quality","Date", "ATC")]
+      setnames(pregnancies, "Date", "prescribing/dispensing_date")
+      saveRDS(pregnancies,paste0(DAP_pregnancies_dir,"/",gsub("_CMA_treatment_episodes.rds","",tx_episodes_files[i]),"_med_use_during_pregnancy_counts.rds"))
     } else {
-      print(paste0(gsub(".rds", "",med_files[i]), " study: No medicine use during a pregnancy found."))
+      print(paste0(gsub(".rds", "",med_files[i])," study: No medicine use during a pregnancy found!"))
     }
   }
-} else {
+}else{
   print("No pregnancy records have been found")
 }
 
-# Cleanup
-rm(list = grep("^med_use_during_|med_preg|med_df", ls(), value = TRUE))
+
+
+
+
+
+
+
+
+
+# 
+# # Cleanup
+# rm(list = grep("^med_use_during_|med_preg|med_df", ls(), value = TRUE))
+# 

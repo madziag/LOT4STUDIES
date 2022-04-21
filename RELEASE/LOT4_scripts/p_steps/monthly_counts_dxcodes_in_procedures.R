@@ -222,7 +222,7 @@ if(length(proc_files)>0){
       counts <-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
-        saveRDS(comb_meds, paste0(procedures_dxcodes_pop ,pop_prefix, "_", names(codelist_all[i]),".rds"))
+        saveRDS(comb_meds, paste0(procedures_dxcodes_pop ,pop_prefix, "_", names(codelist_all[i]),"_PROC.rds"))
         saveRDS(counts, paste0(monthly_counts_proc_dxcodes,"/",pop_prefix, "_", names(codelist_all[i]),"_PROC_counts.rds"))
       } else {
         print(paste("There are no matching records for", names(codelist_all[i])))

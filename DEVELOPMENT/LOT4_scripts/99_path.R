@@ -81,7 +81,6 @@ monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
 invisible(ifelse(!dir.exists(paste0(output_dir, "monthly_counts_proc_dxcodes")), dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes")), FALSE))
 monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
 
-
 # STERILITY FOLDERS
 # Temporary folder
 invisible(ifelse(!dir.exists(paste0(tmp, "events_sterility")), dir.create(paste0(tmp, "events_sterility")), FALSE))

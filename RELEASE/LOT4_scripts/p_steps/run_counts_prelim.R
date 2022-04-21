@@ -1,9 +1,9 @@
-#Author: Magdalena Gamba M.D.
-#email: m.a.gamba@uu.nl
-#Organisation: Utrecht University, Utrecht, The Netherlands
-#Date: 31/01/2022
+# Author: Magdalena Gamba M.D.
+# email: m.a.gamba@uu.nl
+# Organisation: Utrecht University, Utrecht, The Netherlands
+# Date: 31/01/2022
 
-# Takes into account if user_input: multiple_regions = T/F
+# Takes into account user_input multiple_regions = T/F
 # If multiple_regions = T, for each region with records in CDMInstances folder 
 ## 1. Creates folder with name of corresponding region
 ## 2. Creates g_output, g_intermediate + respective subfolders in LOT4_scripts folder
@@ -62,47 +62,52 @@ if(multiple_regions == T){
     conceptsets_PROC_dir<-paste0(tmp, "conceptsets_proc/")
     ## for records from EVENTS TABLES 
     # Creates folders only if events tables are available 
-    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "EVENTS", ignore.case = TRUE)) > 0){
-      # Temporary folder - will be deleted 
-      dir.create(paste0(tmp, "events_dx"))
-      events_tmp_DX <- paste0(tmp, "events_dx/")
-      # Permanent folder
-      dir.create(paste0(tmp, "diagnoses"))
-      diagnoses_pop <- paste0(tmp, "diagnoses/")
-      # Monthly counts
-      dir.create(paste0(output_dir, "monthly_counts_dxcodes"))
-      monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes") 
-    # }
+    # Temporary folder - will be deleted 
+    dir.create(paste0(tmp, "events_dx"))
+    events_tmp_DX <- paste0(tmp, "events_dx/")
+    # Permanent folder
+    dir.create(paste0(tmp, "diagnoses"))
+    diagnoses_pop <- paste0(tmp, "diagnoses/")
+    # Monthly counts
+    dir.create(paste0(output_dir, "monthly_counts_dxcodes"))
+    monthly_counts_dx <- paste0(output_dir, "monthly_counts_dxcodes") 
     ## for records from MEDICINES TABLES
-    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "MEDICINES", ignore.case = TRUE)) > 0){
-      # Temporary folder - will be deleted 
-      dir.create(paste0(tmp, "events_atc"))
-      events_tmp_ATC <- paste0(tmp, "events_atc/")
-      # Permanent folder
-      dir.create(paste0(tmp, "medications"))
-      medications_pop <- paste0(tmp, "medications/")
-      # Monthly counts
-      dir.create(paste0(output_dir, "monthly_counts_atc"))
-      monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
-    # }
+    # Temporary folder - will be deleted 
+    dir.create(paste0(tmp, "events_atc"))
+    events_tmp_ATC <- paste0(tmp, "events_atc/")
+    # Permanent folder
+    dir.create(paste0(tmp, "medications"))
+    medications_pop <- paste0(tmp, "medications/")
+    # Monthly counts
+    dir.create(paste0(output_dir, "monthly_counts_atc"))
+    monthly_counts_atc <- paste0(output_dir, "monthly_counts_atc")
     ## for records from PROCEDURES TABLES 
-    # if(length(list.files(path=paste0(multiple_regions_dir, regions[reg]), pattern = "PROCEDURES", ignore.case = TRUE)) > 0){
-      # Temporary folder - will be deleted 
-      dir.create(paste0(tmp, "events_proc"))
-      events_tmp_PROC <- paste0(tmp, "events_proc/")
-      dir.create(paste0(tmp, "events_proc_dxcodes"))
-      events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
-      # Permanent folder
-      dir.create(paste0(tmp, "procedures"))
-      procedures_pop <- paste0(tmp, "procedures/")
-      dir.create(paste0(tmp, "procedures_dxcodes"))
-      procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
-      # Monthly counts
-      dir.create(paste0(output_dir, "monthly_counts_proc"))
-      monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
-      dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes"))
-      monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
-    # }
+    # Temporary folder - will be deleted 
+    dir.create(paste0(tmp, "events_proc"))
+    events_tmp_PROC <- paste0(tmp, "events_proc/")
+    dir.create(paste0(tmp, "events_proc_dxcodes"))
+    events_tmp_PROC_dxcodes <- paste0(tmp, "events_proc_dxcodes/")
+    # Permanent folder
+    dir.create(paste0(tmp, "procedures"))
+    procedures_pop <- paste0(tmp, "procedures/")
+    dir.create(paste0(tmp, "procedures_dxcodes"))
+    procedures_dxcodes_pop <- paste0(tmp, "procedures_dxcodes/")
+    # Monthly counts
+    dir.create(paste0(output_dir, "monthly_counts_proc"))
+    monthly_counts_proc <- paste0(output_dir, "monthly_counts_proc")
+    dir.create(paste0(output_dir, "monthly_counts_proc_dxcodes"))
+    monthly_counts_proc_dxcodes <- paste0(output_dir, "monthly_counts_proc_dxcodes")
+    # MEDICAL OBSERVATIONS 
+    # Temporary folder 
+    # Temporary folder - will be deleted 
+    dir.create(paste0(tmp,"events_mo"))
+    events_tmp_mo <- paste0(tmp,"events_mo/")
+    # Permanent folder
+    dir.create(paste0(tmp, "med_obs"))
+    mo_pop <- paste0(tmp, "med_obs/")
+    # Monthly counts
+    dir.create(paste0(output_dir, "monthly_counts_mo"))
+    monthly_counts_mo <- paste0(output_dir, "monthly_counts_mo") 
     ## for sterility records
     # Temporary folder - will be deleted 
     dir.create(paste0(tmp, "events_sterility"))

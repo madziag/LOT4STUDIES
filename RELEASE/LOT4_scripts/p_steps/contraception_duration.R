@@ -5,42 +5,47 @@
 
 #this section finds files matching any contraception vocabulary from the three possible folders: medications, procedures and diagnoses
 # Lists all contraception files (depending on population )
-### From Medications folder 
-contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
-if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
-### From procedures folder 
-contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud") 
-if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
-### From diagnoses folder 
-contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")   
-if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
-### From procedures_dxcodes folder 
-contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = T, pattern="iud")   
-if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
+# ### From Medications folder 
+# contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = T,pattern="contracep")
+# if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
+# ### From procedures folder 
+# contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = T,pattern="iud") 
+# if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
+# ### From diagnoses folder 
+# contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = T, pattern="iud")   
+# if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
+# ### From procedures_dxcodes folder 
+# contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = T, pattern="iud")   
+# if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
+# contracep_tables<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
+# 
+# contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = F,pattern="contracep")
+# if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
+# ### From procedures folder 
+# contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud") 
+# if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
+# ### From diagnoses folder 
+# contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")   
+# if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
+# ### From procedures_dxcodes folder 
+# contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = F, pattern="iud")   
+# if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
+# if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
+# 
+# contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
 
-contracep_tables<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
+contracep_all_list<-list.files(contraceptive_dir, pattern=paste0(pop_prefix, "_contracep_"), full.names = T)   
+contracep_tables<-c(unlist(contracep_all_list))
 
-contracep_med_list<-list.files(paste0(tmp,"medications/"), full.names = F,pattern="contracep")
-if(pop_prefix == "PC"){contracep_med_list <- contracep_med_list[!grepl("PC_HOSP",contracep_med_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_med_list <- contracep_med_list[grepl("PC_HOSP",contracep_med_list)]}
-### From procedures folder 
-contracep_proc_list<-list.files(paste0(tmp,"procedures/"), full.names = F,pattern="iud") 
-if(pop_prefix == "PC"){contracep_proc_list <- contracep_proc_list[!grepl("PC_HOSP",contracep_proc_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_proc_list <- contracep_proc_list[grepl("PC_HOSP",contracep_proc_list)]}
-### From diagnoses folder 
-contracep_diag_list<-list.files(paste0(tmp,"diagnoses/"), full.names = F, pattern="iud")   
-if(pop_prefix == "PC"){contracep_diag_list <- contracep_diag_list[!grepl("PC_HOSP",contracep_diag_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_diag_list <- contracep_diag_list[grepl("PC_HOSP",contracep_diag_list)]}
-### From procedures_dxcodes folder 
-contracep_proc_diag_list<-list.files(paste0(tmp,"procedures_dxcodes/"), full.names = F, pattern="iud")   
-if(pop_prefix == "PC"){contracep_proc_diag_list <- contracep_proc_diag_list[!grepl("PC_HOSP",contracep_proc_diag_list)]}
-if(pop_prefix == "PC_HOSP"){contracep_proc_diag_list <- contracep_proc_diag_list[grepl("PC_HOSP",contracep_proc_diag_list)]}
-
-contracep_names<-c(unlist(contracep_med_list), unlist(contracep_proc_list), unlist(contracep_diag_list), unlist(contracep_proc_diag_list))
+contracep_all_list<-list.files(contraceptive_dir, pattern=paste0(pop_prefix, "_contracep_"), full.names = F)   
+contracep_names<-c(unlist(contracep_all_list))
 
 # In each dataset, create a new column called assumed_duration.
 # diagnoses\iud_diag.rds: assumed_duration = 1095
@@ -61,9 +66,9 @@ duration_contra<-c(1095, 1095, 28, 1095,84, 1095, 28,28,28,28)
 
 contra_type_dur<-as.data.frame(cbind(types_contra, duration_contra))
 
-#folder to store output
-invisible(ifelse(!dir.exists(paste0(tmp, "all_contraception/")), dir.create(paste0(tmp, "all_contraception/")), FALSE))
-contra_folder <- paste0(tmp, "all_contraception/")
+# #folder to store output
+# invisible(ifelse(!dir.exists(paste0(tmp, "all_contraception/")), dir.create(paste0(tmp, "all_contraception/")), FALSE))
+# contra_folder <- paste0(tmp, "all_contraception/")
 
 # In each data set, create a new column called start_contraception, where you copy over the value from 
 # the record date column as follows
@@ -81,7 +86,7 @@ my_rows<-vector()
 
 for (i in 1:length(contracep_tables)){
   #get data
-  my_contra<-readRDS(contracep_tables[i])
+  my_contra<-as.data.table(readRDS(contracep_tables[i]))
   my_rows[i]<-nrow(my_contra)
   #match type of contraception in dataframe to options
   my_dur<-contra_type_dur[stringr::str_detect(contracep_tables[i],types_contra),]
@@ -102,7 +107,7 @@ for (i in 1:length(contracep_tables)){
   contra_name <- gsub(paste0(pop_prefix, "_"), "", contra_name)
   my_contra[,contra_type:=contra_name]
   # Save record
-  saveRDS(my_contra,(paste0(contra_folder,contracep_names[i])))
+  saveRDS(my_contra,(paste0(contraceptive_dir,contracep_names[i])))
   #make "master" contraception dataframe for treatment episodes 
   new_df<-my_contra[,c("person_id","contraception_record_date", "assumed_duration", "Code", "contraception_meaning", "contra_type")]
   all_contra<-rbind(all_contra, new_df)
@@ -111,7 +116,7 @@ for (i in 1:length(contracep_tables)){
 
 # Check 
 if(nrow(all_contra)==sum(my_rows)){print("all_contra OK")}else{print("all contra incomplete")}
-saveRDS(all_contra,(paste0(contra_folder, pop_prefix, "_all_contra.rds" )))
-
+# Saves file
+saveRDS(all_contra,(paste0(contraceptive_dir, pop_prefix, "_all_contra.rds" )))
 # Clean up 
 rm(list = grep("^all_|^my_rows|^my_contra|contra_type_dur|new_df|my_dur", ls(), value = TRUE))

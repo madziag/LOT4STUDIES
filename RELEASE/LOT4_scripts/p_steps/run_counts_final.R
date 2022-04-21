@@ -71,9 +71,6 @@ if(multiple_regions == T){
     # Create stratified by reason folder
     invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), dir.create(paste0(medicines_stratified_dir,"/","reasons_for_discontinuation")), FALSE))
     medicines_stratified_reasons <- paste0(medicines_stratified_dir ,"/","reasons_for_discontinuation")
-    # Create stratified by contraception type folder
-    invisible(ifelse(!dir.exists(paste0(medicines_stratified_dir,"/","contra_type")), dir.create(paste0(medicines_stratified_dir,"/","contra_type")), FALSE))
-    medicines_stratified_contra_type <- paste0(medicines_stratified_dir ,"/","contra_type")
     # Move stratified records into stratified folders
     # Create stratified folder
     invisible(ifelse(!dir.exists(paste0(contraceptive_counts_dir,"/","stratified")), dir.create(paste0(contraceptive_counts_dir,"/","stratified")), FALSE))
@@ -84,13 +81,17 @@ if(multiple_regions == T){
     # Create stratified by indication folder
     invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","indication")), dir.create(paste0(contraceptives_stratified_dir,"/","indication")), FALSE))
     contraceptives_stratified_indication <- paste0(contraceptives_stratified_dir ,"/","indication")
+    # Create stratified by contraception type folder
+    invisible(ifelse(!dir.exists(paste0(contraceptives_stratified_dir,"/","contra_type")), dir.create(paste0(contraceptives_stratified_dir,"/","contra_type")), FALSE))
+    contraceptives_stratified_contra_type <- paste0(contraceptives_stratified_dir ,"/","contra_type")
     
     # Path to diagnosis, procedures and procedures_dx folders 
     diagnoses_pop <- paste0(projectFolder,"/g_intermediate/tmp/diagnoses/")
     procedures_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures/")
     procedures_dxcodes_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures_dxcodes/")
     medications_pop <- paste0(projectFolder,"/g_intermediate/tmp/medications/")
-    # Sources run_counts_final_each_pop.R 
+    mo_pop <- paste0(projectFolder,"/g_intermediate/tmp/med_obs/")
+    # Source file
     source(paste0(pre_dir,"run_counts_final_each_pop.R"))
     # Delete g_intermediate/g_output folders before moving the modified ones back 
     if("g_intermediate" %in% list.files(paste0(projectFolder,"/", regions[reg]))){unlink(paste0(projectFolder,"/", regions[reg],"/g_intermediate"), recursive = T)}

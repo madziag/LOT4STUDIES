@@ -90,7 +90,8 @@ if(multiple_regions == T){
     procedures_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures/")
     procedures_dxcodes_pop <- paste0(projectFolder,"/g_intermediate/tmp/procedures_dxcodes/")
     medications_pop <- paste0(projectFolder,"/g_intermediate/tmp/medications/")
-    # Sources run_counts_final_each_pop.R 
+    mo_pop <- paste0(projectFolder,"/g_intermediate/tmp/med_obs/")
+    # Source file
     source(paste0(pre_dir,"run_counts_final_each_pop.R"))
     # Delete g_intermediate/g_output folders before moving the modified ones back 
     if("g_intermediate" %in% list.files(paste0(projectFolder,"/", regions[reg]))){unlink(paste0(projectFolder,"/", regions[reg],"/g_intermediate"), recursive = T)}
