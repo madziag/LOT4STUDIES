@@ -52,8 +52,6 @@ if (is_Denmark == T){
     source(paste0(pre_dir, "treatment_episodes_contracep.R"))
     # Counts of prevalence, incidence, discontinuation - medicines use 
     source(paste0(pre_dir, "medicine_counts_incidence_prevalence_discontinuation.R"))
-    # Counts of discontinuation, stratified by reason for discontinuation
-    source(paste0(pre_dir, "reasons_for_discontinuation.R"))
     # Counts of contraception records within 90 days before medication record 
     source(paste0(pre_dir, "contraceptive_use_within_90_days_of_medicine_use_counts.R"))
     # Counts of medicine records during contraception episodes

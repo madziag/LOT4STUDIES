@@ -26,11 +26,12 @@ if(pop_prefix == "PC"){folic_acid_files <- folic_acid_files[!grepl("PC_HOSP",fol
 if(pop_prefix == "PC_HOSP"){folic_acid_files <- folic_acid_files[grepl("PC_HOSP",folic_acid_files)]}
 
 # 4. Pregnancy start df (from ARS toscana - D3_pregnancy_reconciled) # PREGSTART
-D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermediate/D3_pregnancy_reconciled.RData"))))
-# Drop no longer needed columns 
-D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date")]
-D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date)]
-
+if(!is_Denmark){
+  D3_pregnancy_reconciled <- as.data.table(get(load(paste0(preg_dir, "g_intermediate/D3_pregnancy_reconciled.RData"))))
+  # Drop no longer needed columns 
+  D3_pregnancy_reconciled <- D3_pregnancy_reconciled[,c("person_id", "pregnancy_start_date")]
+  D3_pregnancy_reconciled[,pregnancy_start_date:=as.IDate(pregnancy_start_date)]
+}
 # 5. ADR records for retinoids/valproates (created in preliminary counts) # ADR's
 if(length(list.files(adr_dir))>0){
   adr_files<-list.files(adr_dir)
@@ -102,19 +103,20 @@ if(length(discontinued_df_files)>0){
     ###################################
     # Pregnancy records loaded outside the for loop
     # Merge study population with pregnancy records
-    df_discontinued_preg <- D3_pregnancy_reconciled[df_discontinued,on=.(person_id), allow.cartesian = T] 
-    # ignore pregnancy start date if date is 90+ days before discontinuation date or if pregnany start date is after disconinuation date
-    df_discontinued_preg[,pregstart:=ifelse(discontinued_date-pregnancy_start_date<90 & discontinued_date-pregnancy_start_date>0, 1, 0)]
-    df_discontinued_preg[is.na(pregnancy_start_date), pregstart:=0]
-    # Get subset of records with pregstart
-    df_pregstart<-df_discontinued_preg[pregstart==1,]
-    df_pregstart[,reason:="pregstart"]
-    df_pregstart<-df_pregstart[,c("person_id", "discontinued_date", "reason")]
-    # Bind df to all_reasons_df
-    all_reasons_df <- rbind(all_reasons_df, df_pregstart)
-    # Clean up
-    rm(df_discontinued_preg, df_pregstart)
-    
+    if(!is_Denmark){
+      df_discontinued_preg<-D3_pregnancy_reconciled[df_discontinued,on=.(person_id), allow.cartesian = T] 
+      # ignore pregnancy start date if date is 90+ days before discontinuation date or if pregnany start date is after disconinuation date
+      df_discontinued_preg[,pregstart:=ifelse(discontinued_date-pregnancy_start_date<90 & discontinued_date-pregnancy_start_date>0, 1, 0)]
+      df_discontinued_preg[is.na(pregnancy_start_date), pregstart:=0]
+      # Get subset of records with pregstart
+      df_pregstart<-df_discontinued_preg[pregstart==1,]
+      df_pregstart[,reason:="pregstart"]
+      df_pregstart<-df_pregstart[,c("person_id", "discontinued_date", "reason")]
+      # Bind df to all_reasons_df
+      all_reasons_df <- rbind(all_reasons_df, df_pregstart)
+      # Clean up
+      rm(df_discontinued_preg, df_pregstart)
+    }
     #############################
     ######## ADR RECORDS ########
     #############################

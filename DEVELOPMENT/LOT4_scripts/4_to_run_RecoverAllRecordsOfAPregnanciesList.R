@@ -25,8 +25,8 @@ source(paste0(pre_dir,"functions/RecoverAllRecordsOfAPregnanciesList.R"))
 
 ### Choose study type
 # study_type <- "Retinoid"
- study_type <- "Valproate"
-# study_type <- "Both" # NOTE: If you are participating in both the retinoids and valproate studies but only detect records of one or the other during pregnancies, the script will fail if you select "both". In such a case, select your study type as either "Retinoid" or "Valproate" depending on which medicine you identified/dispensed as being prescribed during a pregnancy (for which there is corresponding a file in g_intermediate\counts_dfs)
+# study_type <- "Valproate"
+study_type <- "Both" # NOTE: If you are participating in both the retinoids and valproate studies but only detect records of one or the other during pregnancies, the script will fail if you select "both". In such a case, select your study type as either "Retinoid" or "Valproate" depending on which medicine you identified/dispensed as being prescribed during a pregnancy (for which there is corresponding a file in g_intermediate\counts_dfs)
 
 #user input parameter
 # Chose format to save files 
@@ -37,7 +37,7 @@ my_format <- "csv"
 # Create a data.table/data.frame with the pregnancy_id to be examined using this structure
 
 if (study_type=="Retinoid") {
-  pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_Retinoid_med_use_during_pregnancy.rds"))
+  pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/objective_3/ALL_Retinoid_med_use_during_pregnancy.rds"))
   dataset_of_pregnancy_to_be_checked <- data.table(pregnancy_id = pregdata$pregnancy_id)
   
   #Extract all relevant records to validate the pregnancy and save a CSV file
@@ -47,14 +47,14 @@ if (study_type=="Retinoid") {
                                                                  DatasourceNameConceptionCDM = "ARS",
                                                                  SaveOutputInCsv = TRUE,
                                                                  SaveOriginalSampleInCsv = FALSE,
-                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs"),
+                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs/objective_3"),
                                                                  anonymous = FALSE,
                                                                  validation_variable = FALSE,
                                                                  output_file_name = "retin")
 }
 
 if (study_type=="Valproate") {
-  pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_Valproate_med_use_during_pregnancy.rds"))
+  pregdata <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/objective_3/ALL_Valproate_med_use_during_pregnancy.rds"))
   dataset_of_pregnancy_to_be_checked <- data.table(pregnancy_id = pregdata$pregnancy_id)
   
   #Extract all relevant records to validate the pregnancy and save a CSV file
@@ -64,16 +64,16 @@ if (study_type=="Valproate") {
                                                                  DatasourceNameConceptionCDM = "ARS",
                                                                  SaveOutputInCsv = TRUE,
                                                                  SaveOriginalSampleInCsv = FALSE,
-                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs"),
+                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs/objective_3"),
                                                                  anonymous = FALSE,
                                                                  validation_variable = FALSE,
                                                                  output_file_name = "valp")
 }
 
 if (study_type=="Both") {
-  pregdata_retin <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_Retinoid_med_use_during_pregnancy.rds"))
+  pregdata_retin <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/objective_3/ALL_Retinoid_med_use_during_pregnancy.rds"))
   dataset_of_pregnancy_to_be_checked_retin <- data.table(pregnancy_id = pregdata_retin$pregnancy_id)
-  pregdata_valp <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/ALL_Valproate_med_use_during_pregnancy.rds"))
+  pregdata_valp <- readRDS(paste0(projectFolder,"/g_intermediate/counts_dfs/objective_3/ALL_Valproate_med_use_during_pregnancy.rds"))
   dataset_of_pregnancy_to_be_checked_valp <- data.table(pregnancy_id = pregdata_valp$pregnancy_id)
   
   #Extract all relevant records to validate the pregnancy and save a CSV file
@@ -83,18 +83,18 @@ if (study_type=="Both") {
                                                                  DatasourceNameConceptionCDM = "ARS",
                                                                  SaveOutputInCsv = TRUE,
                                                                  SaveOriginalSampleInCsv = FALSE,
-                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs"),
+                                                                 DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs/objective_3"),
                                                                  anonymous = FALSE,
                                                                  validation_variable = FALSE,
                                                                  output_file_name = "retin")
   
   DatasetPregnancyRecords_retin <- RecoverAllRecordsOfAPregnanciesList(DatasetInput = dataset_of_pregnancy_to_be_checked_valp,
-                                                                       PregnancyIdentifierVariable_valp = "pregnancy_id",
+                                                                       PregnancyIdentifierVariable = "pregnancy_id",
                                                                        DirectoryPregnancyScript = paste0(dir_base,"/ConcePTIONAlgorithmPregnancies-version_2.0"),
                                                                        DatasourceNameConceptionCDM = "ARS",
                                                                        SaveOutputInCsv = TRUE,
                                                                        SaveOriginalSampleInCsv = FALSE,
-                                                                       DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs"),
+                                                                       DirectoryOutputCsv = paste0(dir_base,"/LOT4_scripts/g_intermediate/counts_dfs/objective_3"),
                                                                        anonymous = FALSE,
                                                                        validation_variable = FALSE,
                                                                        output_file_name = "valp")
