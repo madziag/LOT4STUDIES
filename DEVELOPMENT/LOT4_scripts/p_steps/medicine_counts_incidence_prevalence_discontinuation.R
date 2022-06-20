@@ -565,7 +565,7 @@ for (i in 1:length(tx_episodes_files)){
     # # Applies masking 
     # if(mask==T){discontinued_age_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
     # Calculates rates 
-    discontinued_age_counts<-discontinued_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+    discontinued_age_counts<-discontinued_age_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
     # Keeps necessary columns
     discontinued_age_counts<-discontinued_age_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
@@ -611,7 +611,7 @@ for (i in 1:length(tx_episodes_files)){
     # # Applies masking 
     # if(mask==T){discontinued_tx_dur_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
     # Calculates rates
-    discontinued_tx_dur_counts<-discontinued_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+    discontinued_tx_dur_counts<-discontinued_tx_dur_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
     # Keeps necessary columns
     discontinued_tx_dur_counts<-discontinued_tx_dur_counts[,c("YM","N","Freq","rates","masked","true_value")]
     # Saves files in medicine counts folder
@@ -682,7 +682,7 @@ for (i in 1:length(tx_episodes_files)){
       # # Applies masking 
       # if(mask==T){discontinued_indication_counts[N>0&N<5,N:=5][Freq>0&Freq<5,Freq:=5]}
       # Calculate rates
-      discontinued_indication_counts<-discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0][,rates:=rates*100]
+      discontinued_indication_counts<-discontinued_indication_counts[,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates),rates:=0]
       # Keeps necessary columns
       discontinued_indication_counts<-discontinued_indication_counts[,c("YM","N","Freq","rates","masked","true_value")]
       # Saves files in medicine counts folder

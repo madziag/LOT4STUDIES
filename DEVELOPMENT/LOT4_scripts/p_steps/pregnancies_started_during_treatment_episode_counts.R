@@ -60,9 +60,8 @@ if (nrow(D3_pregnancy_reconciled)>0){
     # Keep records of pregnancies that occurred between episode.start and episode.end dates 
     tx_episodes_preg<-tx_episodes_preg[pregnancy_start_date>=episode.start&pregnancy_start_date<=episode.end,]
     # Remove duplicates of pregnancies i.e. each pregnancy needs to be counted only once
-    tx_episodes_preg<-tx_episodes_preg[order(person_id,pregnancy_start_date,pregnancy_end_date, episode.start)]
+    tx_episodes_preg<-tx_episodes_preg[order(person_id,pregnancy_start_date,pregnancy_end_date,episode.start)]
     tx_episodes_preg<-tx_episodes_preg[!duplicated(tx_episodes_preg[,c("person_id","pregnancy_start_date","pregnancy_end_date")])]
-    
     # Checks if there are any records that meet the criteria. If so it does the calculations
     if (nrow(tx_episodes_preg)>0){
       # Monthly counts
@@ -163,4 +162,5 @@ if (nrow(D3_pregnancy_reconciled)>0){
   print("No pregancy records have been found")
 }
 
-# rm(list = grep("^tx_episode", ls(), value = TRUE))
+####################
+# OLD

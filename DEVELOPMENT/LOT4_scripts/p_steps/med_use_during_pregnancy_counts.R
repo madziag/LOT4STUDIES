@@ -52,7 +52,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
     med_df_with_pregs<-med_df_with_pregs[order(person_id,pregnancy_start_date,Date)]
     # Keep only the first instance of use of medication during pregnancy
     med_df_with_pregs<-med_df_with_pregs[,head(.SD,1),by=c("person_id", "pregnancy_start_date", "pregnancy_end_date")]
-    # Perform counts (after checking that there are medicine records that occurred during a pregnancy)
+     # Perform counts (after checking that there are medicine records that occurred during a pregnancy)
     if (nrow(med_df_with_pregs)>0){
       # Monthly counts
       med_use<-med_df_with_pregs[,.N,by=.(year(Date),month(Date))] 
@@ -149,15 +149,3 @@ if (nrow(D3_pregnancy_reconciled)>0){
 }
 
 
-
-
-
-
-
-
-
-
-# 
-# # Cleanup
-# rm(list = grep("^med_use_during_|med_preg|med_df", ls(), value = TRUE))
-# 

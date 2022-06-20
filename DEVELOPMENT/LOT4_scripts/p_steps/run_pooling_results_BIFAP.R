@@ -1,5 +1,5 @@
 ### mask = F
-mask = T
+# mask = T
 
 # run_pooling <-  function(mask= T){
 ### BIFAP POOLING ###
@@ -74,6 +74,26 @@ for (i in 1:length(all_regions_files_no_prefix_unique)){
   file.move(as.vector(f2$files.old), as.vector(f2$files.new))
 }
 
+# # CORRECTS ERROR FOR PREGTESTS - MO
+# # PC_pregtests_MO_counts
+# mo_files_PC<-list.files(paste0(All_regions_dir,"PC_pregtests_MO_counts"))
+# for(i in 1:length(mo_files_PC)){
+#   df<-as.data.table(read.csv(paste0(All_regions_dir,"PC_pregtests_MO_counts/", mo_files_PC[i])))
+#   df[Freq==0,N:=0][Freq==0,rates:=0]
+#   write.csv(df,paste0(All_regions_dir,"PC_pregtests_MO_counts/",mo_files_PC[i]))
+# }
+# 
+# # PC_HOSP_pregtests_MO_counts
+# mo_files_PC_HOSP<-list.files(paste0(All_regions_dir,"PC_HOSP_pregtests_MO_counts"))
+# for(j in 1:length(mo_files_PC_HOSP)){
+#   df<-as.data.table(read.csv(paste0(All_regions_dir,"PC_HOSP_pregtests_MO_counts/", mo_files_PC_HOSP[j])))
+#   df[Freq==0,N:=0][Freq==0,rates:=0]
+#   write.csv(df,paste0(All_regions_dir,"PC_HOSP_pregtests_MO_counts/", mo_files_PC_HOSP[j]))
+# }
+
+#####
+
+
 # 4. Pools denominator files per subpops
 all_denominator_folders <- list.files(All_regions_dir, pattern = "denominator", full.names = FALSE)
 ## Loops through all the denominator folders 
@@ -92,7 +112,7 @@ print("Pooling counts files...")
 all_counts_folders <- list.files(All_regions_dir, pattern = "count", full.names = FALSE)
 all_counts_folders <- all_counts_folders[!grepl("age_group|indication|tx_dur|reason|contra_type", all_counts_folders)]
 
-## Loops through all the denominator folders 
+## Loops through all the numerator folders 
 for (i in 1:length(all_counts_folders)){
   record_dir <- paste0(All_regions_dir, all_counts_folders[i], "/") # Sets path to numerator folder 
   tables_num <- lapply(paste0(record_dir,list.files(record_dir)), read.csv, header = TRUE) # Loads all numerator files 
@@ -117,7 +137,7 @@ for (i in 1:length(all_counts_folders)){
 
 # 6. Moves subpop denominator to each file with corresponding subpopulation
 denom_files <- list.files(All_regions_dir, pattern = "denominator")
-num_files   <- list.files(All_regions_dir, pattern = "EVENTS|MEDS|PROC|prevalence|incidence|med_use_during_pregnancy|alt_med")
+num_files   <- list.files(All_regions_dir, pattern = "EVENTS|MEDS|MO|PROC|prevalence|incidence|med_use_during_pregnancy|alt_med")
 num_files <- num_files[!grepl("age_group|indication|tx_dur|reason|contra_type|switched", num_files)]
 
 if(length(num_files)>0){
@@ -149,16 +169,15 @@ if(length(num_files)>0){
     setnames(num_df,"Sum", "N")
     # Masking values less than 5
     # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
+    # num_df[,masked:=0]
     num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
     # Changes values less than 5 and more than 0 to 5
-    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
     # Calculates rates
     df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
     df <- df[,rates:=rates*1000]
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-    print(paste0(num_files[i], ": "))
-    print(apply(df, 2, function(x) any(any(is.na(x) | is.infinite(x)))))
     write.csv(df, paste0(record_dir, num_files[i],"_Pooled.csv"))
     # Remove denominator file from folder 
     unlink(denom_file)
@@ -241,14 +260,12 @@ if(length(num_files)){
     # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked 
     num_df[,masked:=ifelse(N>0&N<5,1,0)]
     # Changes values less than 5 and more than 0 to 5
-    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
     # Calculates rates
     df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=as.numeric(N)/as.numeric(Freq)][is.nan(rates)|is.na(rates), rates:=0]
     if(str_detect(num_files[i], pattern = "all_preg_starts")){df[,rates:=rates*1000]}
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-    print(paste0(num_files[i], ": "))
-    print(apply(df, 2, function(x) any(any(is.na(x) | is.infinite(x)))))
     # Saves file 
     write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
     # Remove denominator file from folder 
@@ -314,14 +331,12 @@ if(length(num_files)>0){
     # Creates column that indicates if count is less than 5 (but more than 0) and value needs to be masked
     num_df$masked <- ifelse(num_df$N<5 & num_df$N>0, 1, 0)
     # Changes values less than 5 and more than 0 to 5
-    if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
+    # if (mask == T){num_df[num_df$masked == 1,]$N <- 5} else {num_df[num_df$masked == 1,]$N <- num_df[num_df$masked == 1,]$N}
     # Calculates rates
     df <- merge(x = num_df, y = denom_df, by = c("YM"), all.x = TRUE)
     df <- df[,rates:=as.numeric(N)/as.numeric(Freq)]
     df$rates[is.nan(df$rates)]<-0
     df <- df[,c("YM", "N", "Freq", "rates", "masked")]
-    print(paste0(num_files[i], ": "))
-    print(apply(df, 2, function(x) any(any(is.infinite(x)))))
     # Save file
     write.csv(df, paste0(record_dir, num_files[i],"_final_Pooled.csv"))
     # Remove denominator file from folder
@@ -348,17 +363,14 @@ for (i in 1:length(all_counts_folders_strat )){
   comb_tables1 <- comb_tables1[!duplicated(comb_tables1),]
   # Masking 
   comb_tables1[,masked:=ifelse(N<5&N>0, 1, 0)]
-  if(mask == T){comb_tables1[masked==1,N:=5]}else{comb_tables1[masked==1,N:=N]}
-  if(mask == T){comb_tables1[masked==1,Freq:=5]}else{comb_tables1[masked==1,Freq:=Freq]}
+  # if(mask == T){comb_tables1[masked==1,N:=5]}else{comb_tables1[masked==1,N:=N]}
+  # if(mask == T){comb_tables1[masked==1,Freq:=5]}else{comb_tables1[masked==1,Freq:=Freq]}
   # Calculate rates 
   comb_tables1[,rates:=as.numeric(N)/as.numeric(Freq)][is.na(rates)|is.nan(rates),rates:=0]
   comb_tables1 <- comb_tables1[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
-  print(paste0(all_counts_folders_strat[i], ": "))
-  print(apply(comb_tables1, 2, function(x) any(any(is.infinite(x)))))
   short_name<- gsub("_ind_", "_", all_counts_folders_strat[i])
   write.csv(comb_tables1, paste0(record_dir, short_name,"_Pooled.csv")) # Saves pooled file
 }
-
 
 # ###########################################################################################################################################################################
 # ########### BASELINE TABLES  ##############################################################################################################################################

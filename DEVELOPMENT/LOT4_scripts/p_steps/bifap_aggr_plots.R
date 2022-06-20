@@ -51,7 +51,7 @@ my_folders_props <- my_folders[grepl(c("discontinued|switched|pgtests_prior|pgte
 my_folders_props <- my_folders_props[!grepl(c("age_group|indication|tx_dur|reason|contra_type"), my_folders_props)]
 #24
 #create ylim max from pooled file
-### Strtaified records 
+### Stratified records 
 my_folders_stratified <- my_folders[grepl(c("age_group|indication|tx_dur|ATC|reason|contra_type"), my_folders)]
 
 # Combined plots 
