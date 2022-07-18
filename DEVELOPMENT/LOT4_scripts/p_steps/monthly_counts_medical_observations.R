@@ -3,12 +3,12 @@ if (is_BIFAP){
   mo_files<-list.files(path=path_dir,pattern="^MEDICAL_OB",ignore.case = TRUE)
   # Creates empty table for counts
   # Gets min and max year from denominator file
-  FUmonths_df <- as.data.table(FUmonths_df)
-  min_data_available <- min(FUmonths_df$Y)
-  max_data_available <- max(FUmonths_df$Y)
+  FUmonths_df<-as.data.table(FUmonths_df)
+  min_data_available<-min(FUmonths_df$Y)
+  max_data_available<-max(FUmonths_df$Y)
   FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
   empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-  names(empty_df) <- c("year", "month")
+  names(empty_df)<-c("year", "month")
   
   for(y in 1:length(mo_files)){
     # Gets prefix for medicines tables 
@@ -69,10 +69,10 @@ if (is_BIFAP){
     # Changes values less than 5 and more than 0 to 5
     if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
     # Calculates rates
-    counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
-    counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-    counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-    counts <-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+    counts<-within(counts, YM<- sprintf("%d-%02d", year, month))
+    counts<-merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
+    counts<-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+    counts<-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
     # Saves files in g_output monthly counts
     if(preg_test_df[,.N]>0){
       saveRDS(preg_test_df, paste0(mo_pop,pop_prefix, "_pregtests_MEDICAL_OBSERVATIONS.rds"))

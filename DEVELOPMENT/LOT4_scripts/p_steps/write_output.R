@@ -6,12 +6,12 @@
 # Writes count output into csv or excel format 
 # Creates folder for output + path
 invisible(ifelse(!dir.exists(paste0(output_dir,my_format, "_files")),  dir.create(paste0(output_dir,my_format, "_files")), FALSE))
-my_output_folder <-paste0(output_dir,my_format, "_files/")
+my_output_folder<-paste0(output_dir,my_format, "_files/")
 
 # Gets list of .rds files for conversion 
 all_rds_outputs<-list.files(output_dir, recursive=T, pattern=".rds")
 # Excludes already converted folders 
-all_rds_outputs<- all_rds_outputs[!grepl("preliminary_counts|kaplan", all_rds_outputs) ]
+all_rds_outputs<-all_rds_outputs[!grepl("preliminary_counts|kaplan", all_rds_outputs) ]
 # Loops over files, converting each into desired output
 for (i in 1:length(all_rds_outputs)){
   my_name<-gsub(".*/","",all_rds_outputs[i])

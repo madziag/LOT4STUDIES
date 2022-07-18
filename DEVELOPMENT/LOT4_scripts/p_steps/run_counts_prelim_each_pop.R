@@ -8,13 +8,13 @@
 # Result: If SUBP -> TRUE then each folder will contain (if present) results coming from all indicated subpops. Resulting files are prefixed with the name of the subpop
 
 # Loads study population/populations 
-populations <- list.files(populations_dir, pattern = "study_population")
+populations<-list.files(populations_dir, pattern = "study_population")
 # Loops over each subpopulation
 for(pop in 1:length(populations)){
   # Loads study population
-  study_population <- readRDS(paste0(populations_dir, populations[pop]))
+  study_population<-readRDS(paste0(populations_dir, populations[pop]))
   # Assign study population prefix name
-  pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+  pop_prefix<-gsub("_study_population.rds", "", populations[pop])
   # Creates sterility list 
   source(paste0(pre_dir,"CreateSterilityList.R"))
   # Creates entry and exit dates

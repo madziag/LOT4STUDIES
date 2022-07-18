@@ -13,7 +13,7 @@ min_data_available<-min(denominator$year)
 max_data_available<-max(denominator$year)
 # Create empty df using these min and max values
 empty_df<-as.data.table(expand.grid(seq(min_data_available,max_data_available),seq(1,12)))
-names(empty_df) <- c("year","month")
+names(empty_df)<-c("year","month")
 # Rearrange columns
 denominator<-denominator[,c("YM", "year","month","Freq")]
 

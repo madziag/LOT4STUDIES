@@ -15,7 +15,7 @@
 # Creates treatment episodes directory
 invisible(ifelse(!dir.exists(paste0(g_intermediate,"treatment_episodes")), dir.create(paste0(g_intermediate,"treatment_episodes")), FALSE))
 # Looks for retinoid/valproate files in medications folder 
-my_retinoid <-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, "_Retinoid"))
+my_retinoid<-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, "_Retinoid"))
 my_valproate<-list.files(paste0(tmp,"medications/"), pattern=paste0(pop_prefix, "_Valproate"))
 # Loads files based on study type
 ### Study type == Retinoids
@@ -46,13 +46,13 @@ if(study_type=="Both"){
 # Loops over each retinoid/valproate ATC codes -> creates treatment episodes for each unique code 
 for (i in 1:length(split_data)){
   
-  cma_data <- split_data[[i]]
+  cma_data<-split_data[[i]]
   # Get ATC code
-  ATC_code <- unique(cma_data$Code)
+  ATC_code<-unique(cma_data$Code)
   # assumed duration column values are assigned dependent on user input DAP_specific_DOT
   if(DAP_specific_DOT==T){source(paste0(pre_dir, "DAP_specific_assumed_durations.R"))}else{cma_data[,assumed_duration:=30]}
   
-  cma_data$Date <-as.Date(cma_data$Date, format="%Y%m%d")
+  cma_data$Date<-as.Date(cma_data$Date, format="%Y%m%d")
   # Creates treatment episodes
   my_treat_episode<-compute.treatment.episodes(data= cma_data,
                                                ID.colname = "person_id",
@@ -84,20 +84,20 @@ for (i in 1:length(split_data)){
   ) 
   
   # Converts treatment episode to data table
-  my_treat_episode <- as.data.table(my_treat_episode)
+  my_treat_episode<-as.data.table(my_treat_episode)
   # Converts date values to IDate format
   my_treat_episode[,episode.start:= as.IDate(episode.start,"%Y%m%d")][,episode.end:= as.IDate(episode.end,"%Y%m%d")]
   # Merges with study population to get entry and exit dates (study population has been loaded in the wrapper script)
-  my_treat_episode1 <- as.data.table(merge(my_treat_episode, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id"))
+  my_treat_episode1<-as.data.table(merge(my_treat_episode, study_population[,c("person_id", "entry_date","exit_date")], by = "person_id"))
   # Exclude rows where episode.end is before entry.date-90
   # Therefore, keep records that have a episode.start < entry.date, unless the above exclusion criterion is met  
-  my_treat_episode1 <- my_treat_episode1[episode.end > entry_date - 90,]
-  #  IF (episode.end > exit.date) {episode.end <- exit.date}
-  my_treat_episode1 <- my_treat_episode1[episode.end > exit_date, episode.end:= exit_date]
+  my_treat_episode1<-my_treat_episode1[episode.end > entry_date - 90,]
+  #  IF (episode.end > exit.date) {episode.end<-exit.date}
+  my_treat_episode1<-my_treat_episode1[episode.end > exit_date, episode.end:= exit_date]
   #  IF (episode.start >= exit.date) EXCLUDE row
-  my_treat_episode1 <- my_treat_episode1[episode.start < exit_date,]
+  my_treat_episode1<-my_treat_episode1[episode.start < exit_date,]
   # Episode end must be > than episode.start
-  my_treat_episode1 <- my_treat_episode1[episode.end > episode.start,]
+  my_treat_episode1<-my_treat_episode1[episode.end > episode.start,]
   # Add column for ATC code 
   my_treat_episode1[,ATC:=ATC_code]
   # Remove unnecessary rows
@@ -112,30 +112,30 @@ for (i in 1:length(split_data)){
 
 # Binds all retinoid/valproate treatment episodes to one
 # Gets a list of all files in treatment episode folder 
-my_files <- list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
-if(pop_prefix == "PC"){my_files <- my_files[!grepl("PC_HOSP", my_files)]}
-if(pop_prefix == "PC_HOSP"){my_files <- my_files[grepl("PC_HOSP", my_files)]}
+my_files<-list.files(paste0(g_intermediate, "treatment_episodes/"), pattern="CMA")
+if(pop_prefix == "PC"){my_files<-my_files[!grepl("PC_HOSP", my_files)]}
+if(pop_prefix == "PC_HOSP"){my_files<-my_files[grepl("PC_HOSP", my_files)]}
 
 ## Retinoid files 
-retinoid_files <- my_files[grepl(c("D05BB02|D11AH04|D10BA01"), my_files)]
+retinoid_files<-my_files[grepl(c("D05BB02|D11AH04|D10BA01"), my_files)]
 # Checks if any Retinoid treatment episodes in list
 if(length(retinoid_files)>0){
   # Loads files
-  all_ret_list <- lapply(paste0(g_intermediate, "treatment_episodes/", retinoid_files), readRDS)
+  all_ret_list<-lapply(paste0(g_intermediate, "treatment_episodes/", retinoid_files), readRDS)
   # Binds files 
-  all_ret <- rbindlist(all_ret_list)
+  all_ret<-rbindlist(all_ret_list)
   # Saves files: result is Retinoid treatment episodes (for all retinoid ATC codes - D05BB02|D11AH04|D10BA01)
   if(nrow(all_ret>0)){saveRDS(all_ret, (paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Retinoid_CMA_treatment_episodes.rds")))}
 }
 
 ## Valproate files 
-valproate_files <- my_files[grepl(c("N03AG01|N03AG02"), my_files)]
+valproate_files<-my_files[grepl(c("N03AG01|N03AG02"), my_files)]
 # Checks if any Valproate treatment episodes in list
 if(length(valproate_files)>0){
   # Loads files
-  all_valp_list <- lapply(paste0(g_intermediate, "treatment_episodes/", valproate_files), readRDS)
+  all_valp_list<-lapply(paste0(g_intermediate, "treatment_episodes/", valproate_files), readRDS)
   # Binds files
-  all_valp <- rbindlist(all_valp_list)
+  all_valp<-rbindlist(all_valp_list)
   # Saves files: result is Valproate treatment episodes (for all Valproate ATC codes - N03AG01|N03AG02)
   if(nrow(all_valp>0)){saveRDS(all_valp,(paste0(g_intermediate, "treatment_episodes/", pop_prefix, "_Valproate_CMA_treatment_episodes.rds")))}
 }

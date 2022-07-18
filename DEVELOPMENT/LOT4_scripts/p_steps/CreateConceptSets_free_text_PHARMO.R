@@ -5,7 +5,7 @@
 
 
 # List of free text words used per concept set : Single words
-concept_set_terms <- vector(mode="list")
+concept_set_terms<-vector(mode="list")
 
 concept_set_terms[["adr_cardiovasc"]]=c("beroerte", "CVA", "flauwvallen", "syncope")
 concept_set_terms[["adr_depression"]]=c("depressie", "suicide", "zelfmoord")
@@ -21,7 +21,7 @@ concept_set_terms[["iud_diag"]]= c("IUD", "I.U.D", "spiraal")
 concept_set_terms[["sterility"]]=c("menopause", "overgang", "climac.")
 
 # List of free text words used per concept set : word_combos
-concept_set_terms_combo <- vector(mode="list")
+concept_set_terms_combo<-vector(mode="list")
 
 concept_set_terms_combo[["adr_cardiovasc"]]=c("cerebro+accident")
 concept_set_terms_combo[["adr_gastroint"]]= c("bloed+overg", "coli+ulcer", "chron+enteritis", "prikkel+darm+synd")

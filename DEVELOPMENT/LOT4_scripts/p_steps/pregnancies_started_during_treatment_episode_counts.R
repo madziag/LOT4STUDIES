@@ -121,7 +121,7 @@ if (nrow(D3_pregnancy_reconciled)>0){
       # Perform counts by age group
       preg_starts_by_hq<-tx_episodes_preg[,.N,by=.(year(pregnancy_start_date),month(pregnancy_start_date),highest_quality)]
       # Get unique values of age groups - for the for loop
-      hq_unique <- unique(preg_starts_by_hq$highest_quality)
+      hq_unique<-unique(preg_starts_by_hq$highest_quality)
       
       for(group in 1:length(hq_unique)){
         # Create a subset of highest quality counts

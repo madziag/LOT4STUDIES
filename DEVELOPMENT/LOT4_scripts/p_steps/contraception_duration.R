@@ -103,8 +103,8 @@ for (i in 1:length(contracep_tables)){
   meaning_contra<-names(my_contra)[(suppressWarnings( stringr::str_detect(names(my_contra),"Meaning")))]
   ##warning message not relevant, suppressed
   names(my_contra)[names(my_contra)==meaning_contra]<-"contraception_meaning"
-  contra_name <- gsub(".rds", "", contracep_names[i])
-  contra_name <- gsub(paste0(pop_prefix, "_"), "", contra_name)
+  contra_name<-gsub(".rds", "", contracep_names[i])
+  contra_name<-gsub(paste0(pop_prefix, "_"), "", contra_name)
   my_contra[,contra_type:=contra_name]
   # Save record
   saveRDS(my_contra,(paste0(contraceptive_dir,contracep_names[i])))

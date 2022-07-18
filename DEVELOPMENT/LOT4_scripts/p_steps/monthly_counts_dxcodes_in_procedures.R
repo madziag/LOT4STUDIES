@@ -8,19 +8,19 @@
 # 3. Counts records saved in the previous step by month/year for each code group 
 
 # Loads Create Concept Sets file
-matches <- c()
+matches<-c()
 source(paste0(pre_dir,"CreateConceptSets_DxCodes.R"))
 source(paste0(pre_dir,"excluded_ICD.R"))
 # Loads Procedure files
-proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
+proc_files<-list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
 # Creates empty table for counts 
 # Gets min and max year from denominator file
-FUmonths_df <- as.data.table(FUmonths_df)
-min_data_available <- min(FUmonths_df$Y)
-max_data_available <- max(FUmonths_df$Y)
+FUmonths_df<-as.data.table(FUmonths_df)
+min_data_available<-min(FUmonths_df$Y)
+max_data_available<-max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-names(empty_df) <- c("year", "month")
+names(empty_df)<-c("year", "month")
 # Checks for EVENTS Tables present
 if(length(proc_files)>0){
   # Creates a new folder for each code group type (to store records with matching codes) 
@@ -28,7 +28,7 @@ if(length(proc_files)>0){
   # Processes each EVENTS table
   for (proc in 1:length(proc_files)){
     # Gets prefix for procedures tables 
-    procedures_prefix <- gsub(".csv", "", proc_files[y])
+    procedures_prefix<-gsub(".csv", "", proc_files[y])
     # Loads table
     df<-fread(paste(path_dir, proc_files[proc], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -72,7 +72,7 @@ if(length(proc_files)>0){
     # if all flags are 0 then use undotted codes else use dotted codes 
     # If unique value of flag is both 0 and 1, then we assume that the DAP uses dots in their ICD codes
     # If there is only 1 unique value of flag: If equal to 1 -> then DAP uses dots in their ICD code. If flag == 0, then we assume that there are no dots used in the data 
-    dotted <- ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
+    dotted<-ifelse(length(unique(df$flag)) == 2, "Yes", ifelse((length(unique(df$flag)) == 1 & unique(df$flag)== 0), "No", "Yes"))
     # Prints Message
     print(paste0("Finding matching records in ", proc_files[proc]))
     # If more than 1 unique value in vocab column 
@@ -80,19 +80,19 @@ if(length(proc_files)>0){
       # creates a subset for each of the unique values and run the filter on each subset 
       for (voc in 1:length(unique(df$vocab))){
         # Creates subsets for each vocab type
-        df_subset_vocab <- setDT(df)[vocab == unique(df$vocab)[voc]]
+        df_subset_vocab<-setDT(df)[vocab == unique(df$vocab)[voc]]
         # Checks if df is NOT empty
         if(nrow(df_subset_vocab)>0){
           # Looks for matches in df using event vocabulary type specific code list
           # Covers: ICD9, ICD9CM, ICD9PROC, MTHICD9, ICD10, ICD-10, ICD10CM, ICD10/CM, ICD10ES, ICPC, ICPC2, ICPC2P, ICPC-2, CIAP Codes 
           if(length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "start"){
             for (i in 1:length(codelist_start_all)){
-              if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-              if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-              df_subset <- df_subset[,-c("vocab", "flag")]
+              if (dotted == "Yes"){df_subset<-setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
+              if (dotted == "No"){df_subset<-setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
+              df_subset<-df_subset[,-c("vocab", "flag")]
               # Remove excluded codes (found as a result of code with no dots)
-              df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
-              df_subset <- df_subset[!duplicated(df_subset),]
+              df_subset<-setDT(df_subset)[Code %!in% excluded_codes]
+              df_subset<-df_subset[!duplicated(df_subset),]
               
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
@@ -103,9 +103,9 @@ if(length(proc_files)>0){
             # Covers RCD, RCD2, READ, CPRD_Read Codes 
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "READ") {
             for (i in 1:length(codelist_read_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
-              df_subset <- df_subset[!duplicated(df_subset),]
+              df_subset<-setDT(df_subset_vocab)[Code %chin% codelist_read_all[[i]][,Code]]
+              df_subset<-df_subset[,-c("vocab", "flag")]
+              df_subset<-df_subset[!duplicated(df_subset),]
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_read_all[i]), "_", procedures_prefix, "_READ.rds"))
                 new_file <-c(list.files(events_tmp_PROC_dxcodes, "\\_READ.rds$"))
@@ -115,9 +115,9 @@ if(length(proc_files)>0){
             # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
           } else if (length(unique(df_subset_vocab$vocab)) == 1 & unique(df_subset_vocab$vocab) == "SNOMED") {
             for (i in 1:length(codelist_snomed_all)){
-              df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
-              df_subset <- df_subset[,-c("vocab", "flag")]
-              df_subset <- df_subset[!duplicated(df_subset),]
+              df_subset<-setDT(df_subset_vocab)[Code %chin% codelist_snomed_all[[i]][,Code]]
+              df_subset<-df_subset[,-c("vocab", "flag")]
+              df_subset<-df_subset[!duplicated(df_subset),]
               if(nrow(df_subset)>0){
                 saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix,"_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
                 new_file <-c(list.files(events_tmp_PROC_dxcodes, "\\_SNOMED.rds$"))
@@ -140,13 +140,13 @@ if(length(proc_files)>0){
         if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "start"){
           
           for (i in 1:length(codelist_start_all)){
-            df_subset_vocab <- df
-            if (dotted == "Yes"){df_subset <- setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
-            if (dotted == "No"){df_subset <- setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
-            df_subset <- df_subset[,-c("vocab", "flag")]
+            df_subset_vocab<-df
+            if (dotted == "Yes"){df_subset<-setDT(df_subset_vocab)[Code %chin% codelist_start_all[[i]][,Code]]}
+            if (dotted == "No"){df_subset<-setDT(df_subset_vocab)[Code %chin% gsub("\\.", "", codelist_start_all[[i]][,Code])]}
+            df_subset<-df_subset[,-c("vocab", "flag")]
             # Remove excluded codes (found as a result of code with no dots)
-            df_subset <- setDT(df_subset)[Code %!in% excluded_codes]
-            df_subset <- df_subset[!duplicated(df_subset),]
+            df_subset<-setDT(df_subset)[Code %!in% excluded_codes]
+            df_subset<-df_subset[!duplicated(df_subset),]
             if(nrow(df_subset)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix,"_",names(codelist_start_all[i]), "_",procedures_prefix, "_start.rds"))
               new_file <-c(list.files(events_tmp_PROC_dxcodes, "\\_start.rds$"))
@@ -156,9 +156,9 @@ if(length(proc_files)>0){
           # Covers RCD, RCD2, READ, CPRD_Read Codes 
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "READ") {
           for (i in 1:length(codelist_read_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
-            df_subset <- df_subset[!duplicated(df_subset),]
+            df_subset<-setDT(df)[Code %chin% codelist_read_all[[i]][,Code]]
+            df_subset<-df_subset[,-c("vocab", "flag")]
+            df_subset<-df_subset[!duplicated(df_subset),]
             
             if(nrow(df_subset)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_read_all[i]), "_",procedures_prefix, "_READ.rds"))
@@ -169,9 +169,9 @@ if(length(proc_files)>0){
           # Covers SNOMEDCT_US, SCTSPA, SNOMED Codes 
         } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "SNOMED") {
           for (i in 1:length(codelist_snomed_all)){
-            df_subset <- setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
-            df_subset <- df_subset[,-c("vocab", "flag")]
-            df_subset <- df_subset[!duplicated(df_subset),]
+            df_subset<-setDT(df)[Code %chin% codelist_snomed_all[[i]][,Code]]
+            df_subset<-df_subset[,-c("vocab", "flag")]
+            df_subset<-df_subset[!duplicated(df_subset),]
             if(nrow(df_subset)>0){
               saveRDS(data.table(df_subset), paste0(events_tmp_PROC_dxcodes, pop_prefix, "_", names(codelist_snomed_all[i]), "_",procedures_prefix, "_SNOMED.rds"))
               new_file <-c(list.files(events_tmp_PROC_dxcodes, "\\_SNOMED.rds$"))
@@ -191,21 +191,21 @@ if(length(proc_files)>0){
   # Monthly Counts
   for(i in 1:length(codelist_all)){
     # Gets list of files in each code group folder
-    files <- list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])))
+    files<-list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])))
     # Performs counts per month/year
     if (length(files)>0){
       # Loads files
-      files <- list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
-      comb_meds <- do.call("rbind", lapply(files, readRDS))
-      comb_meds <- comb_meds[!duplicated(comb_meds),]
+      files<-list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
+      comb_meds<-do.call("rbind", lapply(files, readRDS))
+      comb_meds<-comb_meds[!duplicated(comb_meds),]
       # Delete all temporary events files - to avoid merging with 2nd subpop
       for(file in list.files(path=paste0(events_tmp_PROC_dxcodes, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
       # Only count records that fall between a patients entry and exit to study date 
-      comb_meds1 <- comb_meds[Date>=entry_date & Date<=exit_date]
+      comb_meds1<-comb_meds[Date>=entry_date & Date<=exit_date]
       # Counts by month-year
-      counts <- comb_meds1[,.N, by = .(year,month(Date))]
+      counts<-comb_meds1[,.N, by = .(year,month(Date))]
       # Merges with empty_df
-      counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
+      counts<-as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
@@ -216,10 +216,10 @@ if(length(proc_files)>0){
       # Changes values less than 5 and more than 0 to 5
       if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
-      counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
-      counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-      counts <-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+      counts<-within(counts, YM<- sprintf("%d-%02d", year, month))
+      counts<-merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
+      counts<-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      counts<-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
         saveRDS(comb_meds, paste0(procedures_dxcodes_pop ,pop_prefix, "_", names(codelist_all[i]),"_PROC.rds"))

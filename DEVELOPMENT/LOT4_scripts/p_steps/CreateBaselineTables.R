@@ -13,7 +13,7 @@ study_population[,exit_date:=as.IDate(exit_date, "%Y%m%d")]
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] 
 study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] 
 # Creates new column in study population: fu_dur_days 
-study_population[, fu_dur_days := exit_date - entry_date]
+study_population[, fu_dur_days:=exit_date-entry_date]
 # Creates age variable in study population = entry_date - birth date  (# Rounds down)
 study_population[, age_at_entry_date := floor((entry_date - birth_date)/365.25)]
 study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 & age_at_entry_date < 21], "12-20.99", 
@@ -22,7 +22,7 @@ study_population[,age_groups:= ifelse(study_population[,age_at_entry_date >= 12 
                                                     ifelse(study_population[,age_at_entry_date >= 41 & age_at_entry_date < 56], "41-55.99", "Not in range" ))))]
 
 # Medicine records need to be between a persons entry and exit dates 
-study_pop_meds <- study_pop_meds[Date>=entry_date & Date<exit_date,]
+study_pop_meds<-study_pop_meds[Date>=entry_date & Date<exit_date,]
 # Creates new column in Population with Retinoid and/or Valproate use: fu_dur_days 
 study_pop_meds[,entry_date:=as.IDate(entry_date,"%Y%m%d")] # Transform to date variables
 study_pop_meds[,exit_date:=as.IDate(exit_date, "%Y%m%d")] # Transform to date variables
@@ -39,9 +39,9 @@ study_pop_meds[,age_groups:= ifelse(study_pop_meds[,age_at_entry_date >= 12 & ag
 study_pop_meds[,med_type := ifelse(study_pop_meds[,Code %chin% c("D05BB02", "D11AH04", "D10BA01")], "Retinoid",
                                    ifelse(study_pop_meds[,Code %chin% c("N03AG01","N03AG02")], "Valproate", "Unknown"))]
 # Chooses first use of medication per ATC code & patid -> ALL unique person_id/ATC codes records 
-study_pop_first_occurrence  <- setDT(study_pop_meds)[order(Date), head(.SD, 1L), by = c("person_id", "Code")]
+study_pop_first_occurrence<-setDT(study_pop_meds)[order(Date), head(.SD, 1L), by = c("person_id", "Code")]
 
-if (multiple_regions == T){
+if(multiple_regions == T){
   # Saves study_population file (with age_group categories)
   saveRDS(study_population, paste0(baseline_pooling_dir,"/", pop_prefix, "_for_pooling_baseline_tables.rds"))
   # Saves Retinoid/Valproate file (with age group categories)
@@ -49,41 +49,41 @@ if (multiple_regions == T){
 }
 # Creates Subsets 
 if (study_type == "Retinoid"){
-  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
+  study_pop_ret<-setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+  study_pop_ret_unique<-unique(study_pop_ret, by = "person_id")
   # Retinoids - subgroups
-  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+  study_pop_ret_D05BB02<-setDT(study_pop_ret)[Code == "D05BB02"]
+  study_pop_ret_D11AH04<-setDT(study_pop_ret)[Code == "D11AH04"]
+  study_pop_ret_D10BA01<-setDT(study_pop_ret)[Code == "D10BA01"]
   
-  all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+  all_dfs_meds<-list(study_population, study_pop_ret_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+  names(all_dfs_meds)<-c("All Users", "Retinoids Only", "Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
   
 } else if (study_type == "Valproate"){
-  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+  study_pop_val<-setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+  study_pop_val_unique<-unique(study_pop_val, by = "person_id")
   
-  all_dfs_meds <- list(study_population, study_pop_val_unique)
-  names(all_dfs_meds) <- c("All Users", "Valproates Only")
+  all_dfs_meds<-list(study_population, study_pop_val_unique)
+  names(all_dfs_meds)<-c("All Users", "Valproates Only")
   
 } else if (study_type == "Both"){
-  study_pop_ret <- setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
-  study_pop_ret_unique <- unique(study_pop_ret, by = "person_id")
-  study_pop_ret_D05BB02 <- setDT(study_pop_ret)[Code == "D05BB02"]
-  study_pop_ret_D11AH04 <- setDT(study_pop_ret)[Code == "D11AH04"]
-  study_pop_ret_D10BA01 <- setDT(study_pop_ret)[Code == "D10BA01"]
+  study_pop_ret<-setDT(study_pop_first_occurrence)[med_type == "Retinoid"]
+  study_pop_ret_unique<-unique(study_pop_ret, by = "person_id")
+  study_pop_ret_D05BB02<-setDT(study_pop_ret)[Code == "D05BB02"]
+  study_pop_ret_D11AH04<-setDT(study_pop_ret)[Code == "D11AH04"]
+  study_pop_ret_D10BA01<-setDT(study_pop_ret)[Code == "D10BA01"]
   
-  study_pop_val <- setDT(study_pop_first_occurrence)[med_type == "Valproate"]
-  study_pop_val_unique <- unique(study_pop_val, by = "person_id")
+  study_pop_val<-setDT(study_pop_first_occurrence)[med_type == "Valproate"]
+  study_pop_val_unique<-unique(study_pop_val, by = "person_id")
   
-  all_dfs_meds <- list(study_population, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
-  names(all_dfs_meds) <- c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
+  all_dfs_meds<-list(study_population, study_pop_ret_unique, study_pop_val_unique, study_pop_ret_D05BB02, study_pop_ret_D11AH04, study_pop_ret_D10BA01)
+  names(all_dfs_meds)<-c("All Users", "Retinoids Only", "Valproates Only","Retinoids_D05BB02", "Retinoids_D11AH04", "Retinoids_D10BA01")
   
 }
 
 # Loops through all the subsets depending on the study_type and creates baseline tables 
 for (i in 1:length(all_dfs_meds)){
-  df <- all_dfs_meds[[i]]
+  df<-all_dfs_meds[[i]]
   if(nrow(df > 0)){
     ################## BASELINE ALL POPULATION ########################
     # Calculates median of followup in years 
@@ -159,7 +159,7 @@ for (i in 1:length(all_dfs_meds)){
                    "41.0-55.99 years_count",
                    "41.0-55.99 years_perc")
         
-        values <- c(as.character(round(fu_median,1)),
+        values<-c(as.character(round(fu_median,1)),
                     as.character(round(fu_IQR,1)),
                     as.character(round(fu_min,2)),
                     as.character(round(fu_max,2)),
@@ -187,7 +187,7 @@ for (i in 1:length(all_dfs_meds)){
       age_at_ID_41_55.99_perc  <- (age_at_ID_41_55.99_count/nrow(df)) * 100
       
       # Create dataframe
-      names <- c("Follow-up, years - median",
+      names<-c("Follow-up, years - median",
                  "Follow-up, years - IQR",
                  "Follow-up, years - min",
                  "Follow-up, years - max",
@@ -203,7 +203,7 @@ for (i in 1:length(all_dfs_meds)){
                  "41.0-55.99 years_count",
                  "41.0-55.99 years_perc")
       
-      values <- c(as.character(round(fu_median,1)),
+      values<-c(as.character(round(fu_median,1)),
                   as.character(round(fu_IQR,1)),
                   as.character(round(fu_min,2)),
                   as.character(round(fu_max,2)),
@@ -220,7 +220,7 @@ for (i in 1:length(all_dfs_meds)){
                   as.character(round(age_at_ID_41_55.99_perc),1))
     }
     # Creates baseline table
-    baseline <- data.table(names, values)
+    baseline<-data.table(names, values)
     # Saves files
     print(paste("Saving baseline table: ", pop_prefix, "_", names(all_dfs_meds[i])))
     saveRDS(baseline, paste0(baseline_tables_dir,"/", pop_prefix, "_", names(all_dfs_meds[i]),"_baseline.rds"))

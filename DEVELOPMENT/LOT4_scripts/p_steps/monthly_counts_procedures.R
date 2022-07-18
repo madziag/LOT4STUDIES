@@ -7,18 +7,18 @@
 # 2. Results in list of records with matching procedure codes
 # 3. Counts records saved in the previous step by month/year for each code group 
 # Loads procedure codes from Procedure_codes.xlsx
-matches <- c()
+matches<-c()
 source(paste0(pre_dir,"CreateConceptSets_ProcedureCodes.R"))
 # Gets list of procedure tables from CDM/LOT4 folders
-proc_files <- list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
+proc_files<-list.files(path=path_dir, pattern = "PROCEDURES", ignore.case = TRUE)
 # Creates empty table for counts
 # Gets min and max year from denominator file
-FUmonths_df <- as.data.table(FUmonths_df)
-min_data_available <- min(FUmonths_df$Y)
-max_data_available <- max(FUmonths_df$Y)
+FUmonths_df<-as.data.table(FUmonths_df)
+min_data_available<-min(FUmonths_df$Y)
+max_data_available<-max(FUmonths_df$Y)
 FUmonths_df[, c("Y", "M") := tstrsplit(YM, "-", fixed=TRUE)]
 empty_df<-expand.grid(seq(min(FUmonths_df$Y), max(FUmonths_df$Y)), seq(1, 12))
-names(empty_df) <- c("year", "month")
+names(empty_df)<-c("year", "month")
 # Checks for PROCEDURE Tables present
 if(length(proc_files)>0){
   # Creates a new folder for each code group type (to store records with matching codes)
@@ -26,7 +26,7 @@ if(length(proc_files)>0){
   # Processes each PROCEDURES table
   for (y in 1:length(proc_files)){
     # Gets prefix for procedures tables 
-    procedures_prefix <- gsub(".csv", "", proc_files[y])
+    procedures_prefix<-gsub(".csv", "", proc_files[y])
     # Loads procedures table
     df<-fread(paste(path_dir, proc_files[y], sep=""), stringsAsFactors = FALSE)
     # Data Cleaning
@@ -64,9 +64,9 @@ if(length(proc_files)>0){
       # Covers: CPRD codes
       if(length(unique(df$vocab)) == 1 & unique(df$vocab) == "CPRD"){
         for (i in 1:length(codelist_CPRD_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
-          df_subset <- df_subset[!duplicated(df_subset),]
+          df_subset<-setDT(df)[Code %chin% codelist_CPRD_all[[i]][,Code]]
+          df_subset<-df_subset[,-c("vocab")]
+          df_subset<-df_subset[!duplicated(df_subset),]
           if(nrow(df_subset)>0){
             saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_", names(codelist_CPRD_all[i]), "_",procedures_prefix, "_CPRD.rds"))
             new_file<-c(list.files(events_tmp_PROC, "\\_CPRD.rds$"))
@@ -76,9 +76,9 @@ if(length(proc_files)>0){
         # Covers PHARMO Codes
       } else if (length(unique(df$vocab)) == 1 & unique(df$vocab) == "PHARMO") {
         for (i in 1:length(codelist_PHARMO_all)){
-          df_subset <- setDT(df)[Code %chin% codelist_PHARMO_all[[i]][,Code]]
-          df_subset <- df_subset[,-c("vocab")]
-          df_subset <- df_subset[!duplicated(df_subset),]
+          df_subset<-setDT(df)[Code %chin% codelist_PHARMO_all[[i]][,Code]]
+          df_subset<-df_subset[,-c("vocab")]
+          df_subset<-df_subset[!duplicated(df_subset),]
           if(nrow(df_subset)>0){
             saveRDS(df_subset, paste0(events_tmp_PROC, pop_prefix, "_",names(codelist_PHARMO_all[i]), "_",procedures_prefix, "_PHARMO.rds"))
             new_file <-c(list.files(events_tmp_PROC, "\\_PHARMO.rds$"))
@@ -97,20 +97,20 @@ if(length(proc_files)>0){
   # Monthly Counts
   for(i in 1:length(codelist_all)){
     # Gets list of files in each code group folder
-    files <- list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])))
+    files<-list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])))
     # Performs counts per month/year
     if (length(files)>0){
       # Loads files
-      files <- list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
-      comb_meds <- do.call("rbind", lapply(files, readRDS))
-      comb_meds <- comb_meds[!duplicated(comb_meds),]
-      comb_meds1 <- comb_meds[Date>=entry_date & Date<=exit_date]
+      files<-list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)
+      comb_meds<-do.call("rbind", lapply(files, readRDS))
+      comb_meds<-comb_meds[!duplicated(comb_meds),]
+      comb_meds1<-comb_meds[Date>=entry_date & Date<=exit_date]
       # Delete all temporary events files - to avoid merging with 2nd subpop
       for(file in list.files(path=paste0(events_tmp_PROC, names(codelist_all[i])), pattern = "\\.rds$", full.names = TRUE)){unlink(file)}
       # Counts by month-year
-      counts <- comb_meds1[,.N, by = .(year,month(Date))]
+      counts<-comb_meds1[,.N, by = .(year,month(Date))]
       # Merges with empty_df
-      counts <- as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
+      counts<-as.data.table(merge(x = empty_df, y = counts, by = c("year", "month"), all.x = TRUE))
       # Fills in missing values with 0
       counts[is.na(counts[,N]), N:=0]
       # Column detects if data is available this year or not #3-> data is not available, 0 values because data does not exist; 16-> data is available, any 0 values are true
@@ -121,10 +121,10 @@ if(length(proc_files)>0){
       # Changes values less than 5 and more than 0 to 5
       if(mask==T){counts[masked==1,N:=5]} else {counts[masked==1,N:=N]}
       # Calculates rates
-      counts <- within(counts, YM<- sprintf("%d-%02d", year, month))
-      counts <- merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
-      counts <-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
-      counts <-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
+      counts<-within(counts, YM<- sprintf("%d-%02d", year, month))
+      counts<-merge(x = counts, y = FUmonths_df, by = c("YM"), all.x = TRUE)
+      counts<-counts[,rates:=as.numeric(N)/as.numeric(Freq)][,rates:=rates*1000][is.nan(rates)|is.na(rates), rates:=0]
+      counts<-counts[,c("YM", "N", "Freq", "rates", "masked", "true_value")]
       # Saves files in g_output monthly counts
       if(comb_meds[,.N]>0){
         saveRDS(comb_meds, paste0(procedures_pop,pop_prefix, "_",names(codelist_all[i]),"_PROC.rds"))

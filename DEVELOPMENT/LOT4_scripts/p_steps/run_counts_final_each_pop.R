@@ -12,7 +12,7 @@
 # Result: If SUBP -> TRUE then each folder will contain (if present) results coming from all indicated subpops. Resulting files are prefixed with the name of the subpop
 
 # Loads study population/populations 
-populations <- list.files(populations_dir, pattern = "study_population")
+populations<-list.files(populations_dir, pattern = "study_population")
 # Checks for study type
 if(study_type == "Retinoid"){
   pattern_meds = c("Retinoid")
@@ -39,7 +39,7 @@ if (is_Denmark == T){
     # Assign study population prefix name
     pop_prefix <- gsub("_study_population.rds", "", populations)
     # Creates baseline tables 
-    # source(paste0(pre_dir,"CreateBaselineTables.R"))
+    source(paste0(pre_dir,"CreateBaselineTables.R"))
     # Prepares preliminary data to be used for final counts
     source(paste0(pre_dir, "prepare_prelim_data.R"))
     # Creates Retinoid/Valproate treatment episodes 
@@ -67,21 +67,21 @@ if (is_Denmark == T){
   # Loops over each subpopulation
   for(pop in 1:length(populations)){
     # Loads study population
-    study_population <- readRDS(paste0(populations_dir, populations[pop]))
+    study_population<-readRDS(paste0(populations_dir, populations[pop]))
     # Make sure last exit data is 2019 if DAP == "PHARMO"
-    if (is_PHARMO){study_population <- study_population[year(study_population$exit_date) < 2020,]} else {study_population <- study_population}
+    if(is_PHARMO){study_population<-study_population[year(study_population$exit_date) < 2020,]}else{study_population<-study_population}
     # Assign study population prefix name
-    pop_prefix <- gsub("_study_population.rds", "", populations[pop])
+    pop_prefix<-gsub("_study_population.rds", "", populations[pop])
     # Loads files with matching pattern 
-    med_files <- list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
-    if(pop_prefix == "PC"){med_files <- med_files[!grepl("PC_HOSP",med_files)]}
-    if(pop_prefix == "PC_HOSP"){med_files <- med_files[grepl("PC_HOSP",med_files)]}
+    med_files<-list.files(path=medications_pop, pattern=paste0(pattern_meds, collapse="|"))
+    if(pop_prefix == "PC"){med_files<-med_files[!grepl("PC_HOSP",med_files)]}
+    if(pop_prefix == "PC_HOSP"){med_files<-med_files[grepl("PC_HOSP",med_files)]}
 
     if(length(med_files)>0){
       # Reads in records of population with indicated study type
-      study_pop_meds <- do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
+      study_pop_meds<-do.call(rbind,lapply(paste0(medications_pop,"/",med_files), readRDS))
       # Creates baseline tables #
-      # source(paste0(pre_dir,"CreateBaselineTables.R"))
+      source(paste0(pre_dir,"CreateBaselineTables.R"))
       # Prepares preliminary data to be used for final counts
       source(paste0(pre_dir, "prepare_prelim_data.R"))
       # Creates Retinoid/Valproate treatment episodes #
